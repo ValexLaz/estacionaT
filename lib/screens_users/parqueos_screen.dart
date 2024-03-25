@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 import 'navigation_bar_screen.dart'; // Asegúrate de importar correctamente
 
@@ -8,29 +9,25 @@ class ParqueosScreen extends StatefulWidget {
 }
 
 class _ParqueosScreenState extends State<ParqueosScreen> {
-  final List<Map<String, dynamic>> parqueos = [
-    {
-      'imagen': 'https://via.placeholder.com/150',
-      'nombre': 'Parqueo Central',
-      'ubicacion': 'Calle Principal #123',
-      'tarifa': '10 Bs/hora',
-      'disponible': true,
-    },
-    {
-      'imagen': 'https://via.placeholder.com/150',
-      'nombre': 'Parqueo del Norte',
-      'ubicacion': 'Avenida del Parque #456',
-      'tarifa': '8 Bs/hora',
-      'disponible': false,
-    },
-    {
-      'imagen': 'https://via.placeholder.com/150',
-      'nombre': 'Parqueo Sur',
-      'ubicacion': 'Zona Sur #789',
-      'tarifa': '12 Bs/hora',
-      'disponible': true,
-    },
-  ];
+  final ApiParking apiParking = new ApiParking();
+  List<Map<String, dynamic>> parqueos = [];
+
+   @override
+   void initState(){
+    super.initState();
+    fetchData();
+   }
+  Future<void> fetchData() async {
+    try {
+
+      List<Map<String, dynamic>> data = await apiParking.getAllRecords();
+      setState(() {
+        parqueos = data;
+      });
+    } catch (e) {
+      print('Error al obtener datos de parqueos: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +47,7 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
               child: Row(
                 children: [
                   Image.network(
-                    parqueo['imagen'],
+                    parqueo['url_image'],
                     width: 100,
                     height: 100,
                     fit: BoxFit.cover,
@@ -62,27 +59,27 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            parqueo['nombre'],
+                            parqueo['name'],
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1b4ee4)),
                           ),
                           Text(
-                            parqueo['ubicacion'],
+                            "Santa cruz",
                             style: TextStyle(color: Colors.black),
                           ),
                           Text(
-                            parqueo['tarifa'],
+                          "15 bs",
                             style: TextStyle(color: Colors.black),
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
                                 vertical: 2, horizontal: 8),
-                            color: parqueo['disponible']
+                            color: true
                                 ? Colors.green
                                 : Colors.red,
                             child: Text(
-                              parqueo['disponible']
+                              true
                                   ? 'Disponible'
                                   : 'No disponible',
                               style: TextStyle(color: Colors.white),
