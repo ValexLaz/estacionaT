@@ -23,7 +23,7 @@ class _ReportsPageState extends State<ReportsPage> {
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.white, // Cambiado a fondo blanco
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -47,11 +47,17 @@ class _ReportsPageState extends State<ReportsPage> {
         child: Column(
           children: [
             _buildReportRow(
-                "Vehículos que ingresaron", vehiclesEntered.toString()),
+              "Vehículos que ingresaron",
+              vehiclesEntered.toString(),
+            ),
             _buildReportRow(
-                "Vehículos que salieron", vehiclesExited.toString()),
+              "Vehículos que salieron",
+              vehiclesExited.toString(),
+            ),
             _buildReportRow(
-                "Total de ingresos", "\$${totalIncome.toStringAsFixed(2)}"),
+              "Total de ingresos",
+              "\$${totalIncome.toStringAsFixed(2)}",
+            ),
           ],
         ),
       ),
@@ -67,7 +73,7 @@ class _ReportsPageState extends State<ReportsPage> {
           Text(
             title,
             style: TextStyle(
-              color: myColor, // Ajustado para usar myColor
+              color: myColor,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -75,7 +81,7 @@ class _ReportsPageState extends State<ReportsPage> {
           Text(
             value,
             style: TextStyle(
-              color: myColor, // Ajustado para usar myColor
+              color: myColor,
               fontSize: 16,
             ),
           ),
@@ -108,7 +114,7 @@ class _BarChartPainter extends CustomPainter {
 
     var random = Random();
     for (int i = 0; i < 5; i++) {
-      var height = random.nextDouble() * size.height;
+      var height = random.nextDouble() * size.height * 0.8; // Reduce the maximum height
       canvas.drawLine(
         Offset(i * size.width / 5 + 25, size.height),
         Offset(i * size.width / 5 + 25, size.height - height),

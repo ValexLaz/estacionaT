@@ -7,3 +7,4 @@ class ApiParking  extends ApiService{
 class ApiUser extends ApiService{
   ApiUser():super("user/user/");
 }
+
