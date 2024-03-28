@@ -90,7 +90,7 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ),
         const SizedBox(height: 20),
-        _buildGreyText("Nombre completo"),
+        _buildGreyText("Nombre (este tanbien sera tu nombre de usuario)"),
         _buildInputField(nameController,
             icon: Icons.person, focusNode: nameFocusNode),
         const SizedBox(height: 20),
@@ -186,10 +186,25 @@ class _SignUpPageState extends State<SignUpPage> {
         );
         print(response.body);
         // Verificar el código de respuesta
-        if (response.statusCode == 200) {
-          // Registro exitoso
-          // Puedes manejar aquí la respuesta si la API devuelve algo
-          // Navegar a la página de inicio de sesión o a donde desees
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Registro exitoso'),
+                content: Text(
+                    'Gracias por registrarte en estacionaT, ahora puedes iniciar sesión.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cerrar'),
+                  ),
+                ],
+              );
+            },
+          );
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => LoginPage()),
           );
