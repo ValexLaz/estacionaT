@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'screens_users/login_screen.dart'; // Asegúrate de importar la clase LoginScreen desde su archivo correspondiente
+import 'package:map_flutter/screens_users/login_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,7 +15,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginPage(), // Aquí se llama a tu pantalla de inicio de sesión
+      home: LoginPage(),
     );
   }
 }

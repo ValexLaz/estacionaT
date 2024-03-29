@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -77,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
         Text(
           "Bienvenido",
           style: TextStyle(
-            color: myColor,
+            color: Colors.black,
             fontSize: 32,
             fontWeight: FontWeight.w500,
           ),
@@ -85,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
         _buildGreyText("Por favor inicia sesión con tus datos personales"),
         const SizedBox(height: 40),
         _buildGreyText("Nombre de usuario"),
-        _buildInputField(emailController, icon: Icons.person),
+        _buildInputField(emailController),
         const SizedBox(height: 40),
         _buildGreyText("Contraseña"),
         _buildPasswordInputField(),
@@ -123,7 +124,6 @@ class _LoginPageState extends State<LoginPage> {
       focusNode: passwordFocusNode,
       obscureText: obscurePassword,
       decoration: InputDecoration(
-        prefixIcon: passwordFocusNode.hasFocus ? null : const Icon(Icons.lock),
         suffixIcon: IconButton(
           icon: Icon(obscurePassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {

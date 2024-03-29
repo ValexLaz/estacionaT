@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_gerentes/create_account_gerente.dart';
+import 'package:map_flutter/screens_users/login_screen.dart';
+import 'package:map_flutter/screens_users/vehicle_registration.dart';
 
 class CuentaScreen extends StatefulWidget {
   @override
@@ -6,107 +9,153 @@ class CuentaScreen extends StatefulWidget {
 }
 
 class _CuentaScreenState extends State<CuentaScreen> {
-  bool _darkTheme = false;
-
   @override
   Widget build(BuildContext context) {
-    Color primaryColor =
-        Color(0xFF1b4ee4); // Color principal utilizado en LoginPage
-    Color backgroundColor = Color(
-        0xFFe6e7f8); // Un color de fondo más claro que combine con el azul
-    Color textColor =
-        Colors.black; // Texto oscuro para contrastar con el fondo claro
+    Color primaryColor = Color(0xFF1b4ee4);
+    Color textColor = Colors.black;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Cuenta',
-          style: TextStyle(color: textColor),
-        ),
-        backgroundColor: primaryColor,
-      ),
-      body: Container(
-        color: backgroundColor, // Aplicar un color de fondo claro
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              child: Icon(Icons.person, size: 60, color: textColor),
-              backgroundColor: primaryColor,
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Nombre Completo',
-              style: TextStyle(
-                  fontSize: 20, color: textColor, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(height: 20),
-            _buildListTile(
-              title: 'Editar datos personales',
-              icon: Icons.edit,
-              textColor: textColor,
-              onTap: () {
-                // Lógica para editar datos personales
-              },
-            ),
-            _buildListTile(
-              title: 'Notificaciones',
-              icon: Icons.notifications,
-              textColor: textColor,
-              onTap: () {
-                // Lógica para notificaciones
-              },
-            ),
-            _buildListTile(
-              title: 'Autos',
-              icon: Icons.directions_car,
-              textColor: textColor,
-              onTap: () {
-                // Lógica para autos
-              },
-            ),
-            ListTile(
-              title: Text(
-                'Dark theme',
-                style: TextStyle(color: textColor),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Container(color: primaryColor),
               ),
-              trailing: Switch(
-                value: _darkTheme,
-                onChanged: (value) {
-                  setState(() {
-                    _darkTheme = value;
-                  });
-                  // Lógica para cambiar el tema
-                },
-                activeColor: primaryColor,
+              Expanded(
+                flex: 3,
+                child: Container(color: Colors.white),
               ),
-            ),
-            _buildListTile(
-              title: 'Cerrar sesión',
-              icon: Icons.exit_to_app,
-              textColor: textColor,
-              onTap: () {
-                // Lógica para cerrar sesión
-              },
-            ),
-          ],
-        ),
+            ],
+          ),
+          Column(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        child:
+                            Icon(Icons.person, size: 60, color: primaryColor),
+                        backgroundColor: Colors.white,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Nombre Completo',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Card(
+                    color: Colors.white,
+                    elevation: 8.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildListTile(
+                            title: 'Editar datos personales',
+                            icon: Icons.edit,
+                            textColor: textColor,
+                            onTap: () {
+                              // Lógica para editar datos personales
+                            },
+                          ),
+                          _buildListTile(
+                            title: 'Notificaciones',
+                            icon: Icons.notifications,
+                            textColor: textColor,
+                            onTap: () {
+                              // Lógica para notificaciones
+                            },
+                          ),
+                          _buildListTile(
+                            title: 'Autos',
+                            icon: Icons.directions_car,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        VehicleRegistrationPage()),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            title: 'Cerrar sesión',
+                            icon: Icons.exit_to_app,
+                            textColor: Colors.red,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()),
+                              );
+                            },
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SignUpParkingPage()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                            ),
+                            child: Text(
+                              'Registrar mi Parqueo',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildListTile(
-      {required String title,
-      required IconData icon,
-      required Color textColor,
-      required Function onTap}) {
+  Widget _buildListTile({
+    required String title,
+    required IconData icon,
+    required Color textColor,
+    required Function onTap,
+  }) {
     return ListTile(
+      leading: Icon(icon, color: textColor),
       title: Text(
         title,
         style: TextStyle(color: textColor),
       ),
-      trailing: Icon(icon, color: textColor),
+      trailing: Icon(Icons.keyboard_arrow_right, color: textColor),
       onTap: () => onTap(),
     );
   }

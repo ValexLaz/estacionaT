@@ -9,17 +9,17 @@ class ParqueosScreen extends StatefulWidget {
 }
 
 class _ParqueosScreenState extends State<ParqueosScreen> {
-  final ApiParking apiParking = new ApiParking();
+  final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parqueos = [];
 
-   @override
-   void initState(){
+  @override
+  void initState() {
     super.initState();
     fetchData();
-   }
+  }
+
   Future<void> fetchData() async {
     try {
-
       List<Map<String, dynamic>> data = await apiParking.getAllRecords();
       setState(() {
         parqueos = data;
@@ -46,8 +46,8 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
               margin: EdgeInsets.all(8),
               child: Row(
                 children: [
-                  Image.network(
-                    parqueo['url_image'],
+                  Image.asset(
+                    'assets/images/Logotipo.png', // Imagen predeterminada
                     width: 100,
                     height: 100,
                     fit: BoxFit.cover,
@@ -69,7 +69,7 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
                             style: TextStyle(color: Colors.black),
                           ),
                           Text(
-                          "15 bs",
+                            "15 bs",
                             style: TextStyle(color: Colors.black),
                           ),
                           Container(
@@ -79,9 +79,7 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
                                 ? Colors.green
                                 : Colors.red,
                             child: Text(
-                              true
-                                  ? 'Disponible'
-                                  : 'No disponible',
+                              true ? 'Disponible' : 'No disponible',
                               style: TextStyle(color: Colors.white),
                             ),
                           ),

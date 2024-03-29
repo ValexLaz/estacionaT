@@ -1,8 +1,9 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl  = "https://estacionatbackend.onrender.com/api/v2/";
+  final String baseUrl = "https://estacionatbackend.onrender.com/api/v2/";
   String path;
   ApiService(this.path);
 
@@ -10,7 +11,7 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl$path'));
     print(response.body);
     if (response.statusCode == 200) {
-    return List<Map<String, dynamic>>.from(json.decode(response.body));
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
       throw Exception('Failed to load data from API');
     }
@@ -28,7 +29,7 @@ class ApiService {
     }
   }
 
-  Future<void> updateRecordByID(String id, Map<String, dynamic> data) async{
+  Future<void> updateRecordByID(String id, Map<String, dynamic> data) async {
     final response = await http.put(
       Uri.parse('$baseUrl$path$id/'),
       body: json.encode(data),
@@ -47,5 +48,4 @@ class ApiService {
       throw Exception('Failed to delete data from API');
     }
   }
-
 }

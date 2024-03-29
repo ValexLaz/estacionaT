@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_gerentes/navigation_bar_owner.dart';
-import 'package:map_flutter/screens_users/map_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class SignUpParkingPage extends StatefulWidget {
@@ -29,9 +28,8 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.white, // Fondo blanco
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        // Widget scrollable
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
@@ -126,22 +124,42 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   Widget _buildSignUpButton() {
     return ElevatedButton(
       onPressed: () async {
+        Map<String, dynamic> parkingData = {
+          "name": parkingNameController.text,
+          "capacity": int.tryParse(capacityController.text) ?? 0,
+          "phone": ownerPhoneController.text,
+          "email": emailController.text,
+          "user": 2,
+          "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
+          "url_image": imageUrlController.text,
+          "description": descriptionController.text,
+          "opening_time": "${openingTime.hour}:${openingTime.minute}",
+          "closing_time": "${closingTime.hour}:${closingTime.minute}",
+        };
+
         try {
-          await apiParking.createRecord({
-            "name": parkingNameController.text,
-            "capacity": capacityController.text,
-            "phone": ownerPhoneController.text,
-            "email": emailController.text,
-            "spaces_available": spacesAvailableController.text,
-            "description": descriptionController.text,
-            "opening_time": "${openingTime.hour}:${openingTime.minute}",
-            "closing_time": "${closingTime.hour}:${closingTime.minute}",
-          });
+          await apiParking.createRecord(parkingData);
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => MainScreen()),
           );
         } catch (e) {
-          // Manejar errores aquí, como mostrar un diálogo de error
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Error de Registro'),
+                content: Text('Error al registrar el parqueo: $e'),
+                actions: [
+                  TextButton(
+                    child: Text('Cerrar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
           print("Error al registrar el parqueo: $e");
         }
       },

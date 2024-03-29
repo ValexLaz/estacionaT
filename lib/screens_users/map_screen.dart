@@ -17,6 +17,20 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   LatLng? myPosition;
 
+  Future<void> getCurrentLocation() async {
+    try {
+      Position position = await determinePosition();
+      if (mounted) {
+        setState(() {
+          myPosition = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (e) {
+      // Handle the exception here, possibly showing an error message to the user
+      print('Error obtaining location: $e');
+    }
+  }
+
   Future<Position> determinePosition() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -28,13 +42,6 @@ class _MapScreenState extends State<MapScreen> {
     return Geolocator.getCurrentPosition();
   }
 
-  void getCurrentLocation() async {
-    Position position = await determinePosition();
-    setState(() {
-      myPosition = LatLng(position.latitude, position.longitude);
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -44,7 +51,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return myPosition == null
-        ? CircularProgressIndicator()
+        ? const CircularProgressIndicator()
         : FlutterMap(
             options: MapOptions(
               center: myPosition,
