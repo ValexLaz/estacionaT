@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:map_flutter/screens_gerentes/navigation_bar_owner.dart';
 import 'create_account_page.dart';
 import 'forgot_password_screen.dart';
 import 'navigation_bar_screen.dart';
@@ -187,16 +187,21 @@ class _LoginPageState extends State<LoginPage> {
           },
         );
         print(response.body);
-        // Verificar el código de respuesta
         if (response.statusCode == 200) {
-          // Éxito en la solicitud, puedes procesar la respuesta aquí
-          final responseData = jsonDecode(response.body);
-          // Guardar el token de autenticación para futuras solicitudes
-          final authToken = responseData['token'];
-          // Navegar a la pantalla asignada después del inicio de sesión exitoso
-          Navigator.of(context).push(
+        final responseData = jsonDecode(response.body);
+        final authToken = responseData['token'];
+        final bool rolUsuario = responseData['user']['rol_usuario'];
+        if (rolUsuario) {
+            Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => MainScreen()), //pantalla del dueño del parqueo
+            );
+        } else {
+            Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => NavigationBarScreen()),
-          );
+            );
+  }
+
+
         } else {
           // Si la solicitud falla, puedes mostrar un mensaje de error
           if (response.headers['content-type']?.contains('application/json') ??
