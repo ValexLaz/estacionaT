@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/cuenta.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: LoginPage(),
+      home: CuentaScreen(),
     );
   }
 }

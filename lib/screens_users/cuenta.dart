@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_gerentes/create_account_gerente.dart';
+import 'package:map_flutter/screens_users/list_parking.dart';
+import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 
@@ -86,7 +88,7 @@ class _CuentaScreenState extends State<CuentaScreen> {
                             },
                           ),
                           _buildListTile(
-                            title: 'Autos',
+                            title: 'Mis Vehiculos',
                             icon: Icons.directions_car,
                             textColor: textColor,
                             onTap: () {
@@ -94,7 +96,19 @@ class _CuentaScreenState extends State<CuentaScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        VehicleRegistrationPage()),
+                                       ListVehicle()),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            title: 'Mis Parqueos',
+                            icon: Icons.local_parking,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ListParkings()),
                               );
                             },
                           ),
@@ -110,26 +124,7 @@ class _CuentaScreenState extends State<CuentaScreen> {
                               );
                             },
                           ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SignUpParkingPage()),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                            ),
-                            child: Text(
-                              'Registrar mi Parqueo',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
+            
                         ],
                       ),
                     ),

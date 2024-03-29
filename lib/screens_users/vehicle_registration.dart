@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/cuenta.dart';
+import 'package:map_flutter/screens_users/list_vehicle.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -11,7 +14,7 @@ class VehicleRegistrationPage extends StatefulWidget {
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   late Color myColor;
   late Size mediaSize;
-
+  final ApiVehicle apiVehicle= ApiVehicle() ;
   TextEditingController brandController = TextEditingController();
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
@@ -104,15 +107,41 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
   Widget _buildRegisterVehicleButton() {
     return ElevatedButton(
-      onPressed: () {
-        // Lógica de registro de vehículo
+      onPressed: () async {
+        Map<String, dynamic> vehicleData = {
+          "brand": brandController.text,
+          "model": modelController.text,
+          "registration_plate": plateController.text,
+          "user": 2,
+          "type_vehicle" : 1
+        };
+
+        try {
+          await apiVehicle.createRecord(vehicleData);
+          
+    Navigator.pop(context);
+
+        } catch (e) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Error de Registro'),
+                content: Text('Error al registrar el parqueo: $e'),
+                actions: [
+                  TextButton(
+                    child: Text('Cerrar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+          print("Error al registrar el parqueo: $e");
+        }
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
-      ),
       child: Text(
         "Registrar vehículo",
         style: TextStyle(color: Colors.white),
