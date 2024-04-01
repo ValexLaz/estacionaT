@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_gerentes/create_account_gerente.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
-import 'package:map_flutter/screens_users/vehicle_registration.dart';
 
 class CuentaScreen extends StatefulWidget {
   @override

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:map_flutter/screens_gerentes/navigation_bar_owner.dart';
+import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'create_account_page.dart';
 import 'forgot_password_screen.dart';
 import 'navigation_bar_screen.dart';

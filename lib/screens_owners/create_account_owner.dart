@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_gerentes/navigation_bar_owner.dart';
+import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class SignUpParkingPage extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/cuenta.dart';
+import 'package:map_flutter/screens_users/account_user.dart';
 
 import 'map_screen.dart';
-import 'parqueos_screen.dart';
+import 'parkings_screen.dart';
 import 'reserva.dart';
 
 class NavigationBarScreen extends StatefulWidget {

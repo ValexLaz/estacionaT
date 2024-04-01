@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/cuenta.dart';
-import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
@@ -14,7 +12,7 @@ class VehicleRegistrationPage extends StatefulWidget {
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   late Color myColor;
   late Size mediaSize;
-  final ApiVehicle apiVehicle= ApiVehicle() ;
+  final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
@@ -113,14 +111,13 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
           "model": modelController.text,
           "registration_plate": plateController.text,
           "user": 2,
-          "type_vehicle" : 1
+          "type_vehicle": 1
         };
 
         try {
           await apiVehicle.createRecord(vehicleData);
-          
-    Navigator.pop(context);
 
+          Navigator.pop(context);
         } catch (e) {
           showDialog(
             context: context,
