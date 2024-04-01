@@ -15,7 +15,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
   final List<Widget> _children = [
     MapScreen(),
-    ParqueosScreen(),
+    ListParkings(),
     ReservaScreen(),
     CuentaScreen(),
   ];

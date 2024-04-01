@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
-import '../screens_gerentes/create_account_gerente.dart';
 
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});

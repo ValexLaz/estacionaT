@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
+import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
-import 'navigation_bar_screen.dart'; // Asegúrate de importar correctamente
+class ListParkings extends StatefulWidget {
+  const ListParkings({super.key});
 
-class ParqueosScreen extends StatefulWidget {
   @override
-  _ParqueosScreenState createState() => _ParqueosScreenState();
+  State<ListParkings> createState() => _ListParkingsState();
 }
 
-class _ParqueosScreenState extends State<ParqueosScreen> {
+class _ListParkingsState extends State<ListParkings> {
   final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parqueos = [];
+  Color primaryColor = Color(0xFF1b4ee4);
 
   @override
   void initState() {
@@ -20,7 +23,8 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
 
   Future<void> fetchData() async {
     try {
-      List<Map<String, dynamic>> data = await apiParking.getAllRecords();
+      List<Map<String, dynamic>> data =
+          await apiParking.getAllParkingsByUserID("2");
       setState(() {
         parqueos = data;
       });
@@ -33,73 +37,89 @@ class _ParqueosScreenState extends State<ParqueosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Parqueos', style: TextStyle(color: Colors.white)),
+        title: Text('Mis Parqueos', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF1b4ee4),
       ),
-      body: Container(
-        color: Colors.white,
-        child: ListView.builder(
-          itemCount: parqueos.length,
-          itemBuilder: (context, index) {
-            var parqueo = parqueos[index];
-            return Card(
-              margin: EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/images/Logotipo.png', // Imagen predeterminada
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            parqueo['name'],
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1b4ee4)),
-                          ),
-                          Text(
-                            "Santa cruz",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          Text(
-                            "15 bs",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 2, horizontal: 8),
-                            color: true
-                                ? Colors.green
-                                : Colors.red,
-                            child: Text(
-                              true ? 'Disponible' : 'No disponible',
-                              style: TextStyle(color: Colors.white),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: parqueos.length,
+              itemBuilder: (context, index) {
+                var parqueo = parqueos[index];
+                bool isAvailable = parqueo['spaces_available'] >
+                    0; // Asumiendo que 'spaces_available' es un int
+
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ParkingDetailsScreen(
+                            parkingId: parqueo['id'].toString()),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    margin: EdgeInsets.all(8),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/Logotipo.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  parqueo['name'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1b4ee4),
+                                  ),
+                                ),
+                                Text(
+                                    'Espacios disponibles: ${parqueo['spaces_available']}'),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 2,
+                                    horizontal: 8,
+                                  ),
+                                  color:
+                                      isAvailable ? Colors.green : Colors.red,
+                                  child: Text(
+                                    isAvailable
+                                        ? 'Disponible'
+                                        : 'No disponible',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          icon:
+                              Icon(Icons.location_on, color: Color(0xFF1b4ee4)),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => NavigationBarScreen(),
+                            ));
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.location_on, color: Color(0xFF1b4ee4)),
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => NavigationBarScreen(),
-                      ));
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

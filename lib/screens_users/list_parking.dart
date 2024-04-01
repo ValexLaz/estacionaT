@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
+import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
-
-import '../screens_gerentes/create_account_gerente.dart';
 
 class ListParkings extends StatefulWidget {
   const ListParkings({super.key});
@@ -43,45 +42,30 @@ class _ListParkingsState extends State<ListParkings> {
       ),
       body: Column(
         children: [
-          Container(
-            margin: EdgeInsets.symmetric(
-                vertical:
-                    16), // Ajusta el margen superior e inferior según sea necesario
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SignUpParkingPage(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-              ),
-              child: Text(
-                'Agregar parqueo',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
           Expanded(
-            child: Container(
-              color: Colors.white,
-              child: ListView.builder(
-                itemCount: parqueos.length,
-                itemBuilder: (context, index) {
-                  var parqueo = parqueos[index];
-                  return Card(
+            child: ListView.builder(
+              itemCount: parqueos.length,
+              itemBuilder: (context, index) {
+                var parqueo = parqueos[index];
+                bool isAvailable = parqueo['spaces_available'] >
+                    0; // Asumiendo que 'spaces_available' es un int
+
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ParkingDetailsScreen(
+                            parkingId: parqueo['id'].toString()),
+                      ),
+                    );
+                  },
+                  child: Card(
                     margin: EdgeInsets.all(8),
                     child: Row(
                       children: [
                         Image.asset(
-                          'assets/images/Logotipo.png', // Imagen predeterminada
+                          'assets/images/Logotipo.png',
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -100,21 +84,18 @@ class _ListParkingsState extends State<ListParkings> {
                                   ),
                                 ),
                                 Text(
-                                  "Santa cruz",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                Text(
-                                  "15 bs",
-                                  style: TextStyle(color: Colors.black),
-                                ),
+                                    'Espacios disponibles: ${parqueo['spaces_available']}'),
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     vertical: 2,
                                     horizontal: 8,
                                   ),
-                                  color: true ? Colors.green : Colors.red,
+                                  color:
+                                      isAvailable ? Colors.green : Colors.red,
                                   child: Text(
-                                    true ? 'Disponible' : 'No disponible',
+                                    isAvailable
+                                        ? 'Disponible'
+                                        : 'No disponible',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -133,9 +114,9 @@ class _ListParkingsState extends State<ListParkings> {
                         ),
                       ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],

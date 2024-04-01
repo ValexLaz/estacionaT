@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/cuenta.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
-import 'package:map_flutter/screens_users/map_screen.dart';
 
 void main() {
   runApp(MyApp());
