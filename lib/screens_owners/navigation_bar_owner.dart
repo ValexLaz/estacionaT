@@ -6,6 +6,7 @@ import 'register_car.dart';
 import 'reports_screen.dart';
 
 class MainScreen extends StatefulWidget {
+    
   @override
   _MainScreenState createState() => _MainScreenState();
 }

@@ -24,14 +24,10 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
 
   Future<void> fetchParkingDetails() async {
     try {
-      List<Map<String, dynamic>> allParkings = await apiParking
-          .getAllParkingsByUserID("2"); // Cambia "2" al ID de usuario adecuado
-      // Encuentra el estacionamiento con el ID coincidente
-      Map<String, dynamic> foundParking = allParkings.firstWhere(
-          (parking) => parking['id'] == widget.parkingId,
-          orElse: () => {});
+      Map<String, dynamic> parkingDetail =
+          await apiParking.getParkingDetailsById(widget.parkingId);
       setState(() {
-        parkingDetails = foundParking;
+        parkingDetails = parkingDetail;
         isLoading = false;
       });
     } catch (e) {
@@ -88,13 +84,6 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                   Text(
                     'Descripción: ${parkingDetails['description'] ?? ''}',
                     style: TextStyle(fontSize: 16.0),
-                  ),
-                  SizedBox(height: 8.0),
-                  Image.network(
-                    parkingDetails['url_image'] ?? '',
-                    width: MediaQuery.of(context).size.width,
-                    height: 200,
-                    fit: BoxFit.cover,
                   ),
                 ],
               ),
