@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -34,8 +35,17 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1b4ee4),
+      appBar: AppBar(
+        title: Text("Crear cuenta"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white, // Cambiado aquí para tener fondo blanco
       body: Stack(
         children: [
           Positioned(bottom: 0, child: _buildBottom()),
@@ -81,16 +91,8 @@ class _SignUpPageState extends State<SignUpPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Crear cuenta",
-          style: TextStyle(
-            color: myColor,
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
         const SizedBox(height: 20),
-        _buildGreyText("Nombre (este tanbien sera tu nombre de usuario)"),
+        _buildGreyText("Nombre (este también será tu nombre de usuario)"),
         _buildInputField(nameController,
             icon: Icons.person, focusNode: nameFocusNode),
         const SizedBox(height: 20),
@@ -107,15 +109,12 @@ class _SignUpPageState extends State<SignUpPage> {
             icon: Icons.phone, focusNode: phoneFocusNode),
         const SizedBox(height: 20),
         _buildGreyText("Contraseña"),
-        _buildPasswordInputField(passwordController, passwordFocusNode,
-            "Contraseña", obscurePassword),
-        const SizedBox(height: 20),
-        _buildGreyText("Confirmar contraseña"),
         _buildPasswordInputField(
-            confirmPasswordController,
-            confirmPasswordFocusNode,
-            "Confirmar contraseña",
-            obscureConfirmPassword),
+            passwordController, passwordFocusNode, obscurePassword),
+        const SizedBox(height: 20),
+        _buildGreyText("Confirmar Contraseña"),
+        _buildPasswordInputField(confirmPasswordController,
+            confirmPasswordFocusNode, obscureConfirmPassword),
         const SizedBox(height: 40),
         _buildSignUpButton(),
         const SizedBox(height: 20),
@@ -139,18 +138,23 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildPasswordInputField(TextEditingController controller,
-      FocusNode focusNode, String label, bool obscureText) {
+  Widget _buildPasswordInputField(
+      TextEditingController controller, FocusNode focusNode, bool obscureText) {
     return TextField(
       controller: controller,
       focusNode: focusNode,
       obscureText: obscureText,
       decoration: InputDecoration(
-        labelText: label,
         prefixIcon: focusNode.hasFocus ? null : const Icon(Icons.lock),
         suffixIcon: IconButton(
           icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off),
-          onPressed: () => setState(() => obscureText = !obscureText),
+          onPressed: () => setState(() {
+            if (focusNode == passwordFocusNode) {
+              obscurePassword = !obscurePassword;
+            } else if (focusNode == confirmPasswordFocusNode) {
+              obscureConfirmPassword = !obscureConfirmPassword;
+            }
+          }),
         ),
       ),
     );

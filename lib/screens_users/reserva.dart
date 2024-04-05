@@ -43,15 +43,18 @@ class _ReservaScreenState extends State<ReservaScreen> {
   @override
   Widget build(BuildContext context) {
     TextStyle cardTextStyle = TextStyle(
-        fontSize: 18, color: Colors.black); // Estilo de texto mejorado
+      fontSize: 18,
+      color: Colors.black,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reserva', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1b4ee4),
+        title: Text('Mi Reserva', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: Container(
-        color: Colors.white, // Fondo blanco
+        color: Colors.white,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -69,11 +72,16 @@ class _ReservaScreenState extends State<ReservaScreen> {
                     strokeWidth: 10,
                   ),
                 ),
-                Text(
-                  '${_duration.inHours.toString().padLeft(2, '0')}:${(_duration.inMinutes % 60).toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
+                Icon(Icons.directions_car,
+                    size: 60, color: Colors.blue), // Icono del auto
               ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                '${_duration.inHours.toString().padLeft(2, '0')}:${(_duration.inMinutes % 60).toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
             ),
             SizedBox(height: 30),
             Expanded(
@@ -86,9 +94,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
                     children: [
                       Text('Detalles',
                           style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black)),
+                              fontSize: 22, fontWeight: FontWeight.bold)),
                       SizedBox(height: 10),
                       Divider(color: Colors.grey),
                       ListTile(

@@ -3,17 +3,18 @@ import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
-class ListParkings extends StatefulWidget {
-  const ListParkings({super.key});
+class ParkingsScreen extends StatefulWidget {
+  const ParkingsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ListParkings> createState() => _ListParkingsState();
+  State<ParkingsScreen> createState() => _ParkingsScreenState();
 }
 
-class _ListParkingsState extends State<ListParkings> {
+class _ParkingsScreenState extends State<ParkingsScreen> {
   final ApiParking apiParking = ApiParking();
-  List<Map<String, dynamic>> parqueos = [];
+  List<Map<String, dynamic>> parkings = [];
   Color primaryColor = Color(0xFF1b4ee4);
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -23,10 +24,9 @@ class _ListParkingsState extends State<ListParkings> {
 
   Future<void> fetchData() async {
     try {
-      List<Map<String, dynamic>> data =
-          await apiParking.getAllParkingsByUserID("2");
+      List<Map<String, dynamic>> data = await apiParking.getAllParkings();
       setState(() {
-        parqueos = data;
+        parkings = data;
       });
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
@@ -37,18 +37,35 @@ class _ListParkingsState extends State<ListParkings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mis Parqueos', style: TextStyle(color: Colors.white)),
+        title: Text('Parqueos', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF1b4ee4),
+        automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Buscar parqueos...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                  borderSide: BorderSide(color: primaryColor),
+                ),
+              ),
+              onChanged: (value) {
+                // Lógica de búsqueda (opcional)
+              },
+            ),
+          ),
           Expanded(
             child: ListView.builder(
-              itemCount: parqueos.length,
+              itemCount: parkings.length,
               itemBuilder: (context, index) {
-                var parqueo = parqueos[index];
-                bool isAvailable = parqueo['spaces_available'] >
-                    0; // Asumiendo que 'spaces_available' es un int
+                var parking = parkings[index];
+                bool isAvailable = parking['spaces_available'] > 0;
 
                 return InkWell(
                   onTap: () {
@@ -56,7 +73,8 @@ class _ListParkingsState extends State<ListParkings> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ParkingDetailsScreen(
-                            parkingId: parqueo['id'].toString()),
+                          parkingId: parking['id'].toString(),
+                        ),
                       ),
                     );
                   },
@@ -64,11 +82,14 @@ class _ListParkingsState extends State<ListParkings> {
                     margin: EdgeInsets.all(8),
                     child: Row(
                       children: [
-                        Image.asset(
-                          'assets/images/Logotipo.png',
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.asset(
+                            'assets/images/Logotipo.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         Expanded(
                           child: Padding(
@@ -77,14 +98,16 @@ class _ListParkingsState extends State<ListParkings> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  parqueo['name'],
+                                  parking['name'],
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1b4ee4),
+                                    color: Colors.black,
                                   ),
                                 ),
+                                SizedBox(height: 4),
                                 Text(
-                                    'Espacios disponibles: ${parqueo['spaces_available']}'),
+                                    'Espacios disponibles: ${parking['spaces_available']}'),
+                                SizedBox(height: 4),
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     vertical: 2,

@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -12,105 +13,79 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late Color myColor;
   late Size mediaSize;
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _lastNameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController();
+  FocusNode _usernameFocusNode = FocusNode();
+  FocusNode _lastNameFocusNode = FocusNode();
+  FocusNode _emailFocusNode = FocusNode();
+  FocusNode _phoneFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1b4ee4),
-      body: Stack(
-        children: [
-          _buildBackgroundImage(),
-          _buildEditProfileCard(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBackgroundImage() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/Logotipo.png'),
-          fit: BoxFit.cover,
+      appBar: AppBar(
+        title: Text("Editar Perfil"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        backgroundColor: Colors.white,
       ),
-    );
-  }
-
-  Widget _buildEditProfileCard() {
-    return Positioned(
-      top: 200, // Ajusta esta posición según sea necesario
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Editar perfil de usuario",
-                  style: TextStyle(
-                    color: myColor,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildInputField(_usernameController, 'Nombre de Usuario'),
-                const SizedBox(height: 10),
-                _buildInputField(_lastNameController, 'Apellido'),
-                const SizedBox(height: 10),
-                _buildInputField(_emailController, 'Correo Electrónico'),
-                const SizedBox(height: 10),
-                _buildInputField(_phoneController, 'Número de Teléfono'),
-                const SizedBox(height: 20),
-                _buildSaveButton(),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInputField(_usernameController, "Nombre de Usuario",
+                  Icons.person, _usernameFocusNode),
+              const SizedBox(height: 20),
+              _buildInputField(_lastNameController, "Apellido", Icons.person,
+                  _lastNameFocusNode),
+              const SizedBox(height: 20),
+              _buildInputField(_emailController, "Correo Electrónico",
+                  Icons.email, _emailFocusNode),
+              const SizedBox(height: 20),
+              _buildInputField(_phoneController, "Número de Teléfono",
+                  Icons.phone, _phoneFocusNode),
+              const SizedBox(height: 40),
+              _buildSaveButton(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInputField(TextEditingController controller, String labelText) {
+  Widget _buildInputField(TextEditingController controller, String labelText,
+      IconData icon, FocusNode focusNode) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       decoration: InputDecoration(
         labelText: labelText,
-        border: OutlineInputBorder(),
-        fillColor: Colors.white,
-        filled: true,
+        prefixIcon: Icon(icon),
       ),
     );
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          _updateProfile(context);
-        },
-        child: Text('Guardar Cambios'),
+    return ElevatedButton(
+      onPressed: () {
+        _updateProfile(context);
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF1b4ee4),
+        shape: StadiumBorder(),
+        elevation: 20,
+        minimumSize: Size.fromHeight(60),
       ),
+      child: Text('Guardar Cambios', style: TextStyle(color: Colors.white)),
     );
   }
 

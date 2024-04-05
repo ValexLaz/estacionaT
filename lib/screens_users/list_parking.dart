@@ -4,7 +4,7 @@ import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class ListParkings extends StatefulWidget {
-  const ListParkings({super.key});
+  const ListParkings({Key? key}) : super(key: key);
 
   @override
   State<ListParkings> createState() => _ListParkingsState();
@@ -23,8 +23,7 @@ class _ListParkingsState extends State<ListParkings> {
 
   Future<void> fetchData() async {
     try {
-      List<Map<String, dynamic>> data =
-          await apiParking.getAllParkingsByUserID("2");
+      List<Map<String, dynamic>> data = await apiParking.getAllParkings();
       setState(() {
         parqueos = data;
       });
@@ -37,8 +36,8 @@ class _ListParkingsState extends State<ListParkings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mis Parqueos', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1b4ee4),
+        title: Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
+        backgroundColor: primaryColor,
       ),
       body: Column(
         children: [
@@ -47,8 +46,7 @@ class _ListParkingsState extends State<ListParkings> {
               itemCount: parqueos.length,
               itemBuilder: (context, index) {
                 var parqueo = parqueos[index];
-                bool isAvailable = parqueo['spaces_available'] >
-                    0; // Asumiendo que 'spaces_available' es un int
+                bool isAvailable = parqueo['spaces_available'] > 0; // Asumiendo que 'spaces_available' es un int
 
                 return InkWell(
                   onTap: () {
@@ -80,7 +78,7 @@ class _ListParkingsState extends State<ListParkings> {
                                   parqueo['name'],
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1b4ee4),
+                                    color: primaryColor,
                                   ),
                                 ),
                                 Text(
@@ -105,7 +103,7 @@ class _ListParkingsState extends State<ListParkings> {
                         ),
                         IconButton(
                           icon:
-                              Icon(Icons.location_on, color: Color(0xFF1b4ee4)),
+                              Icon(Icons.location_on, color: primaryColor),
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => NavigationBarScreen(),

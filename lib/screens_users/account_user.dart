@@ -1,140 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/edit_profile_screen.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
-import 'package:http/http.dart' as http; // Importar el paquete http
-import 'dart:convert';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:map_flutter/screens_users/edit_profile_screen.dart';
 
 class CuentaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Color primaryColor = Color(0xFF1b4ee4);
     Color textColor = Colors.black;
+    Color lightGray = Colors.grey.shade300; // Color gris claro
 
     // Obtener el nombre de usuario del TokenProvider utilizando Provider.of
     final username = Provider.of<TokenProvider>(context).username;
 
     return Scaffold(
-      body: Stack(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text('Cuenta', style: TextStyle(color: textColor)),
+        iconTheme: IconThemeData(color: textColor),
+        automaticallyImplyLeading: false, // Quitar la flecha de atrás
+      ),
+      body: Column(
         children: [
-          Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Container(color: primaryColor),
+          ListTile(
+            leading: CircleAvatar(
+              radius: 20,
+              child: Icon(Icons.person, size: 20, color: Colors.blue),
+              backgroundColor: lightGray, // Fondo gris claro para el icono
+            ),
+            title: Text(
+              username!,
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w500,
               ),
-              Expanded(
-                flex: 3,
-                child: Container(color: Colors.white),
-              ),
-            ],
+            ),
           ),
-          Column(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        child:
-                            Icon(Icons.person, size: 60, color: primaryColor),
-                        backgroundColor: Colors.white,
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        username!, // Mostrar el nombre de usuario obtenido del TokenProvider
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildListTile(
+                  title: 'Editar datos personales',
+                  icon: Icons.edit,
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditProfileScreen()),
+                    );
+                  },
                 ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Card(
-                    color: Colors.white,
-                    elevation: 8.0,
-                    margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildListTile(
-                            title: 'Editar datos personales',
-                            icon: Icons.edit,
-                            textColor: textColor,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => EditProfileScreen()),
-                              );
-                            },
-                          ),
-                          _buildListTile(
-                            title: 'Notificaciones',
-                            icon: Icons.notifications,
-                            textColor: textColor,
-                            onTap: () {
-                              // Lógica para notificaciones
-                            },
-                          ),
-                          _buildListTile(
-                            title: 'Mis Vehiculos',
-                            icon: Icons.directions_car,
-                            textColor: textColor,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ListVehicle()),
-                              );
-                            },
-                          ),
-                          _buildListTile(
-                            title: 'Mis Parqueos',
-                            icon: Icons.local_parking,
-                            textColor: textColor,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ListParkings()),
-                              );
-                            },
-                          ),
-                          _buildListTile(
-                            title: 'Cerrar sesión',
-                            icon: Icons.exit_to_app,
-                            textColor: Colors.red,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => LoginPage()),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                Divider(color: lightGray),
+                _buildListTile(
+                  title: 'Notificaciones',
+                  icon: Icons.notifications,
+                  textColor: textColor,
+                  onTap: () {
+                    // Lógica para notificaciones
+                  },
                 ),
-              ),
-            ],
+                Divider(color: lightGray),
+                _buildListTile(
+                  title: 'Mis Vehículos',
+                  icon: Icons.directions_car,
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ListVehicle()),
+                    );
+                  },
+                ),
+                Divider(color: lightGray),
+                _buildListTile(
+                  title: 'Mis Parqueos',
+                  icon: Icons.local_parking,
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ListParkings()),
+                    );
+                  },
+                ),
+                Divider(color: lightGray),
+                _buildListTile(
+                  title: 'Soporte y ayuda',
+                  icon: Icons.help_outline,
+                  textColor: textColor,
+                  onTap: () {
+                    // Lógica para soporte y ayuda
+                  },
+                ),
+                Divider(color: lightGray),
+                _buildListTile(
+                  title: 'Cerrar sesión',
+                  icon: Icons.exit_to_app,
+                  textColor: Colors.red,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -145,16 +121,12 @@ class CuentaScreen extends StatelessWidget {
     required String title,
     required IconData icon,
     required Color textColor,
-    required Function onTap,
+    required VoidCallback onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: textColor),
-      title: Text(
-        title,
-        style: TextStyle(color: textColor),
-      ),
-      trailing: Icon(Icons.keyboard_arrow_right, color: textColor),
-      onTap: () => onTap(),
+      title: Text(title, style: TextStyle(color: textColor)),
+      onTap: onTap,
     );
   }
 }

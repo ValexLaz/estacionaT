@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:map_flutter/screens_users/token_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:provider/provider.dart';
+
 import 'create_account_page.dart';
 import 'forgot_password_screen.dart';
 import 'navigation_bar_screen.dart';
-import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -31,10 +32,10 @@ class _LoginPageState extends State<LoginPage> {
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: const Color(0xFF1b4ee4),
-      body: Stack(
+      body: Column(
         children: [
-          Positioned(top: 80, child: _buildTop()),
-          Positioned(bottom: 0, child: _buildBottom()),
+          _buildTop(),
+          Expanded(child: _buildBottom()),
         ],
       ),
     );
@@ -43,19 +44,25 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildTop() {
     return Container(
       width: mediaSize.width,
-      height: 200, // Ajusta la altura según necesites
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/Logotipo.png'),
-          fit: BoxFit
-              .contain, // Esto hará que la imagen cubra todo el contenedor
+      height: mediaSize.height / 5,
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: 4 / 2,
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/Logotipo.png'),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildBottom() {
-    return SizedBox(
+    return Container(
       width: mediaSize.width,
       child: Card(
         shape: const RoundedRectangleBorder(
@@ -66,7 +73,9 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: _buildForm(),
+          child: SingleChildScrollView(
+            child: _buildForm(),
+          ),
         ),
       ),
     );

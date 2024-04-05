@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/vehicle_details_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 import 'package:map_flutter/services/api_parking.dart';
-
 
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});
@@ -29,7 +29,7 @@ class _ListVehicleState extends State<ListVehicle> {
         vehicles = data;
       });
     } catch (e) {
-      print('Error al obtener datos de parqueos: $e');
+      print('Error al obtener datos de los vehículos: $e');
     }
   }
 
@@ -37,15 +37,13 @@ class _ListVehicleState extends State<ListVehicle> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mis Vehiculos', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1b4ee4),
+        title: Text('Mis Vehículos', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
       ),
       body: Column(
         children: [
           Container(
-            margin: EdgeInsets.symmetric(
-                vertical:
-                    16), // Ajusta el margen superior e inferior según sea necesario
+            margin: EdgeInsets.symmetric(vertical: 16),
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -59,7 +57,7 @@ class _ListVehicleState extends State<ListVehicle> {
                 backgroundColor: primaryColor,
               ),
               child: Text(
-                'Agregar Vehiculo',
+                'Agregar Vehículo',
                 style: TextStyle(
                   fontSize: 15,
                   color: Colors.white,
@@ -75,44 +73,49 @@ class _ListVehicleState extends State<ListVehicle> {
                 itemCount: vehicles.length,
                 itemBuilder: (context, index) {
                   var vehicle = vehicles[index];
-                  return Card(
-                    margin: EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        Image.network(
-                          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNW-m5rK0oxc2mHo2tfJhNoE-LUeFf-zsMxOFQRAy34D7fPK9ddTF8QKBj4VpBu4vtYMQ&usqp=CAU', 
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VehicleDetailsScreen(
+                              vehicleId: vehicle['id'].toString()),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "marca : " + vehicle['brand'],
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1b4ee4),
+                      );
+                    },
+                    child: Card(
+                      margin: EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.directions_car,
+                              size: 100), // Icono de auto
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Marca: " + vehicle['brand'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1b4ee4),
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  "modelo : " + vehicle['model'],
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                Text(
-                                  "placa : " + vehicle['registration_plate'],
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                
-                        
-                              ],
+                                  Text(
+                                    "Modelo: " + vehicle['model'],
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  Text(
+                                    "Placa: " + vehicle['registration_plate'],
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

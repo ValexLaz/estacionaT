@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/account_user.dart';
+import 'package:map_flutter/screens_users/parkings_screen.dart';
 
 import 'map_screen.dart';
-import 'parkings_screen.dart';
 import 'reserva.dart';
 
 class NavigationBarScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
   final List<Widget> _children = [
     MapScreen(),
-    ListParkings(),
+    ParkingsScreen(),
     ReservaScreen(),
     CuentaScreen(),
   ];

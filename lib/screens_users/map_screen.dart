@@ -65,7 +65,7 @@ class _MapScreenState extends State<MapScreen> {
                     'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
                 additionalOptions: {
                   'accessToken': MAPBOX_ACCESS_TOKEN,
-                  'id': 'mapbox/navigation-day-v1',
+                  'id': 'mapbox/streets-v12',
                 },
               ),
               MarkerLayer(
