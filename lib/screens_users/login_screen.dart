@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:map_flutter/screens_users/token_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,6 +7,7 @@ import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'create_account_page.dart';
 import 'forgot_password_screen.dart';
 import 'navigation_bar_screen.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -188,20 +190,25 @@ class _LoginPageState extends State<LoginPage> {
         );
         print(response.body);
         if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final authToken = responseData['token'];
-        final bool rolUsuario = responseData['user']['rol_usuario'];
-        if (rolUsuario) {
-            Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => MainScreen()), //pantalla del dueño del parqueo
-            );
-        } else {
-            Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => NavigationBarScreen()),
-            );
-  }
+          final responseData = jsonDecode(response.body);
+          final authToken = responseData['token'];
+          Provider.of<TokenProvider>(context, listen: false).token = authToken;
 
+          Provider.of<TokenProvider>(context, listen: false)
+              .updateUsername(username);
 
+          final bool rolUsuario = responseData['user']['rol_usuario'];
+          if (rolUsuario) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      MainScreen()), //pantalla del dueño del parqueo
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => NavigationBarScreen()),
+            );
+          }
         } else {
           // Si la solicitud falla, puedes mostrar un mensaje de error
           if (response.headers['content-type']?.contains('application/json') ??

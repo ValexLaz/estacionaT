@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
+import 'package:http/http.dart' as http; // Importar el paquete http
+import 'dart:convert';
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:provider/provider.dart';
 
-class CuentaScreen extends StatefulWidget {
-  @override
-  _CuentaScreenState createState() => _CuentaScreenState();
-}
-
-class _CuentaScreenState extends State<CuentaScreen> {
+class CuentaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color primaryColor = Color(0xFF1b4ee4);
     Color textColor = Colors.black;
+
+    // Obtener el nombre de usuario del TokenProvider utilizando Provider.of
+    final username = Provider.of<TokenProvider>(context).username;
 
     return Scaffold(
       body: Stack(
@@ -45,7 +47,7 @@ class _CuentaScreenState extends State<CuentaScreen> {
                       ),
                       SizedBox(height: 20),
                       Text(
-                        'Nombre Completo',
+                        username!, // Mostrar el nombre de usuario obtenido del TokenProvider
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white,
@@ -93,8 +95,7 @@ class _CuentaScreenState extends State<CuentaScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                       ListVehicle()),
+                                    builder: (context) => ListVehicle()),
                               );
                             },
                           ),
@@ -122,7 +123,6 @@ class _CuentaScreenState extends State<CuentaScreen> {
                               );
                             },
                           ),
-            
                         ],
                       ),
                     ),
