@@ -23,6 +23,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   FocusNode _phoneFocusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userId = Provider.of<TokenProvider>(context, listen: false).userId;
+    final url = Uri.parse(
+        'https://estacionatbackend.onrender.com/api/v2/user/users/$userId/');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization':
+              'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        _usernameController.text = userData['username'];
+        _lastNameController.text = userData['last_name'];
+        _emailController.text = userData['email'];
+        _phoneController.text = userData['phone'];
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Hubo un error al cargar los datos del usuario.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
@@ -89,6 +140,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _buildCancelButton() {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey,
+        shape: StadiumBorder(),
+        elevation: 20,
+        minimumSize: Size.fromHeight(60),
+      ),
+      child: Text('Cancelar', style: TextStyle(color: Colors.white)),
+    );
+  }
+
   void _updateProfile(BuildContext context) async {
     final userId = Provider.of<TokenProvider>(context, listen: false).userId;
     final url = Uri.parse(
@@ -104,6 +170,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final response = await http.put(
       url,
       headers: <String, String>{
+        'Authorization':
+            'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(requestBody),
