@@ -22,39 +22,94 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Editar Perfil'),
+      backgroundColor: const Color(0xFF1b4ee4),
+      body: Stack(
+        children: [
+          _buildBackgroundImage(),
+          _buildEditProfileCard(),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Nombre de Usuario'),
-            ),
-            TextField(
-              controller: _lastNameController,
-              decoration: InputDecoration(labelText: 'Apellido'),
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Correo Electrónico'),
-            ),
-            TextField(
-              controller: _phoneController,
-              decoration: InputDecoration(labelText: 'Número de Teléfono'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                _updateProfile(context);
-              },
-              child: Text('Guardar Cambios'),
-            ),
-          ],
+    );
+  }
+
+  Widget _buildBackgroundImage() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/Logotipo.png'),
+          fit: BoxFit.cover,
         ),
+      ),
+    );
+  }
+
+  Widget _buildEditProfileCard() {
+    return Positioned(
+      top: 200, // Ajusta esta posición según sea necesario
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Card(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Editar perfil de usuario",
+                  style: TextStyle(
+                    color: myColor,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildInputField(_usernameController, 'Nombre de Usuario'),
+                const SizedBox(height: 10),
+                _buildInputField(_lastNameController, 'Apellido'),
+                const SizedBox(height: 10),
+                _buildInputField(_emailController, 'Correo Electrónico'),
+                const SizedBox(height: 10),
+                _buildInputField(_phoneController, 'Número de Teléfono'),
+                const SizedBox(height: 20),
+                _buildSaveButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField(TextEditingController controller, String labelText) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(),
+        fillColor: Colors.white,
+        filled: true,
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          _updateProfile(context);
+        },
+        child: Text('Guardar Cambios'),
       ),
     );
   }
