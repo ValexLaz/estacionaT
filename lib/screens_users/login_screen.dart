@@ -192,8 +192,11 @@ class _LoginPageState extends State<LoginPage> {
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
           final authToken = responseData['token'];
-          Provider.of<TokenProvider>(context, listen: false).token = authToken;
+          final userId =
+              responseData['user']['id']; // Obtener el ID del usuario
 
+          Provider.of<TokenProvider>(context, listen: false).token = authToken;
+          Provider.of<TokenProvider>(context, listen: false).userId = userId;
           Provider.of<TokenProvider>(context, listen: false)
               .updateUsername(username);
 

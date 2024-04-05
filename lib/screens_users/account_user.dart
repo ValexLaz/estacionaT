@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http; // Importar el paquete http
 import 'dart:convert';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/screens_users/edit_profile_screen.dart';
 
 class CuentaScreen extends StatelessWidget {
   @override
@@ -76,7 +77,11 @@ class CuentaScreen extends StatelessWidget {
                             icon: Icons.edit,
                             textColor: textColor,
                             onTap: () {
-                              // Lógica para editar datos personales
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => EditProfileScreen()),
+                              );
                             },
                           ),
                           _buildListTile(
