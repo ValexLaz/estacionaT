@@ -55,6 +55,18 @@ class ApiVehicle extends ApiService {
     }
   }
 
+  Future<void> deleteVehicleByID(String vehicleID) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl$path$vehicleID/'));
+      if (response.statusCode != 200) { //aclarando que no hay ningun codigo de error asi que pongo eso
+        throw Exception('Failed to delete vehicle');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete vehicle: $e');
+    }
+  }
+
+
   Future<Map<String, dynamic>> getVehicleDetailsById(String vehicleId) async {
     final response = await http.get(Uri.parse('$baseUrl$path$vehicleId/'));
     if (response.statusCode == 200) {

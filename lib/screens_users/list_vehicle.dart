@@ -32,8 +32,7 @@ class _ListVehicleState extends State<ListVehicle> {
       print('Error al obtener datos de los vehículos: $e');
     }
   }
-
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -79,7 +78,8 @@ class _ListVehicleState extends State<ListVehicle> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => VehicleDetailsScreen(
-                              vehicleId: vehicle['id'].toString()),
+                            vehicleId: vehicle['id'].toString(),
+                          ),
                         ),
                       );
                     },
@@ -87,20 +87,43 @@ class _ListVehicleState extends State<ListVehicle> {
                       margin: EdgeInsets.all(8),
                       child: Row(
                         children: [
-                          Icon(Icons.directions_car,
-                              size: 100), // Icono de auto
+                          Icon(Icons.directions_car, size: 100), // Icono de auto
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "Marca: " + vehicle['brand'],
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1b4ee4),
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Marca: " + vehicle['brand'],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1b4ee4),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () async {
+                                          try {
+                                            await apiVehicle.deleteVehicleByID(vehicle['id'].toString());
+                                            fetchData();
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Vehículo eliminado exitosamente')),
+                                            );
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error al eliminar el vehículo: $e')),
+                                            );
+                                          }
+                                        },
+                                        child: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Text(
                                     "Modelo: " + vehicle['model'],
