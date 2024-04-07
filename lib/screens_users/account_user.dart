@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/edit_profile_screen.dart';
+import 'package:map_flutter/screens_users/user_profile.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
@@ -44,14 +45,13 @@ class CuentaScreen extends StatelessWidget {
             child: ListView(
               children: [
                 _buildListTile(
-                  title: 'Editar datos personales',
+                  title: 'Mi Perfil',
                   icon: Icons.edit,
                   textColor: textColor,
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => EditProfileScreen()),
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
                     );
                   },
                 ),
