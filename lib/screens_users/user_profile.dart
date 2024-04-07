@@ -22,7 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   FocusNode _emailFocusNode = FocusNode();
   FocusNode _phoneFocusNode = FocusNode();
   bool _isEditing = false;
-
+  bool _isCancelVisible = false; // Nueva variable de estado
   @override
   void initState() {
     super.initState();
@@ -113,10 +113,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   enabled: _isEditing),
               const SizedBox(height: 40),
               _isEditing ? _buildSaveButton() : _buildEditButton(),
+              
+              if (_isCancelVisible)
+                _buildCancelButton(), // Mostrar solo cuando se está editando
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCancelButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _isEditing = false;
+          _isCancelVisible = false;
+          _loadUserData(); // Cargar de nuevo los datos originales al cancelar
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        shape: StadiumBorder(),
+        elevation: 20,
+        minimumSize: Size.fromHeight(60),
+      ),
+      child: Text('Cancelar', style: TextStyle(color: Colors.white)),
     );
   }
 
@@ -139,6 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onPressed: () {
         setState(() {
           _isEditing = true;
+          _isCancelVisible = true; // Mostrar el botón de Cancelar
         });
       },
       style: ElevatedButton.styleFrom(
@@ -155,6 +178,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return ElevatedButton(
       onPressed: () {
         _updateProfile(context);
+        setState(() {
+          _isCancelVisible = false;
+        });
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF1b4ee4),
