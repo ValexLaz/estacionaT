@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
-import 'package:map_flutter/screens_users/parking_details_screen.dart';
+import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class ListParkings extends StatefulWidget {
@@ -36,7 +36,8 @@ class _ListParkingsState extends State<ListParkings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
+        title:
+            Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
         backgroundColor: primaryColor,
       ),
       body: Column(
@@ -46,7 +47,8 @@ class _ListParkingsState extends State<ListParkings> {
               itemCount: parqueos.length,
               itemBuilder: (context, index) {
                 var parqueo = parqueos[index];
-                bool isAvailable = parqueo['spaces_available'] > 0; // Asumiendo que 'spaces_available' es un int
+                bool isAvailable = parqueo['spaces_available'] >
+                    0; // Asumiendo que 'spaces_available' es un int
 
                 return InkWell(
                   onTap: () {
@@ -102,8 +104,7 @@ class _ListParkingsState extends State<ListParkings> {
                           ),
                         ),
                         IconButton(
-                          icon:
-                              Icon(Icons.location_on, color: primaryColor),
+                          icon: Icon(Icons.location_on, color: primaryColor),
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => NavigationBarScreen(),

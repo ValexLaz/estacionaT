@@ -57,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_circle),
-              label: 'Account',
+              label: 'Informacion parqueo', //esto debe ser editable
             ),
           ],
           selectedItemColor: Colors.white,
