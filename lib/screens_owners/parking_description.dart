@@ -203,6 +203,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
       setState(() {
         _isEditing = false;
       });
+      // Muestra un SnackBar con el mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Datos actualizados exitosamente.'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       print('Error updating parking details: $e');
       showDialog(
