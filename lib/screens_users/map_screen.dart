@@ -26,7 +26,6 @@ class _MapScreenState extends State<MapScreen> {
         });
       }
     } catch (e) {
-      // Handle the exception here, possibly showing an error message to the user
       print('Error obtaining location: $e');
     }
   }
@@ -76,6 +75,58 @@ class _MapScreenState extends State<MapScreen> {
                       Icons.person_pin,
                       color: Colors.blueAccent,
                       size: 40,
+                    ),
+                  ),
+                  Marker(
+                    point: LatLng(-17.725451, -63.164807),
+                    builder: (ctx) => Stack(
+                      children: [
+                        Positioned(
+                          top: -7,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'P',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Marker(
+                    point: LatLng(-17.783247, -63.180502),
+                    builder: (ctx) => Stack(
+                      children: [
+                        Positioned(
+                          top: -7,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'P',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

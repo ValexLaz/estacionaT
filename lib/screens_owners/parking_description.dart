@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
-import 'package:map_flutter/screens_users/token_provider.dart';
-import 'package:provider/provider.dart';
 
 class ParkingDetailsScreen extends StatefulWidget {
   final String parkingId;
@@ -78,7 +76,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF1b4ee4),
+        foregroundColor: Colors.white,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())

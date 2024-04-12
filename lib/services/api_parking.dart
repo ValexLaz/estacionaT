@@ -38,17 +38,23 @@ class ApiParking {
     }
   }
 
-  Future<void> createRecord(Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl$path'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(data),
-    );
+Future<String> createRecord(Map<String, dynamic> data) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl$path'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode(data),
+  );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to post data to API: ${response.body}');
-    }
+  if (response.statusCode == 201) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+    final String parkingId = responseData['id'].toString(); // Convierte el ID del parqueo a String
+    return parkingId;
+  } else {
+    throw Exception('Failed to post data to API: ${response.body}');
   }
+}
+
+
 }
 
 class ApiUser extends ApiService {

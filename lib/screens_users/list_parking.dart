@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
+import 'package:map_flutter/screens_owners/create_account_owner.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
+import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class ListParkings extends StatefulWidget {
@@ -39,9 +40,33 @@ class _ListParkingsState extends State<ListParkings> {
         title:
             Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
         backgroundColor: primaryColor,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Column(
         children: [
+          SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SignUpParkingPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF1b4ee4),
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            ),
+            child: Text(
+              'Registrar Parqueo',
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ),
+          SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
               itemCount: parqueos.length,

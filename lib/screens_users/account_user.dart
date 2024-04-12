@@ -1,70 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/edit_profile_screen.dart';
-import 'package:map_flutter/screens_users/user_profile.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/screens_users/list_vehicle.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/screens_users/user_profile.dart';
 import 'package:provider/provider.dart';
 
 class CuentaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color textColor = Colors.black;
-    Color lightGray = Colors.grey.shade300; // Color gris claro
+    Color lightGray = Colors.grey.shade300;
 
-    // Obtener el nombre de usuario del TokenProvider utilizando Provider.of
     final username = Provider.of<TokenProvider>(context).username;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text('Cuenta', style: TextStyle(color: textColor)),
-        iconTheme: IconThemeData(color: textColor),
-        automaticallyImplyLeading: false, // Quitar la flecha de atrás
-      ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            leading: CircleAvatar(
-              radius: 20,
-              child: Icon(Icons.person, size: 20, color: Colors.blue),
-              backgroundColor: lightGray, // Fondo gris claro para el icono
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Cuenta',
+                    style: TextStyle(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Divider(color: lightGray)
+              ],
             ),
-            title: Text(
-              username!,
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+          ),
+          _buildUserTile(
+            username: username!,
+            textColor: textColor,
+            lightGray: lightGray,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+            },
           ),
           Expanded(
             child: ListView(
               children: [
-                _buildListTile(
-                  title: 'Mi Perfil',
-                  icon: Icons.edit,
-                  textColor: textColor,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileScreen()),
-                    );
-                  },
-                ),
-                Divider(color: lightGray),
-                _buildListTile(
-                  title: 'Notificaciones',
-                  icon: Icons.notifications,
-                  textColor: textColor,
-                  onTap: () {
-                    // Lógica para notificaciones
-                  },
-                ),
-                Divider(color: lightGray),
+                _buildSubtitle('Información', textColor),
                 _buildListTile(
                   title: 'Mis Vehículos',
                   icon: Icons.directions_car,
@@ -89,6 +72,16 @@ class CuentaScreen extends StatelessWidget {
                   },
                 ),
                 Divider(color: lightGray),
+                _buildSubtitle('Configuración', textColor),
+                _buildListTile(
+                  title: 'Notificaciones',
+                  icon: Icons.notifications,
+                  textColor: textColor,
+                  onTap: () {
+                    // Lógica para notificaciones
+                  },
+                ),
+                Divider(color: lightGray),
                 _buildListTile(
                   title: 'Soporte y ayuda',
                   icon: Icons.help_outline,
@@ -103,9 +96,10 @@ class CuentaScreen extends StatelessWidget {
                   icon: Icons.exit_to_app,
                   textColor: Colors.red,
                   onTap: () {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => LoginPage()),
+                      (Route<dynamic> route) => false,
                     );
                   },
                 ),
@@ -114,6 +108,41 @@ class CuentaScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSubtitle(String title, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Text(
+        title,
+        style: TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+      ),
+    );
+  }
+
+  Widget _buildUserTile({
+    required String username,
+    required Color textColor,
+    required Color lightGray,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 20,
+        child: Icon(Icons.person, size: 20, color: Colors.blue),
+        backgroundColor: lightGray,
+      ),
+      title: Text(
+        username,
+        style: TextStyle(
+          fontSize: 20,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
     );
   }
 

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
+import 'package:map_flutter/screens_owners/select_map_screen.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:provider/provider.dart';
+// Asegúrate de importar la pantalla SelectMapScreen si no lo has hecho
 
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
@@ -28,6 +31,11 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Registro de Parqueo"),
+        backgroundColor: Color(0xFF1b4ee4),
+        foregroundColor: Colors.white,
+      ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
@@ -35,14 +43,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Registro de Parqueo",
-                style: TextStyle(
-                  color: myColor,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
               const SizedBox(height: 20),
               _buildGreyText("Nombre del Parqueo"),
               _buildInputField(parkingNameController),
@@ -124,12 +124,16 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   Widget _buildSignUpButton() {
     return ElevatedButton(
       onPressed: () async {
+        final tokenProvider =
+            Provider.of<TokenProvider>(context, listen: false);
+        final userId = tokenProvider.userId;
+
         Map<String, dynamic> parkingData = {
           "name": parkingNameController.text,
           "capacity": int.tryParse(capacityController.text) ?? 0,
           "phone": ownerPhoneController.text,
           "email": emailController.text,
-          "user": 2,
+          "user": userId,
           "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
           "url_image": imageUrlController.text,
           "description": descriptionController.text,
@@ -138,14 +142,22 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
         };
 
         try {
-          await apiParking.createRecord(parkingData);
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => MainScreen()),
+          final parkingId = await apiParking.createRecord(
+              parkingData); // Asumiendo que createRecord devuelve el ID del parqueo
+          final currentContext = context; // Almacena el contexto aquí
+          final parsedParkingId =
+              int.parse(parkingId); // Convierte parkingId a int
+          Navigator.push(
+            currentContext,
+            MaterialPageRoute(
+              builder: (context) => SelectMapScreen(parkingId: parsedParkingId),
+            ),
           );
         } catch (e) {
           showDialog(
             context: context,
-            builder: (BuildContext context) {
+            builder: (BuildContext dialogContext) {
+              // Cambia 'context' a 'dialogContext' aquí
               return AlertDialog(
                 title: Text('Error de Registro'),
                 content: Text('Error al registrar el parqueo: $e'),
@@ -153,7 +165,7 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                   TextButton(
                     child: Text('Cerrar'),
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.pop(dialogContext); // Usa 'dialogContext' aquí
                     },
                   ),
                 ],
@@ -167,7 +179,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
         backgroundColor: Color(0xFF1b4ee4),
         shape: StadiumBorder(),
         elevation: 20,
-        shadowColor: myColor,
         minimumSize: Size.fromHeight(60),
       ),
       child: const Text(

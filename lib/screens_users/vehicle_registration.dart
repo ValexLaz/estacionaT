@@ -10,7 +10,8 @@ class VehicleRegistrationPage extends StatefulWidget {
 }
 
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
-  late Color myColor;
+  late Color myColor =
+      const Color(0xFF1b4ee4); // Azul usado anteriormente como color de fondo
   late Size mediaSize;
   final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
@@ -23,34 +24,20 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-    myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1b4ee4),
-      body: Stack(
-        children: [
-          Positioned(bottom: 0, child: _buildBottom()),
-        ],
+      appBar: AppBar(
+        title:
+            Text('Registrar vehículo', style: TextStyle(color: Colors.white)),
+        backgroundColor: myColor,
       ),
-    );
-  }
-
-  Widget _buildBottom() {
-    return SizedBox(
-      width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
+      backgroundColor: Colors.white, // Color de fondo blanco
+      body: SingleChildScrollView(
+        // Eliminé Stack y Positioned para simplificar el layout
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: _buildVehicleRegistrationForm(),
-          ),
+          child: _buildVehicleRegistrationForm(),
         ),
       ),
     );
@@ -60,15 +47,6 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Registrar vehículo",
-          style: TextStyle(
-            color: myColor,
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 20),
         _buildGreyText("Marca del vehículo"),
         _buildInputField(brandController,
             icon: Icons.directions_car, focusNode: brandFocusNode),
@@ -105,6 +83,9 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
   Widget _buildRegisterVehicleButton() {
     return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: myColor, // Color azul para el botón
+      ),
       onPressed: () async {
         Map<String, dynamic> vehicleData = {
           "brand": brandController.text,
@@ -116,7 +97,6 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
         try {
           await apiVehicle.createRecord(vehicleData);
-
           Navigator.pop(context);
         } catch (e) {
           showDialog(
@@ -124,7 +104,7 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: Text('Error de Registro'),
-                content: Text('Error al registrar el parqueo: $e'),
+                content: Text('Error al registrar el vehículo: $e'),
                 actions: [
                   TextButton(
                     child: Text('Cerrar'),
@@ -136,7 +116,7 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
               );
             },
           );
-          print("Error al registrar el parqueo: $e");
+          print("Error al registrar el vehículo: $e");
         }
       },
       child: Text(

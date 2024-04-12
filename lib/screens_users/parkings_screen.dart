@@ -13,8 +13,10 @@ class ParkingsScreen extends StatefulWidget {
 class _ParkingsScreenState extends State<ParkingsScreen> {
   final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parkings = [];
+  List<Map<String, dynamic>> filteredParkings = [];
   Color primaryColor = Color(0xFF1b4ee4);
   TextEditingController searchController = TextEditingController();
+  int selectedFilterIndex = 1;
 
   @override
   void initState() {
@@ -27,24 +29,54 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       List<Map<String, dynamic>> data = await apiParking.getAllParkings();
       setState(() {
         parkings = data;
+        filteredParkings = data;
       });
+      filterParkings(selectedFilterIndex);
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
+    }
+  }
+
+  void filterParkings(int index) {
+    setState(() {
+      selectedFilterIndex = index;
+    });
+    switch (index) {
+      case 0:
+        // Implementa tu lógica para filtrar por proximidad
+        break;
+      case 1:
+        filteredParkings =
+            parkings.where((p) => p['spaces_available'] > 0).toList();
+        break;
+      case 2:
+        filteredParkings =
+            parkings.where((p) => p['spaces_available'] <= 0).toList();
+        break;
+      default:
+        filteredParkings = parkings;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Parqueos', style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xFF1b4ee4),
-        automaticallyImplyLeading: false,
-      ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+            child: Row(
+              children: [
+                Text('Parqueos',
+                    style:
+                        TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+                Divider(color: Colors.grey),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -60,12 +92,31 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  filterButton(0, 'Cerca de ti'),
+                  SizedBox(width: 5), // Espacio entre los botones
+                  filterButton(1, 'Disponibles'),
+                  SizedBox(width: 5), // Espacio entre los botones
+                  filterButton(2, 'No Disponibles'),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
-              itemCount: parkings.length,
+              itemCount: filteredParkings.length,
               itemBuilder: (context, index) {
-                var parking = parkings[index];
-                bool isAvailable = parking['spaces_available'] > 0;
+                var parking = filteredParkings[index];
+                int spacesAvailable = parking['spaces_available'];
+                bool isAvailable = spacesAvailable > 0;
+                String availabilityText =
+                    isAvailable ? '$spacesAvailable espacios' : 'Sin espacios';
 
                 return InkWell(
                   onTap: () {
@@ -105,20 +156,24 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                    'Espacios disponibles: ${parking['spaces_available']}'),
+                                Text("Tarifa: 0.00 Bs",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                    )),
                                 SizedBox(height: 4),
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     vertical: 2,
                                     horizontal: 8,
                                   ),
-                                  color:
-                                      isAvailable ? Colors.green : Colors.red,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isAvailable ? Colors.green : Colors.red,
+                                    borderRadius: BorderRadius.circular(
+                                        10), // Esquinas redondeadas
+                                  ),
                                   child: Text(
-                                    isAvailable
-                                        ? 'Disponible'
-                                        : 'No disponible',
+                                    availabilityText,
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -143,6 +198,58 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: SizedBox(
+        height: 40.0,
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => NavigationBarScreen(),
+            ));
+          },
+          label: Text(
+            'Ver mapa',
+            style: TextStyle(
+              color:
+                  primaryColor, // Color del texto igual al del icono y el margen
+            ),
+          ),
+          icon: Icon(
+            Icons.map,
+            color: primaryColor,
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.white, // Color del texto
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: primaryColor),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget filterButton(int index, String text) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            selectedFilterIndex == index ? primaryColor : Colors.white,
+        side: BorderSide(
+          color:
+              selectedFilterIndex == index ? Colors.transparent : primaryColor,
+          width: 1,
+        ),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onPressed: () => filterParkings(index),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: selectedFilterIndex == index ? Colors.white : primaryColor,
+        ),
       ),
     );
   }

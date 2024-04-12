@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ParkingDetailsScreen extends StatefulWidget {
   final String parkingId;
@@ -15,8 +16,6 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
   final ApiParking apiParking = ApiParking();
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
-  String? selectedRate;
-  List<String> rates = ['5 Bs', '10 Bs', '15 Bs'];
 
   @override
   void initState() {
@@ -40,6 +39,37 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
     }
   }
 
+  Future<void> launchWhatsApp(String phoneNumber) async {
+    String message = Uri.encodeFull(
+        "Hola, estoy interesado en más información sobre el parqueo.");
+
+    final Uri uri = Uri.parse("https://wa.me/$phoneNumber?text=$message");
+
+    if (!await launchUrl(uri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'No se pudo abrir WhatsApp. Asegúrese de que la app esté instalada.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> launchPhoneDialer(String phoneNumber) async {
+    final Uri uri = Uri.parse("tel:$phoneNumber");
+
+    if (!await launchUrl(uri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'No se pudo abrir el marcador telefónico. Asegúrese de que su dispositivo pueda hacer llamadas.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,11 +80,17 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
               children: [
                 Stack(
                   children: [
-                    Image.network(
-                      'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height / 4,
-                      fit: BoxFit.cover,
+                    ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
+                      ),
+                      child: Image.network(
+                        'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height / 4,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     Positioned(
                       top: MediaQuery.of(context).padding.top,
@@ -83,42 +119,283 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.message, color: Colors.black),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ContactScreen(
-                                      phone: parkingDetails['phone'],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
                           ],
                         ),
                         SizedBox(height: 8),
-                        Text(
-                          'Ubicación: ${parkingDetails['location'] ?? 'Seg. Anillo Av. Banzer'}',
-                          style: TextStyle(fontSize: 16.0),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, color: Colors.blue),
+                            Text(
+                              '${parkingDetails['location'] ?? 'Seg. Anillo Av. Banzer'}',
+                              style: TextStyle(fontSize: 16.0),
+                            ),
+                            Spacer(),
+                            Text('Abierto',
+                                style: TextStyle(
+                                    fontSize: 16.0, color: Colors.green)),
+                          ],
                         ),
                         SizedBox(height: 8),
-                        Text(
-                          'Descripción:',
-                          style: TextStyle(
-                              fontSize: 20.0, fontWeight: FontWeight.bold),
-                        ),
                         Text(
                           parkingDetails['description'] ??
                               'Descripción no disponible',
                           style: TextStyle(fontSize: 16.0),
                         ),
                         SizedBox(height: 16),
-                        Text(
-                          'Espacios Disponibles: ${parkingDetails['spaces_available'] ?? 'N/A'}',
-                          style: TextStyle(
-                              fontSize: 16.0, fontWeight: FontWeight.bold),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {}, // Add navigation logic here
+                                icon: Icon(Icons.map),
+                                label: Text('Dirección'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF1b4ee4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(color: Color(0xFF1b4ee4)),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  if (parkingDetails['phone'] != null) {
+                                    launchPhoneDialer(parkingDetails['phone']);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Número de teléfono no disponible.'),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: Icon(Icons.call),
+                                label: Text('Llamar'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF1b4ee4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(color: Color(0xFF1b4ee4)),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  if (parkingDetails['phone'] != null) {
+                                    launchWhatsApp(parkingDetails['phone']);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Número de teléfono no disponible.'),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: Icon(Icons.message),
+                                label: Text('Mensaje'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF1b4ee4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(color: Color(0xFF1b4ee4)),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              ElevatedButton.icon(
+                                onPressed: () {}, // Add share logic here
+                                icon: Icon(Icons.share),
+                                label: Text('Compartir'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF1b4ee4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: BorderSide(color: Color(0xFF1b4ee4)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Espacios Disponibles:',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${parkingDetails['spaces_available'] ?? 'N/A'}',
+                              style: TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Capacidad Total:',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${parkingDetails['capacity'] ?? 'N/A'}',
+                              style: TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Horarios',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.0),
+                                  Text(
+                                    'Lunes:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Martes:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Miércoles:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Jueves:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Viernes:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Sábado:',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                SizedBox(height: 8.0),
+                                Text(
+                                  '6:00 AM - 10:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                Text(
+                                  '6:00 AM - 10:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                Text(
+                                  '6:00 AM - 10:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                Text(
+                                  '6:00 AM - 10:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                Text(
+                                  '6:00 AM - 10:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                Text(
+                                  '8:00 AM - 9:00 PM',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10.0),
+                        Center(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            padding: EdgeInsets.symmetric(horizontal: 8.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(
+                                  color: Color(0xFF1b4ee4), width: 1.5),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Tarifa',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1b4ee4),
+                                  ),
+                                ),
+                                SizedBox(height: 8.0),
+                                Text(
+                                  '10:00 Bs/Por Hr.',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    color: Color(0xFF1b4ee4),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         ...parkingDetails.entries
                             .where((entry) => ![
@@ -145,39 +422,21 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 8.0),
-                  child: DropdownButton<String>(
-                    value: selectedRate,
-                    hint: const Text('Selecciona Tarifa'),
-                    items: rates.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedRate = newValue;
-                      });
-                    },
-                    isExpanded: true,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Container(
-                        margin: EdgeInsets.all(2.0),
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          child: Text('Cancelar'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            minimumSize: Size(
-                                150, 50), // Increase the size of the button
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: Text('Cancelar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Color(0xFF1b4ee4),
+                          minimumSize: Size(150, 50),
+                          padding: EdgeInsets.all(8.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                25.0), // Increase the border radius for a more rounded button
+                            side: BorderSide(color: Color(0xFF1b4ee4)),
                           ),
                         ),
                       ),
@@ -187,8 +446,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF1b4ee4),
                           foregroundColor: Colors.white,
-                          minimumSize:
-                              Size(150, 50), // Increase the size of the button
+                          minimumSize: Size(150, 50),
+                          padding: EdgeInsets.all(8.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                25.0), // Increase the border radius for a more rounded button
+                            side: BorderSide(color: Color(0xFF1b4ee4)),
+                          ),
                         ),
                       ),
                     ],
@@ -196,27 +460,6 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                 ),
               ],
             ),
-    );
-  }
-}
-
-class ContactScreen extends StatelessWidget {
-  final String? phone;
-
-  const ContactScreen({Key? key, this.phone}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Contacto'),
-      ),
-      body: Center(
-        child: Text(
-          'Teléfono: $phone',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
     );
   }
 }
