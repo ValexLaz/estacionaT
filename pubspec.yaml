@@ -33,9 +33,13 @@ dependencies:
   geolocator: ^9.0.2
   latlong2: ^0.8.1
   provider: ^5.0.0
+<<<<<<< HEAD
   url_launcher: ^6.2.6
   whatsapp_unilink: ^2.1.0
   
+=======
+
+>>>>>>> 70248c4d57e7c2a6a0be2dde6eb3e0bf3d6d89be
 dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to

@@ -128,4 +128,8 @@ Future<void> saveLocation(double latitude, double longitude) async {
       ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 70248c4d57e7c2a6a0be2dde6eb3e0bf3d6d89be
