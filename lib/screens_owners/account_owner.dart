@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_owners/price_screen.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 
 class ParkingOwnerScreen extends StatefulWidget {
@@ -89,6 +90,14 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                             textColor: textColor,
                             onTap: () {
                               // Lógica para configuraciones de la cuenta
+                            },
+                          ),
+                          _buildListTile(
+                            title: 'Precios',
+                            icon: Icons.settings,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(context,MaterialPageRoute(builder: (context)=>PriceFormScreen()));
                             },
                           ),
                           _buildListTile(

@@ -6,6 +6,7 @@ class ApiService {
   final String baseUrl = "https://estacionatbackend.onrender.com/api/v2/";
   String path;
   ApiService(this.path);
+  String get completeUrl => baseUrl + path;
 
   Future<List<Map<String, dynamic>>> getAllRecords() async {
     final response = await http.get(Uri.parse('$baseUrl$path'));
