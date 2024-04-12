@@ -25,17 +25,36 @@ class ApiParking {
     }
   }
 
-  Future<void> createRecord(Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl$path'),
+  Future<void> updateParkingById(
+      String parkingId, Map<String, dynamic> data) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl$path$parkingId/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to post data to API: ${response.body}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update parking details: ${response.body}');
     }
   }
+
+Future<String> createRecord(Map<String, dynamic> data) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl$path'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode(data),
+  );
+
+  if (response.statusCode == 201) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+    final String parkingId = responseData['id'].toString(); // Convierte el ID del parqueo a String
+    return parkingId;
+  } else {
+    throw Exception('Failed to post data to API: ${response.body}');
+  }
+}
+
+
 }
 
 class ApiUser extends ApiService {
@@ -58,14 +77,14 @@ class ApiVehicle extends ApiService {
   Future<void> deleteVehicleByID(String vehicleID) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl$path$vehicleID/'));
-      if (response.statusCode != 200) { //aclarando que no hay ningun codigo de error asi que pongo eso
+      if (response.statusCode != 200) {
+        //aclarando que no hay ningun codigo de error asi que pongo eso
         throw Exception('Failed to delete vehicle');
       }
     } catch (e) {
       throw Exception('Failed to delete vehicle: $e');
     }
   }
-
 
   Future<Map<String, dynamic>> getVehicleDetailsById(String vehicleId) async {
     final response = await http.get(Uri.parse('$baseUrl$path$vehicleId/'));

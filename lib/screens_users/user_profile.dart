@@ -113,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   enabled: _isEditing),
               const SizedBox(height: 40),
               _isEditing ? _buildSaveButton() : _buildEditButton(),
-              
+
               if (_isCancelVisible)
                 _buildCancelButton(), // Mostrar solo cuando se está editando
             ],
@@ -219,6 +219,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isEditing = false;
       });
+      // Muestra un SnackBar con el mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Datos actualizados exitosamente.'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } else {
       // Manejar errores
       print('Error en la solicitud: ${response.statusCode}');
