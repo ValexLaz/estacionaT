@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-=======
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
->>>>>>> 70248c4d57e7c2a6a0be2dde6eb3e0bf3d6d89be
 import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
-<<<<<<< HEAD
-// Asegúrate de importar la pantalla SelectMapScreen si no lo has hecho
-=======
  // Asegúrate de importar la pantalla SelectMapScreen si no lo has hecho
->>>>>>> 70248c4d57e7c2a6a0be2dde6eb3e0bf3d6d89be
 
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
@@ -132,58 +125,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   Widget _buildSignUpButton() {
     return ElevatedButton(
       onPressed: () async {
-<<<<<<< HEAD
-        final tokenProvider =
-            Provider.of<TokenProvider>(context, listen: false);
-        final userId = tokenProvider.userId;
-
-        Map<String, dynamic> parkingData = {
-          "name": parkingNameController.text,
-          "capacity": int.tryParse(capacityController.text) ?? 0,
-          "phone": ownerPhoneController.text,
-          "email": emailController.text,
-          "user": userId,
-          "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
-          "url_image": imageUrlController.text,
-          "description": descriptionController.text,
-          "opening_time": "${openingTime.hour}:${openingTime.minute}",
-          "closing_time": "${closingTime.hour}:${closingTime.minute}",
-        };
-
-        try {
-          final parkingId = await apiParking.createRecord(
-              parkingData); // Asumiendo que createRecord devuelve el ID del parqueo
-          final currentContext = context; // Almacena el contexto aquí
-          final parsedParkingId =
-              int.parse(parkingId); // Convierte parkingId a int
-          Navigator.push(
-            currentContext,
-            MaterialPageRoute(
-              builder: (context) => SelectMapScreen(parkingId: parsedParkingId),
-            ),
-          );
-        } catch (e) {
-          showDialog(
-            context: context,
-            builder: (BuildContext dialogContext) {
-              // Cambia 'context' a 'dialogContext' aquí
-              return AlertDialog(
-                title: Text('Error de Registro'),
-                content: Text('Error al registrar el parqueo: $e'),
-                actions: [
-                  TextButton(
-                    child: Text('Cerrar'),
-                    onPressed: () {
-                      Navigator.pop(dialogContext); // Usa 'dialogContext' aquí
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-          print("Error al registrar el parqueo: $e");
-        }
-=======
   final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
   final userId = tokenProvider.userId;
 
@@ -226,7 +167,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
             ),
           ],
         );
->>>>>>> 70248c4d57e7c2a6a0be2dde6eb3e0bf3d6d89be
       },
     );
     print("Error al registrar el parqueo: $e");

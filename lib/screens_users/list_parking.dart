@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_owners/create_account_owner.dart';
+import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
@@ -78,8 +79,7 @@ class _ListParkingsState extends State<ListParkings> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ParkingDetailsScreen(
-                            parkingId: parqueo['id'].toString()),
+                        builder: (context) => MainScreen()
                       ),
                     );
                   },
