@@ -178,17 +178,37 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginButton() {
     return ElevatedButton(
       onPressed: () async {
-        // Datos de inicio de sesión
+        // Verificar si los campos están vacíos
+        if (emailController.text.trim().isEmpty ||
+            passwordController.text.trim().isEmpty) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Error'),
+                content: Text('Por favor, rellene todos los campos.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cerrar'),
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
+
         String username = emailController.text.trim();
         String password = passwordController.text.trim();
 
-        // Crear el cuerpo de la solicitud
         Map<String, String> requestBody = {
           'username': username,
           'password': password,
         };
 
-        // Realizar la solicitud HTTP
         final response = await http.post(
           Uri.parse(
               'https://estacionatbackend.onrender.com/api/v2/user/login/'),
@@ -209,42 +229,56 @@ class _LoginPageState extends State<LoginPage> {
           Provider.of<TokenProvider>(context, listen: false)
               .updateUsername(username);
 
-          final bool rolUsuario = responseData['user']['rol_usuario'];
-          if (rolUsuario) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (context) =>
-                      MainScreen()), //pantalla del dueño del parqueo
-            );
-          } else {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => NavigationBarScreen()),
-            );
-          }
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => NavigationBarScreen()),
+          );
         } else {
-          // Si la solicitud falla, puedes mostrar un mensaje de error
           if (response.headers['content-type']?.contains('application/json') ??
               false) {
-            final errorMessage = jsonDecode(response.body)['error'];
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Error de inicio de sesión'),
-                  content: Text(errorMessage),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
-                );
-              },
-            );
+            final responseData = jsonDecode(response.body);
+            if (responseData.containsKey('detail') &&
+                responseData['detail'] ==
+                    'No User matches the given query.') {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Error de inicio de sesión'),
+                    content: Text(
+                        'El usuario no existe o las credenciales son incorrectas.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Cerrar'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              final errorMessage = responseData['error'];
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Error de inicio de sesión'),
+                    content: Text(errorMessage ??
+                        'Se produjo un error al procesar su solicitud.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Cerrar'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
           } else {
-            // Si la respuesta no es JSON válido, muestra un mensaje genérico de error
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -282,7 +316,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildSignUpButton() {
     return ElevatedButton(
       onPressed: () {
-        // Navegar a CreateAccountPage
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const SignUpPage()),
         );
