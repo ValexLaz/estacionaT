@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/screens_users/parkingDetails/PriceParkingDetails.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -415,6 +416,86 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                   style: TextStyle(fontSize: 16.0),
                                 ))
                             .toList(),
+                        Card(
+                          margin: EdgeInsets.all(10),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: <Widget>[
+                                CircleAvatar(
+                                  backgroundColor: Colors.red,
+                                  // Asegúrate de agregar la imagen del logo aquí si es necesario.
+                                ),
+                                SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(
+                                        "Reserva",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '10%',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          Text(
+                                            "15 Bs",
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Hora de inicio: 10:00 AM",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Hora de fin: 12:00 PM",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        "Tiempo total: 2 horas",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),
