@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:map_flutter/services/api_service.dart';
 
 class ApiParking {
-  final String baseUrl = "https://estacionatbackend.onrender.com/api/v2/";
+  final String baseUrl = "http://127.0.0.1:8000/api/v2/";
   final String path = "parking/parking/";
 
   Future<List<Map<String, dynamic>>> getAllParkings() async {

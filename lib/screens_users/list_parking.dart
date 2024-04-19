@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/common/managers/ParkingManager.dart';
+import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/screens_owners/create_account_owner.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
+
 class ListParkings extends StatefulWidget {
   const ListParkings({Key? key}) : super(key: key);
 
@@ -38,7 +41,8 @@ class _ListParkingsState extends State<ListParkings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
+        title:
+            Text('Todos los Parqueos', style: TextStyle(color: Colors.white)),
         backgroundColor: primaryColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -72,15 +76,16 @@ class _ListParkingsState extends State<ListParkings> {
               itemCount: parqueos.length,
               itemBuilder: (context, index) {
                 var parqueo = parqueos[index];
-                bool isAvailable = parqueo['spaces_available'] > 0; // Asumiendo que 'spaces_available' es un int
-
+                bool isAvailable = parqueo['spaces_available'] >
+                    0; // Asumiendo que 'spaces_available' es un int
+                print(parqueo);
                 return InkWell(
                   onTap: () {
+                    ParkingManager.instance.setParking(
+                        Parking(id: parqueo['id'], name: parqueo['name']));
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => MainScreen()
-                      ),
+                      MaterialPageRoute(builder: (context) => MainScreen()),
                     );
                   },
                   child: Card(
@@ -106,15 +111,19 @@ class _ListParkingsState extends State<ListParkings> {
                                     color: primaryColor,
                                   ),
                                 ),
-                                Text('Espacios disponibles: ${parqueo['spaces_available']}'),
+                                Text(
+                                    'Espacios disponibles: ${parqueo['spaces_available']}'),
                                 Container(
                                   padding: EdgeInsets.symmetric(
                                     vertical: 2,
                                     horizontal: 8,
                                   ),
-                                  color: isAvailable ? Colors.green : Colors.red,
+                                  color:
+                                      isAvailable ? Colors.green : Colors.red,
                                   child: Text(
-                                    isAvailable ? 'Disponible' : 'No disponible',
+                                    isAvailable
+                                        ? 'Disponible'
+                                        : 'No disponible',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),

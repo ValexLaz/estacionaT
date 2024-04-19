@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:map_flutter/common/managers/ParkingManager.dart';
+import 'package:map_flutter/common/widgets/AlertSnackBar.dart';
 import 'package:map_flutter/common/widgets/input_form.dart';
 import 'package:map_flutter/common/widgets/multipleInput_form.dart';
+import 'package:map_flutter/models/Parking.dart';
+import 'package:map_flutter/models/Price.dart';
 import 'package:map_flutter/models/TypeVehicle.dart';
+import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
 
 class PriceFormScreen extends StatefulWidget {
@@ -12,15 +17,16 @@ class PriceFormScreen extends StatefulWidget {
 
 class _PriceFormScreenState extends State<PriceFormScreen> {
   TextEditingController _priceController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _pricePerHourController = TextEditingController();
-  TextEditingController _typeVehicleIDController = TextEditingController();
-  TextEditingController _isPriceReservation = TextEditingController();
-  TextEditingController _isPriceParking = TextEditingController();
-  TextEditingController _restriccionesHorarias = TextEditingController();
+  TextEditingController _isPricePerHourCtrl = TextEditingController();
+  TextEditingController _isPriceReservationCtrl = TextEditingController();
+  TextEditingController _isPriceParkingCtrl = TextEditingController();
+  TextEditingController _typeVehicleIDCtrl = TextEditingController();
+  TextEditingController _restriccionesHorariasCtrl = TextEditingController();
+  TextEditingController _totalHoursCtrl = TextEditingController();
   late Size mediaSize;
   late Color primaryColor;
   TimeOfDay openingTime = TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay closeTime = TimeOfDay(hour: 12, minute: 0);
   ValueNotifier<bool> showHourlyFields = ValueNotifier(false);
   ValueNotifier<bool> showTimeRestrictions = ValueNotifier(false);
 
@@ -93,6 +99,7 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
         InputForm(
           name: "Precio",
           inputWidget: TextFormField(
+            controller: _priceController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.payments),
@@ -100,40 +107,27 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
           ),
         ),
         InputForm(
-          name: "Descripcion",
-          inputWidget: TextFormField(
-            keyboardType: TextInputType.text,
-            maxLines: 1,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[^\n\r]+')),
-            ],
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.text_fields),
-            ),
-          ),
-        ),
-        InputForm(
-            name: "Reserva",
+            name: "Categoria",
             inputWidget: FormField<bool>(
               builder: (FormFieldState<bool> state) {
                 return Column(
                   children: <Widget>[
                     CheckboxListTile(
                       title: const Text('Precio de reserva'),
-                      value: _isPriceReservation.text == 'true',
+                      value: _isPriceReservationCtrl.text == 'true',
                       onChanged: (bool? newValue) {
                         if (newValue != null) {
-                          _isPriceReservation.text = newValue.toString();
+                          _isPriceReservationCtrl.text = newValue.toString();
                           state.didChange(newValue);
                         }
                       },
                     ),
                     CheckboxListTile(
                       title: const Text('Precio de estacionamiento'),
-                      value: _isPriceParking.text == 'true',
+                      value: _isPriceParkingCtrl.text == 'true',
                       onChanged: (bool? newValue) {
                         if (newValue != null) {
-                          _isPriceParking.text = newValue.toString();
+                          _isPriceParkingCtrl.text = newValue.toString();
                           state.didChange(newValue);
                         }
                       },
@@ -152,7 +146,7 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
               setState(() {
                 _selectedTypeVehicle = value;
               });
-              _typeVehicleIDController.text = value?.id.toString() ?? '';
+              _typeVehicleIDCtrl.text = value?.id.toString() ?? '';
             },
             validator: (value) {
               if (value == null) {
@@ -178,12 +172,11 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
           name: "Tipo de precio",
           inputWidget: InputMultipleOptions(
             options: const ['Por hora', 'Por dia'],
-            controller: _priceController,
+            controller: _isPricePerHourCtrl,
             icon: Icons.list,
             onChanged: (value) {
               setState(() {
                 showHourlyFields.value = (value == 'Por hora');
-                _priceController.text = value!;
               });
             },
           ),
@@ -208,12 +201,11 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
           name: "Restricciones horarios",
           inputWidget: InputMultipleOptions(
             options: const ['Horas fijas', 'Horario'],
-            controller: _restriccionesHorarias,
+            controller: _restriccionesHorariasCtrl,
             icon: Icons.list,
             onChanged: (value) {
               setState(() {
                 showTimeRestrictions.value = (value == 'Horas fijas');
-                _restriccionesHorarias.text = value!;
               });
             },
           ),
@@ -225,15 +217,29 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
                 ? InputForm(
                     name: "Horas",
                     inputWidget: TextFormField(
+                      controller: _totalHoursCtrl,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.schedule),
                       ),
                     ),
                   )
-                :               _buildTimePicker("Apertura", openingTime, (newTime) {
-                setState(() => openingTime = newTime);
-              });
+                : Column(
+                    children: [
+                      InputForm(
+                          name: "Hora",
+                          inputWidget: _buildTimePicker("Inicio", openingTime,
+                              (newTime) {
+                            setState(() => openingTime = newTime);
+                          })),
+                      InputForm(
+                          name: "Hora",
+                          inputWidget:
+                              _buildTimePicker("Fin", closeTime, (newTime) {
+                            setState(() => closeTime = newTime);
+                          }))
+                    ],
+                  );
           },
         ),
       ],
@@ -243,11 +249,56 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
   Widget _buttonCreatePrice() {
     return ElevatedButton(
       onPressed: () async {
-        // Datos de registro
-        String description = _descriptionController.text.trim();
-        String typeVehicleID = _typeVehicleIDController.text.trim();
-        String price = _priceController.text.trim();
-        String pricePerHour = _pricePerHourController.text.trim();
+        try {
+          Parking? parking = ParkingManager.instance.getParking();
+          Price price = Price(
+              price: double.parse(_priceController.text.trim()),
+              parkingId: parking!.id!);
+          price.isEntryFee = _isPriceParkingCtrl.text.trim() == "true";
+          price.isReservation = _isPriceReservationCtrl.text.trim() == "true";
+          price.typeVehicleID = int.parse(_typeVehicleIDCtrl.text.trim());
+
+          if (showHourlyFields.value) {
+            price.isPriceHour = showHourlyFields.value;
+            if (showTimeRestrictions.value) {
+              price.priceHour =
+                  PriceHour(totalTime: int.parse(_totalHoursCtrl.text));
+            } else {
+              int openingMinutes = openingTime.hour * 60 + openingTime.minute;
+              int closeMinutes = closeTime.hour * 60 + closeTime.minute;
+              int totalMinutes = closeMinutes - openingMinutes;
+              price.priceHour = PriceHour(
+                  startTime: openingTime,
+                  endTime: closeTime,
+                  totalTime: totalMinutes);
+            }
+          }
+          await ApiPrice().create(price);
+          ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '¡Precio Guardado Exitosamente!',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.only(right: 16.0),
+                ),
+          );
+        } on Exception catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '¡Precio No Guardado!',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.only(right: 16.0),
+                ),
+          );
+          print(e.toString());
+        }
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF1b4ee4),
@@ -261,7 +312,6 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
       ),
     );
   }
-
 
   Widget _buildTimePicker(
       String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
@@ -294,8 +344,13 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
 
   @override
   void dispose() {
-    _pricePerHourController.dispose();
     _priceController.dispose();
+    _isPricePerHourCtrl.dispose();
+    _isPriceReservationCtrl.dispose();
+    _isPriceParkingCtrl.dispose();
+    _typeVehicleIDCtrl.dispose();
+    _restriccionesHorariasCtrl.dispose();
+    _totalHoursCtrl.dispose();
     super.dispose();
   }
 }
