@@ -1,130 +1,147 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+import 'package:map_flutter/screens_users/list_parking.dart';
 
-// Constante para el token de acceso de Mapbox
-const MAPBOX_ACCESS_TOKEN =
+const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
+const String MAPBOX_STYLE = 'mapbox/streets-v12';
 
 class SelectMapScreen extends StatefulWidget {
   final int parkingId;
-  const SelectMapScreen({Key? key, required this.parkingId}) : super(key: key);
+  SelectMapScreen({Key? key, required this.parkingId}) : super(key: key);
 
   @override
   _SelectMapScreenState createState() => _SelectMapScreenState();
 }
 
 class _SelectMapScreenState extends State<SelectMapScreen> {
-  LatLng? myPosition;
-
-  // Método para obtener la ubicación actual del usuario
-  Future<void> getCurrentLocation() async {
-    try {
-      Position position = await determinePosition();
-      if (mounted) {
-        setState(() {
-          myPosition = LatLng(position.latitude, position.longitude);
-        });
-      }
-    } catch (e) {
-      // Maneja la excepción aquí, posiblemente mostrando un mensaje de error al usuario
-      print('Error obteniendo la ubicación: $e');
-    }
-  }
-
-  // Método para determinar la posición actual del usuario
-  Future<Position> determinePosition() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Permiso de ubicación denegado');
-      }
-    }
-    return Geolocator.getCurrentPosition();
-  }
-
-
-Future<void> saveLocation(double latitude, double longitude) async {
-  try {
-    final response = await http.post(
-      Uri.parse('https://estacionatbackend.onrender.com/api/v2/parking/address/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'latitude': latitude,
-        'longitude': longitude,
-        'city': 'santacruz',
-        'street': 'NombreDeTuCalle',
-        'parking': widget.parkingId,
-      }),
-    );
-    if (response.statusCode == 201) {
-      print('Ubicación guardada exitosamente en la API');
-    } else {
-      print('Error al guardar la ubicación en la API: ${response.body}');
-    }
-  } catch (e) {
-    print('Error al guardar la ubicación en la API: $e');
-  }
-}
+  final MapController _mapController = MapController();
+  LatLng? _centerPosition; // Now it can be null
+  TextEditingController _streetController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    getCurrentLocation();
+    _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _centerPosition = LatLng(position.latitude, position.longitude);
+        if (_centerPosition != null) {
+          _mapController.move(
+              _centerPosition!, 15); // Safe to use ! here after null check
+        }
+      });
+    } catch (e) {
+      print('Error obteniendo la ubicación: $e');
+    }
+  }
+
+  Future<void> saveLocation() async {
+    if (_centerPosition != null) {
+      // Check if _centerPosition is not null
+      try {
+        final response = await http.post(
+          Uri.parse(
+              'https://estacionatbackend.onrender.com/api/v2/parking/address/'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'latitude': _centerPosition!.latitude,
+            'longitude': _centerPosition!.longitude,
+            'city': 'Santa Cruz',
+            'street': _streetController.text,
+            'parking': widget.parkingId,
+          }),
+        );
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Parqueo registrado exitosamente')));
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => ListParkings()));
+        } else {
+          print('Error al guardar la ubicación: ${response.body}');
+        }
+      } catch (e) {
+        print('Error al guardar la ubicación: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Seleccionar Ubicación en el Mapa'),
+        title: Text("Selecciona la ubicación de tu parqueo"),
       ),
-      body: myPosition == null
-          ? const CircularProgressIndicator()
-          : FlutterMap(
-              options: MapOptions(
-                center: myPosition,
-                minZoom: 5,
-                maxZoom: 25,
-                zoom: 18,
-                onTap: (tapPosition, latLng) {
-                  // Llama al método para guardar la ubicación
-                  saveLocation(latLng.latitude, latLng.longitude);
-                },
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: TextField(
+              controller: _streetController,
+              decoration: InputDecoration(
+                labelText: 'Nombre de la calle',
+                border: OutlineInputBorder(),
               ),
-              nonRotatedChildren: [
-                TileLayer(
-                  urlTemplate:
-                      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-                  additionalOptions: {
-                    'accessToken': MAPBOX_ACCESS_TOKEN,
-                    'id': 'mapbox/streets-v12',
-                  },
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: myPosition!,
-                      builder: (ctx) => const Icon(
-                        Icons.person_pin,
-                        color: Colors.blueAccent,
-                        size: 40,
-                      ),
+            ),
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    center: _centerPosition ??
+                        LatLng(0, 0), // Default position if null
+                    zoom: 15,
+                    onPositionChanged: (position, hasGesture) {
+                      if (hasGesture) {
+                        setState(() {
+                          _centerPosition = position.center;
+                        });
+                      }
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
+                      additionalOptions: {
+                        'accessToken': MAPBOX_ACCESS_TOKEN,
+                        'id': MAPBOX_STYLE,
+                      },
                     ),
                   ],
                 ),
+                Center(
+                  child: Icon(Icons.location_pin, color: Colors.red, size: 40),
+                )
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Al presionar el botón flotante, pasa la ubicación junto con el ID del parqueo
-          Navigator.pop(context, {'position': myPosition, 'parkingId': widget.parkingId});
-        },
-        child: Icon(Icons.check),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: saveLocation,
+              child: Text('Confirmar ubicación'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 15),
+                textStyle: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

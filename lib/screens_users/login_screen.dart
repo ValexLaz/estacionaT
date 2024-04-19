@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
 

@@ -21,7 +21,67 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    fetchParkingDetails();
+    fetchParkingData();
+  }
+
+  Future<void> fetchParkingData() async {
+    try {
+      await Future.wait([
+        fetchParkingDetails(),
+        fetchParkingAddress(),
+      ]);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching parking data: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos del parqueo.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
+  }
+
+  Future<void> fetchParkingAddress() async {
+    try {
+      Map<String, dynamic> addressDetails =
+          await apiParking.getParkingAddressById(widget.parkingId);
+      if (addressDetails.isNotEmpty) {
+        setState(() {
+          parkingDetails.addAll(addressDetails);
+          isLoading = false;
+        });
+      } else {
+        // Asegúrate de actualizar el estado para reflejar que no se encontraron datos.
+        setState(() {
+          isLoading = false;
+          // Considera mostrar un mensaje de que no se encontraron datos.
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No se encontraron detalles de la dirección.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      print('Error fetching parking address details: $e');
+      setState(() {
+        isLoading = false;
+        // Manejar adecuadamente el estado de error aquí, mostrando un mensaje al usuario.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los detalles de la dirección.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
   }
 
   Future<void> fetchParkingDetails() async {
@@ -29,7 +89,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
       Map<String, dynamic> parkingDetail =
           await apiParking.getParkingDetailsById(widget.parkingId);
       setState(() {
-        parkingDetails = parkingDetail;
+        parkingDetails.addAll(parkingDetail);
         isLoading = false;
       });
     } catch (e) {
@@ -122,13 +182,13 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 8),
                         Row(
                           children: [
                             Icon(Icons.location_on, color: Colors.blue),
                             Text(
-                              '${parkingDetails['location'] ?? 'Seg. Anillo Av. Banzer'}',
+                              '${parkingDetails['street'] ?? 'Nombre de la calle no disponible'} ${parkingDetails['location'] ?? ''}',
                               style: TextStyle(fontSize: 16.0),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Spacer(),
                             Text('Abierto',
@@ -409,7 +469,11 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                                   'email',
                                   'user',
                                   'url_image',
-                                  'phone'
+                                  'phone', 'city', // Agrega esta línea
+                                  'longitude', // Agrega esta línea
+                                  'latitude', // Agrega esta línea
+                                  'street', // Agrega esta línea
+                                  'parking', // Agrega esta línea
                                 ].contains(entry.key))
                             .map((entry) => Text(
                                   '${entry.key}: ${entry.value}',
