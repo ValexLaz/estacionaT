@@ -3,9 +3,6 @@ import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/screens_owners/create_account_owner.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
-import 'package:map_flutter/screens_owners/parking_description.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class ListParkings extends StatefulWidget {
@@ -132,11 +129,30 @@ class _ListParkingsState extends State<ListParkings> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.location_on, color: primaryColor),
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => NavigationBarScreen(),
-                            ));
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            try {
+                              await apiParking
+                                  .deleteParkingById(parqueo['id'].toString());
+                              setState(() {
+                                parqueos.removeAt(index);
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Parqueo eliminado correctamente'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Error al eliminar el parqueo: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                         ),
                       ],

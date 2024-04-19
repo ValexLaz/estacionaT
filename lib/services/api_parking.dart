@@ -4,15 +4,61 @@ import 'package:http/http.dart' as http;
 import 'package:map_flutter/services/api_service.dart';
 
 class ApiParking {
-  final String baseUrl = "http://127.0.0.1:8000/api/v2/";
+  String baseUrl;
   final String path = "parking/parking/";
 
+  ApiParking({this.baseUrl = "https://estacionatbackend.onrender.com/api/v2/"});
+
+  void setBaseUrl(String url) {
+    baseUrl = url;
+  }
+Future<void> deleteParkingById(String parkingId) async {
+  final response = await http.delete(Uri.parse('$baseUrl$path$parkingId/'));
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+    final bool deleted = responseData['deleted'];
+    if (deleted) {
+      print('Parqueo eliminado exitosamente');
+    } else {
+      throw Exception('Error al eliminar el parqueo');
+    }
+  } else if (response.statusCode == 404) {
+    final Map<String, dynamic> responseData = json.decode(response.body);
+    final String error = responseData['error'];
+    throw Exception(error);
+  } else {
+    throw Exception('Error desconocido al eliminar el parqueo');
+  }
+}
   Future<List<Map<String, dynamic>>> getAllParkings() async {
     final response = await http.get(Uri.parse('$baseUrl$path'));
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
       throw Exception('Failed to load data from API');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllParkingAddresses() async {
+    final String url = '${baseUrl}parking/address/';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      print(
+          'Failed to load parking addresses with status code: ${response.statusCode}');
+      throw Exception('Failed to load parking addresses: ${response.body}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getParkingAddressById(String parkingId) async {
+    final String path = "parking/address/parking/$parkingId/";
+    final response = await http.get(Uri.parse('$baseUrl$path'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load parking address details from API');
     }
   }
 
@@ -38,23 +84,21 @@ class ApiParking {
     }
   }
 
-Future<String> createRecord(Map<String, dynamic> data) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl$path'),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode(data),
-  );
+  Future<String> createRecord(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl$path'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(data),
+    );
 
-  if (response.statusCode == 201) {
-    final Map<String, dynamic> responseData = json.decode(response.body);
-    final String parkingId = responseData['id'].toString(); // Convierte el ID del parqueo a String
-    return parkingId;
-  } else {
-    throw Exception('Failed to post data to API: ${response.body}');
+    if (response.statusCode == 201) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      final String parkingId = responseData['id'].toString();
+      return parkingId;
+    } else {
+      throw Exception('Failed to post data to API: ${response.body}');
+    }
   }
-}
-
-
 }
 
 class ApiUser extends ApiService {
@@ -78,7 +122,6 @@ class ApiVehicle extends ApiService {
     try {
       final response = await http.delete(Uri.parse('$baseUrl$path$vehicleID/'));
       if (response.statusCode != 200) {
-        //aclarando que no hay ningun codigo de error asi que pongo eso
         throw Exception('Failed to delete vehicle');
       }
     } catch (e) {
