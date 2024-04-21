@@ -3,8 +3,9 @@ import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/screens_owners/create_account_owner.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
-
+import 'package:provider/provider.dart';
 class ListParkings extends StatefulWidget {
   const ListParkings({Key? key}) : super(key: key);
 
@@ -20,12 +21,19 @@ class _ListParkingsState extends State<ListParkings> {
   @override
   void initState() {
     super.initState();
-    fetchData();
-  }
+    //fetchData();
 
-  Future<void> fetchData() async {
+  }
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  String? authToken = Provider.of<TokenProvider>(context, listen: false).token;
+  fetchData(authToken);
+}
+
+  Future<void> fetchData(String ? token ) async {
     try {
-      List<Map<String, dynamic>> data = await apiParking.getAllParkings();
+      List<Map<String, dynamic>> data = await apiParking.getParkingsByUserId(token!);
       setState(() {
         parqueos = data;
       });

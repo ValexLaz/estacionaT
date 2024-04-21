@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_service.dart';
-
+import 'package:provider/provider.dart';
 class ApiParking {
   String baseUrl;
   final String path = "parking/parking/";
@@ -39,6 +40,23 @@ Future<void> deleteParkingById(String parkingId) async {
       throw Exception('Failed to load data from API');
     }
   }
+ Future<List<Map<String, dynamic>>> getParkingsByUserId(String token) async {
+    print(token);
+    final response = await http.get(
+      Uri.parse(baseUrl+path +'user/'),
+      headers: {
+        'Authorization': 'Token $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+       print(response.body);
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  }
+
 
   Future<List<Map<String, dynamic>>> getAllParkingAddresses() async {
     final String url = '${baseUrl}parking/address/';
