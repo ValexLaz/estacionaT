@@ -13,6 +13,8 @@ class ParkingScreen extends StatefulWidget {
 }
 
 class _ParkingScreenState extends State<ParkingScreen> {
+  
+
   final ApiParking apiParking = ApiParking();
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
@@ -73,7 +75,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
     );
   }
 
-  Widget _buildCapacityInfo(int maxCapacity, int occupiedSpaces, int freeSpaces) {
+  Widget _buildCapacityInfo(
+      int maxCapacity, int occupiedSpaces, int freeSpaces) {
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -83,7 +86,24 @@ class _ParkingScreenState extends State<ParkingScreen> {
             style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
-          Text("Capacidad Máxima: $maxCapacity"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Capacidad Total:',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                '${parkingDetails['capacity'] ?? 'N/A'}',
+                style: TextStyle(fontSize: 16.0),
+              ),
+            ],
+          ),
           SizedBox(height: 10),
           LinearProgressIndicator(
             value: occupiedSpaces / maxCapacity,

@@ -5,7 +5,7 @@ import 'home_gerente.dart';
 import 'register_car.dart';
 import 'reports_screen.dart';
 import 'package:map_flutter/screens_owners/home_gerente.dart';
-
+import 'package:map_flutter/screens_owners/account_owner.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +30,7 @@ class _MainScreenState extends State<MainScreen> {
       ParkingScreen(parkingId: widget.parkingId),
       SignUpCarPage(),
       ReportsPage(),
-      ParkingOwnerScreen(),
+      ParkingOwnerScreen(parkingId: widget.parkingId),
     ];
   }
 
