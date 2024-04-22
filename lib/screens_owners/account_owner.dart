@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_owners/price_screen.dart';
+import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
@@ -13,6 +14,7 @@ class ParkingOwnerScreen extends StatefulWidget {
 
 class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
   final ApiParking apiParking = ApiParking();
+  List<Map<String, dynamic>> parkings = [];
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
   @override
@@ -101,6 +103,21 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          _buildListTile(
+                            title: 'Detalles del parqueo',
+                            icon: Icons.directions_car,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ParkingDetailsScreen(
+                                    parkingId: widget.parkingId,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                           _buildListTile(
                             title: 'Gestionar plazas de parqueo',
                             icon: Icons.directions_car,
