@@ -88,9 +88,12 @@ void didChangeDependencies() {
                   onTap: () {
                     ParkingManager.instance.setParking(
                         Parking(id: parqueo['id'], name: parqueo['name']));
+
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MainScreen()),
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              MainScreen(parkingId: parqueo['id'].toString())),
                     );
                   },
                   child: Card(

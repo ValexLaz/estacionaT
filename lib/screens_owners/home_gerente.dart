@@ -1,54 +1,93 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 class ParkingScreen extends StatefulWidget {
-  const ParkingScreen({Key? key}) : super(key: key);
+  final String parkingId;
+
+  const ParkingScreen({Key? key, required this.parkingId}) : super(key: key);
 
   @override
   _ParkingScreenState createState() => _ParkingScreenState();
 }
 
 class _ParkingScreenState extends State<ParkingScreen> {
-  late String parkingName;
-  final int maxCapacity = 100;
-  late int occupiedSpaces;
-  late int freeSpaces;
+  final ApiParking apiParking = ApiParking();
+  Map<String, dynamic> parkingDetails = {};
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    parkingName = "Parqueo ${Random().nextInt(100)}";
-    occupiedSpaces = 50; // For example, half of the capacity
-    freeSpaces = maxCapacity - occupiedSpaces;
+    fetchParkingData();
+  }
+
+  Future<void> fetchParkingData() async {
+    try {
+      parkingDetails = await apiParking.getParkingDetailsById(widget.parkingId);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching parking data: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos del parqueo.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(parkingName),
+        title: Text('Parqueo ${widget.parkingId}'),
         backgroundColor: Color(0xFF1b4ee4),
       ),
-      body: Column(
-        children: [
-          _buildCapacityInfo(),
-          Expanded(child: _buildVehiclesList()),
-        ],
-      ),
+      body: isLoading ? _buildLoadingScreen() : _buildParkingScreen(),
     );
   }
 
-  Widget _buildCapacityInfo() {
+  Widget _buildLoadingScreen() {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildParkingScreen() {
+    int maxCapacity = parkingDetails['maxCapacity'] ?? 100;
+    int occupiedSpaces = parkingDetails['occupiedSpaces'] ?? 50;
+    int freeSpaces = maxCapacity - occupiedSpaces;
+
+    return Column(
+      children: [
+        _buildCapacityInfo(maxCapacity, occupiedSpaces, freeSpaces),
+        Expanded(child: _buildVehiclesList(occupiedSpaces)),
+      ],
+    );
+  }
+
+  Widget _buildCapacityInfo(int maxCapacity, int occupiedSpaces, int freeSpaces) {
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
         children: [
+          Text(
+            parkingDetails['name'] ?? 'Parking Name',
+            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
           Text("Capacidad Máxima: $maxCapacity"),
           SizedBox(height: 10),
           LinearProgressIndicator(
             value: occupiedSpaces / maxCapacity,
-            minHeight: 20,
+            minHeight: 10,
             backgroundColor: Colors.grey[300],
             color: Colors.blue,
           ),
@@ -65,7 +104,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
     );
   }
 
-  Widget _buildVehiclesList() {
+  Widget _buildVehiclesList(int occupiedSpaces) {
     return ListView.builder(
       itemCount: occupiedSpaces,
       itemBuilder: (context, index) {
@@ -79,10 +118,4 @@ class _ParkingScreenState extends State<ParkingScreen> {
       },
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: ParkingScreen(),
-  ));
 }
