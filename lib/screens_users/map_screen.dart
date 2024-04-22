@@ -20,11 +20,22 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? myPosition;
   List<Marker> markers = []; // Lista para almacenar marcadores
   Marker? userLocationMarker;
+  final MapController _mapController = MapController();
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
     loadParkingAddresses();
+  }
+
+  void _centerOnUserLocation() {
+    if (myPosition != null) {
+      _mapController.move(myPosition!, 18.0);
+    }
+  }
+
+  void _pointToNorth() {
+    _mapController.rotate(0.0);
   }
 
   void fetchAndShowParkingInfo(BuildContext context, String parkingId) async {
@@ -173,12 +184,40 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       body: myPosition == null || markers.isEmpty
           ? Center(child: CircularProgressIndicator())
-          : buildMap(),
+          : Stack(
+              children: [
+                buildMap(),
+                Positioned(
+                  top: 16.0,
+                  right: 16.0,
+                  child: FloatingActionButton(
+                    onPressed: _pointToNorth,
+                    child: Icon(Icons.explore),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    mini: true,
+                  ),
+                ),
+                
+                Positioned(
+                  bottom: 16.0,
+                  right: 16.0,
+                  child: FloatingActionButton(
+                    onPressed: _centerOnUserLocation,
+                    child: Icon(Icons.my_location),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    mini: true,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
   Widget buildMap() {
     return FlutterMap(
+      mapController: _mapController,
       options: MapOptions(
         center: myPosition,
         zoom: 18,
