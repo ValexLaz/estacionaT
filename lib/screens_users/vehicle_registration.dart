@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:provider/provider.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+
+
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -87,11 +91,14 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         backgroundColor: myColor, // Color azul para el botón
       ),
       onPressed: () async {
+        final tokenProvider =
+            Provider.of<TokenProvider>(context, listen: false);
+        final userId = tokenProvider.userId;
         Map<String, dynamic> vehicleData = {
           "brand": brandController.text,
           "model": modelController.text,
           "registration_plate": plateController.text,
-          "user": 2,
+          "user": userId,
           "type_vehicle": 1
         };
 

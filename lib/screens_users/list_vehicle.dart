@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/vehicle_details_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 import 'package:map_flutter/services/api_parking.dart';
-
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:provider/provider.dart';
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});
 
@@ -18,13 +19,17 @@ class _ListVehicleState extends State<ListVehicle> {
   @override
   void initState() {
     super.initState();
-    fetchData();
+    //fetchData();
   }
-
-  Future<void> fetchData() async {
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  String? authToken = Provider.of<TokenProvider>(context, listen: false).token;
+  fetchData(authToken);
+}
+  Future<void> fetchData(String ? token) async {
     try {
-      List<Map<String, dynamic>> data =
-          await apiVehicle.getAllVehiclesByUserID("2");
+            List<Map<String, dynamic>> data = await apiVehicle.getAllVehiclesByUserID(token!);
       setState(() {
         vehicles = data;
       });
@@ -108,7 +113,7 @@ class _ListVehicleState extends State<ListVehicle> {
                                         onTap: () async {
                                           try {
                                             await apiVehicle.deleteVehicleByID(vehicle['id'].toString());
-                                            fetchData();
+                                           // fetchData(authToken);
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(content: Text('Vehículo eliminado exitosamente')),
                                             );

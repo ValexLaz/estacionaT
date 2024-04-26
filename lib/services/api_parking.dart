@@ -126,9 +126,14 @@ class ApiUser extends ApiService {
 class ApiVehicle extends ApiService {
   ApiVehicle() : super("vehicles/vehicle/");
 
-  Future<List<Map<String, dynamic>>> getAllVehiclesByUserID(String id) async {
+  Future<List<Map<String, dynamic>>> getAllVehiclesByUserID(String token) async {
     String user = "user";
-    final response = await http.get(Uri.parse('$baseUrl$path$user/$id/'));
+    print(token);
+    final response = await http.get(
+        Uri.parse('https://estacionatbackend.onrender.com/api/v2/vehicles/vehicle/user/'),
+        headers: {
+            'Authorization': 'Token $token',
+        });
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
@@ -146,6 +151,7 @@ class ApiVehicle extends ApiService {
       throw Exception('Failed to delete vehicle: $e');
     }
   }
+
 
   Future<Map<String, dynamic>> getVehicleDetailsById(String vehicleId) async {
     final response = await http.get(Uri.parse('$baseUrl$path$vehicleId/'));
