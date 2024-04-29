@@ -183,9 +183,3 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     );
   }
 }
-
-void main() {
-  runApp(MaterialApp(
-    home: SignUpParkingPage(),
-  ));
-}
