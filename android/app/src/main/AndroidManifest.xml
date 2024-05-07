@@ -3,7 +3,6 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET"/>
-
     <!-- El bloque de queries debe ir aquí, directamente bajo manifest -->
     <queries>
         <intent>
@@ -11,7 +10,6 @@
             <data android:scheme="whatsapp" />
         </intent>
     </queries>
-
     <application
         android:label="EstacionaT"
         android:name="${applicationName}"

@@ -8,7 +8,7 @@ class ApiParking {
   String baseUrl;
   final String path = "parking/parking/";
 
-  ApiParking({this.baseUrl = "https://estacionatbackend.onrender.com/api/v2/"});
+  ApiParking({this.baseUrl = "http://127.0.0.1:8000/api/v2/"});
 
   void setBaseUrl(String url) {
     baseUrl = url;
