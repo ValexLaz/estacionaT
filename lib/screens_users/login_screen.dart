@@ -2,9 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:map_flutter/models/MobileToken.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
-import 'package:map_flutter/services/api_mobileToken.dart';
 import 'package:map_flutter/services/firebase/firebase_api.dart';
 import 'package:provider/provider.dart';
 
@@ -196,63 +194,64 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _attemptLogin() async {
-  if (emailController.text.trim().isEmpty || passwordController.text.trim().isEmpty) {
-    _showDialog('Error', 'Por favor, rellene todos los campos.');
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  String username = emailController.text.trim();
-  String password = passwordController.text.trim();
-  Map<String, String> requestBody = {
-    'username': username,
-    'password': password,
-  };
-
-  try {
-    final response = await http.post(
-      Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/login/'),
-      body: jsonEncode(requestBody),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final authToken = responseData['token'];
-      final userId = responseData['user']['id'];
-
-      if (!mounted) return;
-
-      Provider.of<TokenProvider>(context, listen: false)
-        ..token = authToken
-        ..userId = userId
-        ..username = username;
-      FirebaseApi().initNotifications(userId);
-      Future.delayed(Duration(milliseconds: 500), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => NavigationBarScreen()),
-          );
-        }
-      });
-    } else {
-      _handleErrorResponse(response);
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
+      _showDialog('Error', 'Por favor, rellene todos los campos.');
+      return;
     }
-  } catch (e) {
-    _showDialog('Error de conexión', 'No se pudo conectar al servidor.');
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    String username = emailController.text.trim();
+    String password = passwordController.text.trim();
+    Map<String, String> requestBody = {
+      'username': username,
+      'password': password,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/login/'),
+        body: jsonEncode(requestBody),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final authToken = responseData['token'];
+        final userId = responseData['user']['id'];
+
+        if (!mounted) return;
+
+        Provider.of<TokenProvider>(context, listen: false)
+          ..token = authToken
+          ..userId = userId
+          ..username = username;
+
+        FirebaseApi firebaseApi = FirebaseApi();
+        firebaseApi.initNotifications(userId.toString());
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => NavigationBarScreen()),
+            );
+          }
+        });
+      } else {
+        _handleErrorResponse(response);
+      }
+    } catch (e) {
+      _showDialog('Error de conexión', 'No se pudo conectar al servidor.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
-
-
 
   void _showDialog(String title, String content) {
     showDialog(
