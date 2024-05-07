@@ -3,7 +3,6 @@ import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/screens_owners/create_account_owner.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
-import 'package:map_flutter/screens_users/account_user.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +18,7 @@ class _ListParkingsState extends State<ListParkings> {
   final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parqueos = [];
   Color primaryColor = Color(0xFF1b4ee4);
-
+bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -34,14 +33,21 @@ class _ListParkingsState extends State<ListParkings> {
   }
 
   Future<void> fetchData(String? token) async {
+    setState(() {
+      isLoading = true; // Establecer isLoading a true antes de obtener los datos
+    });
     try {
       List<Map<String, dynamic>> data =
           await apiParking.getParkingsByUserId(token!);
       setState(() {
         parqueos = data;
+        isLoading = false; // Establecer isLoading a false después de obtener los datos
       });
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
+      setState(() {
+        isLoading = false; // Establecer isLoading a false en caso de error
+      });
     }
   }
 
@@ -55,11 +61,7 @@ class _ListParkingsState extends State<ListParkings> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => CuentaScreen()),
-              (route) => false,
-            );
+            Navigator.pop(context);
           },
         ),
       ),

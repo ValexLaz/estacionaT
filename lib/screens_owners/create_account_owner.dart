@@ -73,7 +73,33 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
       ),
     );
   }
+bool _validateInputs() {
+    // Validación básica para email
+    bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text);
 
+    if (parkingNameController.text.isEmpty ||
+        capacityController.text.isEmpty ||
+        ownerPhoneController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        !emailValid ||
+        spacesAvailableController.text.isEmpty ||
+        imageUrlController.text.isEmpty ||
+        descriptionController.text.isEmpty) {
+      _showSnackBar('Por favor, complete todos los campos correctamente antes de continuar.');
+      return false;
+    }
+    if (int.tryParse(capacityController.text) == null ||
+        int.tryParse(spacesAvailableController.text) == null) {
+      _showSnackBar('Ingrese un número válido en los campos de capacidad y espacios disponibles.');
+      return false;
+    }
+    return true;
+  }
+
+  void _showSnackBar(String message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
   Widget _buildGreyText(String text) {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
@@ -119,63 +145,60 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
 
   Widget _buildSignUpButton() {
     return ElevatedButton(
-      onPressed: () async {
-        final tokenProvider =
-            Provider.of<TokenProvider>(context, listen: false);
-        final userId = tokenProvider.userId;
-
-        Map<String, dynamic> parkingData = {
-          "name": parkingNameController.text,
-          "capacity": int.tryParse(capacityController.text) ?? 0,
-          "phone": ownerPhoneController.text,
-          "email": emailController.text,
-          "user": userId,
-          "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
-          "url_image": imageUrlController.text,
-          "description": descriptionController.text,
-          "opening_time": "${openingTime.hour}:${openingTime.minute}",
-          "closing_time": "${closingTime.hour}:${closingTime.minute}",
-        };
-
-        try {
-          final parkingId = await apiParking.createRecord(
-              parkingData); // Assuming createRecord returns the ID of the parking
-          final currentContext = context; // Store the context here
-          final parsedParkingId =
-              int.parse(parkingId); // Convert parkingId to int
-          Navigator.push(
-            currentContext,
-            MaterialPageRoute(
-              builder: (context) => SelectMapScreen(parkingId: parsedParkingId),
-            ),
-          );
-        } catch (e) {
-          showDialog(
-            context: context,
-            builder: (BuildContext dialogContext) {
-              return AlertDialog(
-                title: Text('Error de Registro'),
-                content: Text('Error al registrar el parqueo: $e'),
-                actions: [
-                  TextButton(
-                    child: Text('Cerrar'),
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-          print("Error al registrar el parqueo: $e");
-        }
-      },
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
+        backgroundColor: myColor,
         shape: StadiumBorder(),
         elevation: 20,
         minimumSize: Size.fromHeight(60),
       ),
+      onPressed: () async {
+        if (_validateInputs()) {
+          final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
+          final userId = tokenProvider.userId;
+
+          Map<String, dynamic> parkingData = {
+            "name": parkingNameController.text,
+            "capacity": int.tryParse(capacityController.text) ?? 0,
+            "phone": ownerPhoneController.text,
+            "email": emailController.text,
+            "user": userId,
+            "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
+            "url_image": imageUrlController.text,
+            "description": descriptionController.text,
+            "opening_time": "${openingTime.hour}:${openingTime.minute}",
+            "closing_time": "${closingTime.hour}:${closingTime.minute}",
+          };
+
+          try {
+            final parkingId = await apiParking.createRecord(parkingData);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SelectMapScreen(parkingId: int.parse(parkingId)),
+              ),
+            );
+          } catch (e) {
+            showDialog(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return AlertDialog(
+                  title: Text('Error de Registro'),
+                  content: Text('Error al registrar el parqueo: $e'),
+                  actions: [
+                    TextButton(
+                      child: Text('Cerrar'),
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            print("Error al registrar el parqueo: $e");
+          }
+        }
+      },
       child: const Text(
         "Registrar Parqueo",
         style: TextStyle(color: Colors.white),

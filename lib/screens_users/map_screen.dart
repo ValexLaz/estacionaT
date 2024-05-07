@@ -18,6 +18,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   LatLng? myPosition;
+  bool _isMapReady = false;
   List<Marker> markers = []; // Lista para almacenar marcadores
   Marker? userLocationMarker;
   final MapController _mapController = MapController();
@@ -142,8 +143,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> getCurrentLocation() async {
-    try {
-      Position position = await determinePosition();
+  try {
+    Position position = await determinePosition();
+    if (mounted) {
       setState(() {
         myPosition = LatLng(position.latitude, position.longitude);
         // Crea el marcador para la ubicación actual
@@ -160,13 +162,16 @@ class _MapScreenState extends State<MapScreen> {
           ),
         );
       });
-    } catch (e) {
+    }
+  } catch (e) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Error obtaining location: $e'),
         duration: Duration(seconds: 3),
       ));
     }
   }
+}
 
   Future<Position> determinePosition() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -198,7 +203,6 @@ class _MapScreenState extends State<MapScreen> {
                     mini: true,
                   ),
                 ),
-                
                 Positioned(
                   bottom: 16.0,
                   right: 16.0,
