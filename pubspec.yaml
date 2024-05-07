@@ -27,6 +27,10 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.2
+  cloud_firestore: ^4.17.2
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.19
+  flutter_local_notifications: ^11.0.0
   flutter:
     sdk: flutter
   flutter_map: ^3.1.0

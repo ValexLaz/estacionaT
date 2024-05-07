@@ -1,9 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:map_flutter/firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 
-void main() {
+void main()async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
@@ -11,8 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      // Envuelve MaterialApp con ChangeNotifierProvider
-      create: (_) => TokenProvider(), // Crea una instancia de TokenProvider
+      create: (_) => TokenProvider(), 
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Login Demo',

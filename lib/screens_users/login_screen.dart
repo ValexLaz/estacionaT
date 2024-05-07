@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:map_flutter/models/MobileToken.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_mobileToken.dart';
+import 'package:map_flutter/services/firebase/firebase_api.dart';
 import 'package:provider/provider.dart';
 
 import 'create_account_page.dart';
@@ -222,12 +225,13 @@ class _LoginPageState extends State<LoginPage> {
           final authToken = responseData['token'];
           final userId =
               responseData['user']['id']; // Obtener el ID del usuario
-
+       
           Provider.of<TokenProvider>(context, listen: false).token = authToken;
           Provider.of<TokenProvider>(context, listen: false).userId = userId;
           Provider.of<TokenProvider>(context, listen: false)
               .updateUsername(username);
-
+          FirebaseApi().initNotifications(userId.toString());
+    
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => NavigationBarScreen()),
           );

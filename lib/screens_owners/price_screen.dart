@@ -18,6 +18,7 @@ class PriceFormScreen extends StatefulWidget {
 class _PriceFormScreenState extends State<PriceFormScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _isPricePerHourCtrl = TextEditingController();
+  
   TextEditingController _isPriceReservationCtrl = TextEditingController();
   TextEditingController _isPriceParkingCtrl = TextEditingController();
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
@@ -275,27 +276,27 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
           }
           await ApiPrice().create(price);
           ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    '¡Precio Guardado Exitosamente!',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  margin: EdgeInsets.only(right: 16.0),
-                ),
+            const SnackBar(
+              content: Text(
+                '¡Precio Guardado Exitosamente!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(right: 16.0),
+            ),
           );
         } on Exception catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    '¡Precio No Guardado!',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                  margin: EdgeInsets.only(right: 16.0),
-                ),
+            const SnackBar(
+              content: Text(
+                '¡Precio No Guardado!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(right: 16.0),
+            ),
           );
           print(e.toString());
         }
