@@ -230,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
         ..token = authToken
         ..userId = userId
         ..username = username;
-
+      FirebaseApi().initNotifications(userId);
       Future.delayed(Duration(milliseconds: 500), () {
         if (mounted) {
           Navigator.of(context).pushReplacement(
