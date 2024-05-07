@@ -43,6 +43,11 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
       });
     } catch (e) {
       print('Error obteniendo la ubicación: $e');
+      // Si no se puede obtener la ubicación actual, establece una ubicación predeterminada
+      setState(() {
+        _centerPosition = LatLng(0, 0); // Ubicación predeterminada
+        _mapController.move(_centerPosition!, 15);
+      });
     }
   }
 

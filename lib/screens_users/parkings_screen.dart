@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
@@ -14,9 +16,11 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parkings = [];
   List<Map<String, dynamic>> filteredParkings = [];
+  List<Map<String, dynamic>> searchFilteredParkings = [];
   Color primaryColor = Color(0xFF1b4ee4);
   TextEditingController searchController = TextEditingController();
   int selectedFilterIndex = 1;
+  final Random random = Random();
 
   @override
   void initState() {
@@ -42,8 +46,10 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       selectedFilterIndex = index;
     });
     switch (index) {
-      case 0:
-        // Implementa tu lógica para filtrar por proximidad
+      case 3:
+        List<Map<String, dynamic>> shuffledParkings = List.from(parkings);
+        shuffledParkings.shuffle(random); // Mezcla los parqueos aleatoriamente
+        filteredParkings = shuffledParkings;
         break;
       case 1:
         filteredParkings =
@@ -52,6 +58,10 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       case 2:
         filteredParkings =
             parkings.where((p) => p['spaces_available'] <= 0).toList();
+        break;
+      case 3:
+        filteredParkings =
+            parkings; // Restablece a todos los parqueos sin filtro
         break;
       default:
         filteredParkings = parkings;
@@ -88,7 +98,11 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                 ),
               ),
               onChanged: (value) {
-                // Lógica de búsqueda (opcional)
+                searchFilteredParkings = filteredParkings.where((parking) {
+                  String parkingName = parking['name'].toLowerCase();
+                  return parkingName.contains(value.toLowerCase());
+                }).toList();
+                setState(() {});
               },
             ),
           ),
@@ -104,15 +118,21 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                   filterButton(1, 'Disponibles'),
                   SizedBox(width: 5), // Espacio entre los botones
                   filterButton(2, 'No Disponibles'),
+                  SizedBox(width: 5), // Espacio entre los botones
+                  filterButton(3, 'Todos'),
                 ],
               ),
             ),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filteredParkings.length,
+              itemCount: searchController.text.isNotEmpty
+                  ? searchFilteredParkings.length
+                  : filteredParkings.length,
               itemBuilder: (context, index) {
-                var parking = filteredParkings[index];
+                var parking = searchController.text.isNotEmpty
+                    ? searchFilteredParkings[index]
+                    : filteredParkings[index];
                 int spacesAvailable = parking['spaces_available'];
                 bool isAvailable = spacesAvailable > 0;
                 String availabilityText =
@@ -203,54 +223,55 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
         height: 40.0,
         child: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => NavigationBarScreen(),
-            ));
-          },
-          label: Text(
-            'Ver mapa',
-            style: TextStyle(
-              color:
-                  primaryColor, // Color del texto igual al del icono y el margen
-            ),
-          ),
-          icon: Icon(
-            Icons.map,
-            color: primaryColor,
-          ),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.white, // Color del texto
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: primaryColor),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ),
-      ),
-    );
-  }
+            Navigator.of(context).push(
+              MaterialPageRoute(
+             builder: (context) => NavigationBarScreen(),
+           ));
+         },
+         label: Text(
+           'Ver mapa',
+           style: TextStyle(
+             color:
+                 primaryColor, // Color del texto igual al del icono y el margen
+           ),
+         ),
+         icon: Icon(
+           Icons.map,
+           color: primaryColor,
+         ),
+         backgroundColor: Colors.white,
+         foregroundColor: Colors.white, // Color del texto
+         shape: RoundedRectangleBorder(
+           side: BorderSide(color: primaryColor),
+           borderRadius: BorderRadius.circular(8.0),
+         ),
+       ),
+     ),
+   );
+ }
 
-  Widget filterButton(int index, String text) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            selectedFilterIndex == index ? primaryColor : Colors.white,
-        side: BorderSide(
-          color:
-              selectedFilterIndex == index ? Colors.transparent : primaryColor,
-          width: 1,
-        ),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      onPressed: () => filterParkings(index),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: selectedFilterIndex == index ? Colors.white : primaryColor,
-        ),
-      ),
-    );
-  }
+ Widget filterButton(int index, String text) {
+   return ElevatedButton(
+     style: ElevatedButton.styleFrom(
+       backgroundColor:
+           selectedFilterIndex == index ? primaryColor : Colors.white,
+       side: BorderSide(
+         color:
+             selectedFilterIndex == index ? Colors.transparent : primaryColor,
+         width: 1,
+       ),
+       elevation: 0,
+       shape: RoundedRectangleBorder(
+         borderRadius: BorderRadius.circular(10),
+       ),
+     ),
+     onPressed: () => filterParkings(index),
+     child: Text(
+       text,
+       style: TextStyle(
+         color: selectedFilterIndex == index ? Colors.white : primaryColor,
+       ),
+     ),
+   );
+ }
 }

@@ -1,13 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_owners/price_screen.dart';
+import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 class ParkingOwnerScreen extends StatefulWidget {
+  final String parkingId;
+  const ParkingOwnerScreen({Key? key, required this.parkingId})
+      : super(key: key);
   @override
   _ParkingOwnerScreenState createState() => _ParkingOwnerScreenState();
 }
 
 class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
+  final ApiParking apiParking = ApiParking();
+  List<Map<String, dynamic>> parkings = [];
+  Map<String, dynamic> parkingDetails = {};
+  bool isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    fetchParkingData();
+  }
+
+  Future<void> fetchParkingData() async {
+    try {
+      parkingDetails = await apiParking.getParkingDetailsById(widget.parkingId);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching parking data: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos del parqueo.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Color primaryColor = Color(0xFF1b4ee4);
@@ -44,7 +79,7 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                       ),
                       SizedBox(height: 20),
                       Text(
-                        'Dueño del Parqueo',
+                        parkingDetails['name'] ?? 'Parking Name',
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white,
@@ -68,6 +103,21 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          _buildListTile(
+                            title: 'Detalles del parqueo',
+                            icon: Icons.directions_car,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ParkingDetailsScreen(
+                                    parkingId: widget.parkingId,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                           _buildListTile(
                             title: 'Gestionar plazas de parqueo',
                             icon: Icons.directions_car,

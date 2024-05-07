@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:provider/provider.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+
+
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -64,7 +68,19 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
       ],
     );
   }
-
+bool _validateInputs() {
+    if (brandController.text.isEmpty ||
+        modelController.text.isEmpty ||
+        plateController.text.isEmpty) {
+      _showSnackBar('Por favor complete todos los campos antes de continuar.');
+      return false;
+    }
+    return true;
+  }
+  void _showSnackBar(String message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
   Widget _buildGreyText(String text) {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
@@ -84,39 +100,43 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   Widget _buildRegisterVehicleButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: myColor, // Color azul para el botón
+        backgroundColor: myColor,
       ),
       onPressed: () async {
-        Map<String, dynamic> vehicleData = {
-          "brand": brandController.text,
-          "model": modelController.text,
-          "registration_plate": plateController.text,
-          "user": 2,
-          "type_vehicle": 1
-        };
+        if (_validateInputs()) {
+          final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
+          final userId = tokenProvider.userId;
+          Map<String, dynamic> vehicleData = {
+            "brand": brandController.text,
+            "model": modelController.text,
+            "registration_plate": plateController.text,
+            "user": userId,
+            "type_vehicle": 1
+          };
 
-        try {
-          await apiVehicle.createRecord(vehicleData);
-          Navigator.pop(context);
-        } catch (e) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Error de Registro'),
-                content: Text('Error al registrar el vehículo: $e'),
-                actions: [
-                  TextButton(
-                    child: Text('Cerrar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-          print("Error al registrar el vehículo: $e");
+          try {
+            await apiVehicle.createRecord(vehicleData);
+            Navigator.pop(context);
+          } catch (e) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Error de Registro'),
+                  content: Text('Error al registrar el vehículo: $e'),
+                  actions: [
+                    TextButton(
+                      child: Text('Cerrar'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            print("Error al registrar el vehículo: $e");
+          }
         }
       },
       child: Text(
@@ -126,3 +146,4 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
     );
   }
 }
+

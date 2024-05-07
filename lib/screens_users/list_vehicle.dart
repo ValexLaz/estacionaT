@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/vehicle_details_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:provider/provider.dart';
 
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});
@@ -18,13 +20,21 @@ class _ListVehicleState extends State<ListVehicle> {
   @override
   void initState() {
     super.initState();
-    fetchData();
+    // fetchData();
   }
 
-  Future<void> fetchData() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    String? authToken =
+        Provider.of<TokenProvider>(context, listen: false).token;
+    fetchData(authToken);
+  }
+
+  Future<void> fetchData(String? token) async {
     try {
       List<Map<String, dynamic>> data =
-          await apiVehicle.getAllVehiclesByUserID("2");
+          await apiVehicle.getAllVehiclesByUserID(token!);
       setState(() {
         vehicles = data;
       });
@@ -32,7 +42,25 @@ class _ListVehicleState extends State<ListVehicle> {
       print('Error al obtener datos de los vehículos: $e');
     }
   }
- @override
+
+  Future<void> deleteVehicle(String vehicleId) async {
+    try {
+      await apiVehicle.deleteVehicleByID(vehicleId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vehículo eliminado exitosamente')),
+      );
+      setState(() {
+        vehicles
+            .removeWhere((vehicle) => vehicle['id'].toString() == vehicleId);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar el vehículo: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +78,10 @@ class _ListVehicleState extends State<ListVehicle> {
                   MaterialPageRoute(
                     builder: (context) => VehicleRegistrationPage(),
                   ),
-                );
+                ).then((_) {
+                  fetchData(
+                      Provider.of<TokenProvider>(context, listen: false).token);
+                });
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
@@ -68,81 +99,83 @@ class _ListVehicleState extends State<ListVehicle> {
           Expanded(
             child: Container(
               color: Colors.white,
-              child: ListView.builder(
-                itemCount: vehicles.length,
-                itemBuilder: (context, index) {
-                  var vehicle = vehicles[index];
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VehicleDetailsScreen(
-                            vehicleId: vehicle['id'].toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      margin: EdgeInsets.all(8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.directions_car, size: 100), // Icono de auto
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Marca: " + vehicle['brand'],
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1b4ee4),
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () async {
-                                          try {
-                                            await apiVehicle.deleteVehicleByID(vehicle['id'].toString());
-                                            fetchData();
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Vehículo eliminado exitosamente')),
-                                            );
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Error al eliminar el vehículo: $e')),
-                                            );
-                                          }
-                                        },
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    "Modelo: " + vehicle['model'],
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  Text(
-                                    "Placa: " + vehicle['registration_plate'],
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ],
+              child: vehicles.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No tienes vehículos registrados',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: vehicles.length,
+                      itemBuilder: (context, index) {
+                        var vehicle = vehicles[index];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VehicleDetailsScreen(
+                                  vehicleId: vehicle['id'].toString(),
+                                ),
                               ),
+                            );
+                          },
+                          child: Card(
+                            margin: EdgeInsets.all(8),
+                            child: Row(
+                              children: [
+                                Icon(Icons.directions_car,
+                                    size: 100), // Icono de auto
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Marca: " + vehicle['brand'],
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF1b4ee4),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                await deleteVehicle(
+                                                    vehicle['id'].toString());
+                                              },
+                                              child: Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          "Modelo: " + vehicle['model'],
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        Text(
+                                          "Placa: " +
+                                              vehicle['registration_plate'],
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
         ],

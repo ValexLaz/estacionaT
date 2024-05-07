@@ -4,8 +4,17 @@ import 'account_owner.dart';
 import 'home_gerente.dart';
 import 'register_car.dart';
 import 'reports_screen.dart';
+import 'package:map_flutter/screens_owners/home_gerente.dart';
+import 'package:map_flutter/screens_owners/account_owner.dart';
+import 'package:map_flutter/screens_owners/vehicle_entry_screen.dart';
+import 'package:map_flutter/services/api_parking.dart';
+import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
+  final String parkingId;
+
+  MainScreen({Key? key, required this.parkingId}) : super(key: key);
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -13,12 +22,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    ParkingScreen(),
-    SignUpCarPage(),
-    ReportsPage(),
-    ParkingOwnerScreen(),
-  ];
+  late List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      ParkingScreen(parkingId: widget.parkingId),
+      VehicleEntryPage(parkingId: widget.parkingId),
+      ReportsPage(),
+      ParkingOwnerScreen(parkingId: widget.parkingId),
+    ];
+  }
 
   void onTabTapped(int index) {
     setState(() {
@@ -37,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
         data: Theme.of(context).copyWith(
           canvasColor: Color(0xFF1b4ee4),
           primaryColor:
-              Colors.white, // If you want the selected item to be white
+              Colors.white, // Color blanco para el elemento seleccionado
         ),
         child: BottomNavigationBar(
           onTap: onTabTapped,
@@ -57,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_circle),
-              label: 'Informacion parqueo', //esto debe ser editable
+              label: 'Informacion parqueo',
             ),
           ],
           selectedItemColor: Colors.white,

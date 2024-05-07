@@ -11,6 +11,7 @@ import 'navigation_bar_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -24,6 +25,8 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode passwordFocusNode = FocusNode();
   bool rememberUser = false;
   bool obscurePassword = true;
+  bool _isLoading =
+      false; // Estado para controlar la visualización del indicador de carga
 
   @override
   Widget build(BuildContext context) {
@@ -176,140 +179,107 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildLoginButton() {
     return ElevatedButton(
-      onPressed: () async {
-        // Verificar si los campos están vacíos
-        if (emailController.text.trim().isEmpty ||
-            passwordController.text.trim().isEmpty) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Error'),
-                content: Text('Por favor, rellene todos los campos.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('Cerrar'),
-                  ),
-                ],
-              );
-            },
-          );
-          return;
-        }
-
-        String username = emailController.text.trim();
-        String password = passwordController.text.trim();
-
-        Map<String, String> requestBody = {
-          'username': username,
-          'password': password,
-        };
-
-        final response = await http.post(
-          Uri.parse(
-              'https://estacionatbackend.onrender.com/api/v2/user/login/'),
-          body: jsonEncode(requestBody),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        );
-        print(response.body);
-        if (response.statusCode == 200) {
-          final responseData = jsonDecode(response.body);
-          final authToken = responseData['token'];
-          final userId =
-              responseData['user']['id']; // Obtener el ID del usuario
-
-          Provider.of<TokenProvider>(context, listen: false).token = authToken;
-          Provider.of<TokenProvider>(context, listen: false).userId = userId;
-          Provider.of<TokenProvider>(context, listen: false)
-              .updateUsername(username);
-
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => NavigationBarScreen()),
-          );
-        } else {
-          if (response.headers['content-type']?.contains('application/json') ??
-              false) {
-            final responseData = jsonDecode(response.body);
-            if (responseData.containsKey('detail') &&
-                responseData['detail'] ==
-                    'No User matches the given query.') {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Error de inicio de sesión'),
-                    content: Text(
-                        'El usuario no existe o las credenciales son incorrectas.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Cerrar'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            } else {
-              final errorMessage = responseData['error'];
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Error de inicio de sesión'),
-                    content: Text(errorMessage ??
-                        'Se produjo un error al procesar su solicitud.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Cerrar'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            }
-          } else {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Error de inicio de sesión'),
-                  content: Text(
-                      'Se produjo un error al procesar su solicitud. Por favor, inténtalo de nuevo más tarde.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
-                );
-              },
-            );
-          }
-        }
-      },
+      onPressed: _isLoading ? null : _attemptLogin,
+      child: _isLoading
+          ? CircularProgressIndicator(color: Colors.white)
+          : Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF1b4ee4),
         shape: StadiumBorder(),
         elevation: 20,
         minimumSize: Size.fromHeight(60),
       ),
-      child: Text(
-        "Iniciar Sesión",
-        style: TextStyle(color: Colors.white),
-      ),
     );
+  }
+
+  Future<void> _attemptLogin() async {
+  if (emailController.text.trim().isEmpty || passwordController.text.trim().isEmpty) {
+    _showDialog('Error', 'Por favor, rellene todos los campos.');
+    return;
+  }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  String username = emailController.text.trim();
+  String password = passwordController.text.trim();
+  Map<String, String> requestBody = {
+    'username': username,
+    'password': password,
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/login/'),
+      body: jsonEncode(requestBody),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final authToken = responseData['token'];
+      final userId = responseData['user']['id'];
+
+      if (!mounted) return;
+
+      Provider.of<TokenProvider>(context, listen: false)
+        ..token = authToken
+        ..userId = userId
+        ..username = username;
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => NavigationBarScreen()),
+          );
+        }
+      });
+    } else {
+      _handleErrorResponse(response);
+    }
+  } catch (e) {
+    _showDialog('Error de conexión', 'No se pudo conectar al servidor.');
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+}
+
+
+
+  void _showDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleErrorResponse(http.Response response) {
+    var responseData = jsonDecode(response.body);
+    var message =
+        'Se produjo un error al procesar su solicitud. Por favor, inténtalo de nuevo más tarde.';
+    if (responseData.containsKey('detail')) {
+      message = responseData['detail'];
+    } else if (responseData.containsKey('error')) {
+      message = responseData['error'];
+    }
+
+    _showDialog('Error de inicio de sesión', message);
   }
 
   Widget _buildSignUpButton() {
@@ -340,10 +310,4 @@ class _LoginPageState extends State<LoginPage> {
     passwordFocusNode.dispose();
     super.dispose();
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: LoginPage(),
-  ));
 }

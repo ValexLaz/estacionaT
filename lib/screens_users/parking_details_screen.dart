@@ -131,6 +131,46 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
     }
   }
 
+  Future<void> openMapWithDestination() async {
+    final double? latitude = parkingDetails['latitude'] != null
+        ? double.tryParse(parkingDetails['latitude'].toString())
+        : null;
+    final double? longitude = parkingDetails['longitude'] != null
+        ? double.tryParse(parkingDetails['longitude'].toString())
+        : null;
+
+    if (latitude != null && longitude != null) {
+      // Utilizando el esquema de URL específico para abrir la aplicación de Google Maps
+      final Uri googleMapUrl =
+          Uri.parse("google.navigation:q=$latitude,$longitude&mode=d");
+
+      if (await canLaunchUrl(googleMapUrl)) {
+        await launchUrl(googleMapUrl);
+      } else {
+        // Si Google Maps no está disponible, intenta abrir en el navegador
+        final Uri fallbackUrl = Uri.parse(
+            "https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude&travelmode=driving");
+        if (await canLaunchUrl(fallbackUrl)) {
+          await launchUrl(fallbackUrl);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No se pudo abrir Google Maps.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se encontraron datos de ubicación válidos.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -209,7 +249,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               ElevatedButton.icon(
-                                onPressed: () {}, // Add navigation logic here
+                                onPressed:
+                                    openMapWithDestination, // Add navigation logic here
                                 icon: Icon(Icons.map),
                                 label: Text('Dirección'),
                                 style: ElevatedButton.styleFrom(
@@ -571,7 +612,10 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Navegar hacia atrás en la pila de navegación
+                          Navigator.of(context).pop();
+                        },
                         child: Text('Cancelar'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -579,8 +623,7 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
                           minimumSize: Size(150, 50),
                           padding: EdgeInsets.all(8.0),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                25.0), // Increase the border radius for a more rounded button
+                            borderRadius: BorderRadius.circular(25.0),
                             side: BorderSide(color: Color(0xFF1b4ee4)),
                           ),
                         ),
