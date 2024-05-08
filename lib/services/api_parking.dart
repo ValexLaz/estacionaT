@@ -135,7 +135,10 @@ class ApiVehicle extends ApiService {
             'Authorization': 'Token $token',
         });
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
+      List<Map<String, dynamic>> allVehicles = List<Map<String, dynamic>>.from(json.decode(response.body));
+      //filtro para vehiculos del propietario, no del parqueo
+      List<Map<String, dynamic>> ownParkingFalseVehicles = allVehicles.where((vehicle) => vehicle['is_ownparking'] == false).toList();
+      return ownParkingFalseVehicles;
     } else {
       throw Exception('Failed to load data from API');
     }
