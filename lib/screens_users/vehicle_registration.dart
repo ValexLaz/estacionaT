@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/models/TypeVehicle.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
-
-
+import 'package:map_flutter/services/api_typeVehicle.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -21,10 +21,30 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   TextEditingController brandController = TextEditingController();
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
-
+  TextEditingController _typeVehicleIDCtrl = TextEditingController();
+  TypeVehicle? _selectedTypeVehicle;
+  List<TypeVehicle> _typeVehicles = [];
   FocusNode brandFocusNode = FocusNode();
   FocusNode modelFocusNode = FocusNode();
   FocusNode plateFocusNode = FocusNode();
+
+  @override
+  initState() {
+    super.initState();
+    _fetchTypeVehicles();
+  }
+
+  Future<void> _fetchTypeVehicles() async {
+    try {
+      final typeVehicleApiService = TypeVehicleApiService();
+      final typeVehicles = await typeVehicleApiService.getAllVehicleRecords();
+      setState(() {
+        _typeVehicles = typeVehicles;
+      });
+    } catch (e) {
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +82,46 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         _buildGreyText("Placa"),
         _buildInputField(plateController,
             icon: Icons.confirmation_number, focusNode: plateFocusNode),
+        const SizedBox(height: 20),
+        _buildGreyText("Tipo de vehículo"), // Añadido
+        DropdownButtonFormField<TypeVehicle>(
+          value: _selectedTypeVehicle,
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.directions_car),
+          ),
+          onChanged: (TypeVehicle? value) {
+            setState(() {
+              _selectedTypeVehicle = value;
+            });
+            _typeVehicleIDCtrl.text = value?.id.toString() ?? '';
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Por favor, selecciona un tipo de vehículo';
+            }
+            return null;
+          },
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text('Selecciona un tipo de vehículo'),
+            ),
+            ..._typeVehicles.map((TypeVehicle typeVehicle) {
+              return DropdownMenuItem<TypeVehicle>(
+                value: typeVehicle,
+                child: Text(typeVehicle.name),
+              );
+            }).toList(),
+          ],
+        ), // Añadido
         const SizedBox(height: 40),
         _buildRegisterVehicleButton(),
         const SizedBox(height: 20),
       ],
     );
   }
-bool _validateInputs() {
+
+  bool _validateInputs() {
     if (brandController.text.isEmpty ||
         modelController.text.isEmpty ||
         plateController.text.isEmpty) {
@@ -77,10 +130,12 @@ bool _validateInputs() {
     }
     return true;
   }
+
   void _showSnackBar(String message) {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
   Widget _buildGreyText(String text) {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
@@ -111,7 +166,8 @@ bool _validateInputs() {
             "model": modelController.text,
             "registration_plate": plateController.text,
             "user": userId,
-            "type_vehicle": 1
+            "type_vehicle": _selectedTypeVehicle?.id, 
+            "is_userexternal": false,
           };
 
           try {
@@ -146,4 +202,3 @@ bool _validateInputs() {
     );
   }
 }
-
