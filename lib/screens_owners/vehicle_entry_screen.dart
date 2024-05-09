@@ -18,6 +18,23 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
+  TextEditingController priceController = TextEditingController(
+      text: 'Option 1'); // Establece un valor predeterminado
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,25 +44,34 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       backgroundColor: const Color(0xFF1b4ee4),
       body: Stack(
         children: [
-          Positioned(bottom: 0, child: _buildBottom()),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildBottom(),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildBottom() {
-    return SizedBox(
-      width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Scrollbar(
+          thumbVisibility: true,
+          controller: _scrollController,
           child: SingleChildScrollView(
+            controller: _scrollController,
             child: _buildForm(),
           ),
         ),
@@ -72,6 +98,15 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         const SizedBox(height: 20),
         _buildGreyText("Teléfono"),
         _buildPhoneInputField(phoneController),
+        const SizedBox(height: 20),
+        _buildGreyText("Precio"),
+        _buildPriceDropdownField(),
+        const SizedBox(height: 20),
+        _buildGreyText("Hora de inicio"),
+        _buildStartTimeField(),
+        const SizedBox(height: 20),
+        _buildGreyText("Hora de fin"),
+        _buildEndTimeField(),
         const SizedBox(height: 40),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -80,6 +115,9 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
             _buildRegisterButton(),
           ],
         ),
+        const SizedBox(
+            height:
+                40), // Agregar espacio al final para que el botón no quede oculto al desplazar
       ],
     );
   }
@@ -105,6 +143,86 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       ],
       maxLength: 8,
     );
+  }
+
+  Widget _buildPriceDropdownField() {
+    return DropdownButtonFormField<String>(
+      value: priceController.text,
+      onChanged: (newValue) {
+        setState(() {
+          priceController.text = newValue!;
+        });
+      },
+      items: <String>['Option 1', 'Option 2', 'Option 3', 'Option 4']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildStartTimeField() {
+    return GestureDetector(
+      onTap: () {
+        _selectStartTime(context);
+      },
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(startTime != null
+            ? startTime!.format(context)
+            : 'Seleccionar hora de inicio'),
+      ),
+    );
+  }
+
+  Widget _buildEndTimeField() {
+    return GestureDetector(
+      onTap: () {
+        _selectEndTime(context);
+      },
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(endTime != null
+            ? endTime!.format(context)
+            : 'Seleccionar hora de fin'),
+      ),
+    );
+  }
+
+  Future<void> _selectStartTime(BuildContext context) async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      setState(() {
+        startTime = selectedTime;
+      });
+    }
+  }
+
+  Future<void> _selectEndTime(BuildContext context) async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      setState(() {
+        endTime = selectedTime;
+      });
+    }
   }
 
   Widget _buildRegisterButton() {
