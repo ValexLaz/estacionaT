@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
+import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
@@ -143,7 +144,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ParkingDetailsScreen(
+                        builder: (context) => ParkingDetailsScreen2(
                           parkingId: parking['id'].toString(),
                         ),
                       ),
