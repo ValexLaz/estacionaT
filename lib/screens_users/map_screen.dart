@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/screens_users/route_screen.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
@@ -116,6 +117,19 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+          ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ParkingMapScreen(
+          parkingId: details['id'].toString(), // Pasar solo el parkingId
+        ),
+      ),
+    );
+  },
+  child: Text('Ver en Mapa'),
+),
         ],
       ),
     );
@@ -143,35 +157,35 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> getCurrentLocation() async {
-  try {
-    Position position = await determinePosition();
-    if (mounted) {
-      setState(() {
-        myPosition = LatLng(position.latitude, position.longitude);
-        // Crea el marcador para la ubicación actual
-        userLocationMarker = Marker(
-          point: myPosition!,
-          width: 30,
-          height: 30,
-          builder: (ctx) => Container(
-            child: Icon(
-              Icons.location_on,
-              color: Colors.red,
-              size: 40,
+    try {
+      Position position = await determinePosition();
+      if (mounted) {
+        setState(() {
+          myPosition = LatLng(position.latitude, position.longitude);
+          // Crea el marcador para la ubicación actual
+          userLocationMarker = Marker(
+            point: myPosition!,
+            width: 30,
+            height: 30,
+            builder: (ctx) => Container(
+              child: Icon(
+                Icons.location_on,
+                color: Colors.red,
+                size: 40,
+              ),
             ),
-          ),
-        );
-      });
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error obtaining location: $e'),
-        duration: Duration(seconds: 3),
-      ));
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error obtaining location: $e'),
+          duration: Duration(seconds: 3),
+        ));
+      }
     }
   }
-}
 
   Future<Position> determinePosition() async {
     LocationPermission permission = await Geolocator.checkPermission();

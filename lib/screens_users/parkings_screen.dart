@@ -153,15 +153,30 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                     margin: EdgeInsets.all(8),
                     child: Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.asset(
-                            'assets/images/Logotipo.png',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                       ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: parking['url_image'] != null && parking['url_image'].isNotEmpty
+              ? Image.network(
+                  parking['url_image'],
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/Logotipo.png',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                )
+              : Image.asset(
+                  'assets/images/Logotipo.png',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+        ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),

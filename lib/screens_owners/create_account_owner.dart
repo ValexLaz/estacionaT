@@ -3,6 +3,9 @@ import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
@@ -24,6 +27,37 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   TextEditingController descriptionController = TextEditingController();
   TimeOfDay openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay closingTime = TimeOfDay(hour: 20, minute: 0);
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  // Método para seleccionar una imagen
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+      _uploadImageToFirebase();
+    }
+  }
+
+  Future<void> _uploadImageToFirebase() async {
+    if (_imageFile == null) return;
+    String fileName = 'parking_images/${DateTime.now().millisecondsSinceEpoch}_${_imageFile!.path.split('/').last}';
+    try {
+      UploadTask task = FirebaseStorage.instance
+          .ref(fileName)
+          .putFile(_imageFile!);
+
+      final snapshot = await task;
+      final urlDownload = await snapshot.ref.getDownloadURL();
+      imageUrlController.text = urlDownload; // Actualiza el controlador de texto de la imagen URL
+
+      _showSnackBar('Imagen subida con éxito: $urlDownload');
+    } catch (e) {
+      _showSnackBar('Error al subir imagen: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +86,7 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
               const SizedBox(height: 20),
               _buildInputField("Correo Electrónico", emailController),
               const SizedBox(height: 20),
+              _buildImagePickerButton(),
               _buildInputField(
                   "Espacios Disponibles", spacesAvailableController),
               const SizedBox(height: 20),
@@ -73,7 +108,8 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
       ),
     );
   }
-bool _validateInputs() {
+
+  bool _validateInputs() {
     // Validación básica para email
     bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text);
 
@@ -100,6 +136,21 @@ bool _validateInputs() {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
+  // Botón para iniciar la selección de imagen
+  Widget _buildImagePickerButton() {
+    return ElevatedButton(
+      onPressed: _pickImage,
+      child: Text('Seleccionar imagen'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: myColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   Widget _buildGreyText(String text) {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
@@ -163,7 +214,7 @@ bool _validateInputs() {
             "email": emailController.text,
             "user": userId,
             "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
-            "url_image": imageUrlController.text,
+            "url_image": imageUrlController.text, // Incluye la URL de la imagen
             "description": descriptionController.text,
             "opening_time": "${openingTime.hour}:${openingTime.minute}",
             "closing_time": "${closingTime.hour}:${closingTime.minute}",
