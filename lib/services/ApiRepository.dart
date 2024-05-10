@@ -29,7 +29,7 @@ abstract class ApiRepository<T> {
       headers: {'Content-Type': 'application/json'}
     );
     if (response.statusCode == 201) {
-      
+
       return fromJson(json.decode(response.body));
 
     } else {
