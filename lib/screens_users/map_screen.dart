@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
-import 'package:map_flutter/screens_users/route_screen.dart';
+import 'package:map_flutter/screens_users/routes_screen.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';

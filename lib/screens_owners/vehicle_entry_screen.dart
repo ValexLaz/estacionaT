@@ -1,6 +1,15 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
+import 'package:map_flutter/models/TypeVehicle.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_typeVehicle.dart';
+import 'package:map_flutter/services/api_parking.dart';
+import 'package:provider/provider.dart';
+
+
 
 class VehicleEntryPage extends StatefulWidget {
   final String parkingId;
@@ -14,22 +23,35 @@ class VehicleEntryPage extends StatefulWidget {
 class _VehicleEntryPageState extends State<VehicleEntryPage> {
   late Color myColor;
   late Size mediaSize;
+  final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
+  TextEditingController _typeVehicleIDCtrl = TextEditingController();
   TextEditingController phoneController = TextEditingController();
-  TextEditingController priceController = TextEditingController(
-      text: 'Option 1'); // Establece un valor predeterminado
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   late ScrollController _scrollController;
+  TypeVehicle? _selectedTypeVehicle;
+  List<TypeVehicle> _typeVehicles = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-  }
+    _fetchTypeVehicles();
 
+  }
+  Future<void> _fetchTypeVehicles() async {
+    try {
+      final typeVehicleApiService = TypeVehicleApiService();
+      final typeVehicles = await typeVehicleApiService.getAllVehicleRecords();
+      setState(() {
+        _typeVehicles = typeVehicles;
+      });
+    } catch (e) {
+    }
+  }
   @override
   void dispose() {
     _scrollController.dispose();
@@ -38,6 +60,8 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
 
   @override
   Widget build(BuildContext context) {
+      print('El parkingId es: ${widget.parkingId}');
+
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
@@ -95,12 +119,39 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         const SizedBox(height: 20),
         _buildGreyText("Placa del Vehículo"),
         _buildInputField(plateController),
+        DropdownButtonFormField<TypeVehicle>(
+          value: _selectedTypeVehicle,
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.directions_car),
+          ),
+          onChanged: (TypeVehicle? value) {
+            setState(() {
+              _selectedTypeVehicle = value;
+            });
+            _typeVehicleIDCtrl.text = value?.id.toString() ?? '';
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Por favor, selecciona un tipo de vehículo';
+            }
+            return null;
+          },
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text('Selecciona un tipo de vehículo'),
+            ),
+            ..._typeVehicles.map((TypeVehicle typeVehicle) {
+              return DropdownMenuItem<TypeVehicle>(
+                value: typeVehicle,
+                child: Text(typeVehicle.name),
+              );
+            }).toList(),
+          ],
+        ),
         const SizedBox(height: 20),
         _buildGreyText("Teléfono"),
         _buildPhoneInputField(phoneController),
-        const SizedBox(height: 20),
-        _buildGreyText("Precio"),
-        _buildPriceDropdownField(),
         const SizedBox(height: 20),
         _buildGreyText("Hora de inicio"),
         _buildStartTimeField(),
@@ -145,23 +196,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
     );
   }
 
-  Widget _buildPriceDropdownField() {
-    return DropdownButtonFormField<String>(
-      value: priceController.text,
-      onChanged: (newValue) {
-        setState(() {
-          priceController.text = newValue!;
-        });
-      },
-      items: <String>['Option 1', 'Option 2', 'Option 3', 'Option 4']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-    );
-  }
+
 
   Widget _buildStartTimeField() {
     return GestureDetector(
@@ -225,24 +260,123 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
     }
   }
 
-  Widget _buildRegisterButton() {
-    return SizedBox(
-      width: mediaSize.width * 0.4,
-      child: ElevatedButton(
-        onPressed: () {
-          // Lógica para registrar el vehículo
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF1b4ee4),
-          shape: const StadiumBorder(),
-          elevation: 20,
-          shadowColor: myColor,
-          minimumSize: const Size.fromHeight(60),
-        ),
-        child: const Text("Registrar", style: TextStyle(color: Colors.white)),
+Widget _buildRegisterButton() {
+  return SizedBox(
+    width: mediaSize.width * 0.4,
+    child: ElevatedButton(
+      onPressed: () async {
+        // Validar si algún campo está vacío
+        if (brandController.text.isEmpty ||
+            modelController.text.isEmpty ||
+            plateController.text.isEmpty ||
+            _typeVehicleIDCtrl.text.isEmpty ||
+            phoneController.text.isEmpty ||
+            startTime == null ||
+            endTime == null) {
+          // Mostrar el mensaje de "Por favor, llene todas las casillas"
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Error'),
+                content: Text('Por favor, llene todas las casillas.'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Aceptar'),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          final tokenProvider =
+              Provider.of<TokenProvider>(context, listen: false);
+          final userId = tokenProvider.userId;
+          final vehicleData = {
+            "vehicle_data": {
+              "brand": brandController.text,
+              "model": modelController.text,
+              "registration_plate": plateController.text,
+              "type_vehicle": int.parse(_typeVehicleIDCtrl.text),
+              "user": userId,
+              "is_userexternal": false
+            },
+            "vehicle_entry_data": {
+              "phone": phoneController.text,
+              "parking": int.parse(widget.parkingId),
+              "is_reserva": false,
+              "is_userexternal": true
+            },
+            "details_data": [
+              {
+                "starttime": startTime != null
+                    ? "${DateTime.now().toString().split(' ')[0]} ${startTime!.hour}:${startTime!.minute}:00"
+                    : '',
+                "endtime": endTime != null
+                    ? "${DateTime.now().toString().split(' ')[0]} ${endTime!.hour}:${endTime!.minute}:00"
+                    : '',
+                "totalamount": 50.0,
+                "price": 4
+              }
+            ]
+          };
+
+          final url = Uri.parse(
+              'https://estacionatbackend.onrender.com/api/v2/parking/DetailsCustom/save_details');
+
+          try {
+            final response = await http.post(
+              url,
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+              },
+              body: jsonEncode(vehicleData),
+            );
+
+            if (response.statusCode == 201) {
+                print(response.body);
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Registro exitoso'),
+                    content:
+                        Text('Los datos se han guardado exitosamente.'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Aceptar'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              print(
+                  'Error al guardar los datos. Código de estado: ${response.statusCode}');
+              print(response.body);
+            }
+          } catch (e) {
+            print('Error al realizar la solicitud HTTP: $e');
+          }
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFF1b4ee4),
+        shape: const StadiumBorder(),
+        elevation: 20,
+        shadowColor: myColor,
+        minimumSize: const Size.fromHeight(60),
       ),
-    );
-  }
+      child: const Text("Registrar", style: TextStyle(color: Colors.white)),
+    ),
+  );
+}
 
   Widget _buildCancelButton() {
     return SizedBox(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_users/parkingDetails/PriceParkingDetails.dart';
+import 'package:map_flutter/common/managers/ParkingManager.dart';
+import 'package:map_flutter/models/Parking.dart';
+import 'package:map_flutter/common/widgets/cards/PriceParkingDetails.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,6 +23,8 @@ class _ParkingDetailsScreenState extends State<ParkingDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    ParkingManager.instance.setParking(Parking(
+                              id:int.parse(widget.parkingId), name:"parqueo"));
     fetchParkingData();
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Price {
+  int? id;
   int? typeVehicleID;
   String? typeVehicle;
   double price;
@@ -11,17 +12,19 @@ class Price {
   PriceHour? priceHour;
 
   Price(
-      {this.typeVehicleID,
+      {this.id,this.typeVehicleID,
       required this.price,
       required this.parkingId,
       this.isReservation = false,
       this.isPriceHour = false,
       this.isEntryFee = true,
       this.priceHour,
-      this.typeVehicle});
+      this.typeVehicle
+      });
 
   factory Price.fromJson(Map<String, dynamic> json) {
     return Price(
+      id : json['id'],
       typeVehicle: json['type_vehicle'].toString(),
       price: json['price'].toDouble(),
       parkingId: json['parking'],
@@ -77,6 +80,7 @@ class PriceHour {
           TimeOfDay(hour: endTime.hour, minute: endTime.minute);
 
       return PriceHour(
+       
         startTime: startTimeOfDay,
         endTime: endTimeOfDay,
         totalTime: json['total_time'],
