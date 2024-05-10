@@ -13,16 +13,63 @@ class ParkingScreen extends StatefulWidget {
 }
 
 class _ParkingScreenState extends State<ParkingScreen> {
-  
-
   final ApiParking apiParking = ApiParking();
   Map<String, dynamic> parkingDetails = {};
+  List<Map<String, dynamic>> vehicleEntries = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchParkingData();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      await Future.wait([fetchParkingData(), fetchVehicleEntries()]);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching data: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
+  }
+
+  Future<void> fetchVehicleEntries() async {
+    try {
+      vehicleEntries = await apiParking
+          .getVehicleEntriesByParkingId(int.parse(widget.parkingId));
+
+      setState(() {
+        isLoading = false;
+      });
+      if (vehicleEntries.isNotEmpty) {
+        print('Registros de vehículos encontrados:');
+        vehicleEntries.forEach((entry) {
+          print(entry);
+        });
+      }
+    } catch (e) {
+      print('Error fetching vehicle entries: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los registros de vehículos.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
   }
 
   Future<void> fetchParkingData() async {
@@ -70,7 +117,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
     return Column(
       children: [
         _buildCapacityInfo(maxCapacity, occupiedSpaces, freeSpaces),
-        Expanded(child: _buildVehiclesList(occupiedSpaces)),
+        Expanded(child: _buildVehiclesList()),
       ],
     );
   }
@@ -124,15 +171,28 @@ class _ParkingScreenState extends State<ParkingScreen> {
     );
   }
 
-  Widget _buildVehiclesList(int occupiedSpaces) {
+  Widget _buildVehiclesList() {
+    if (vehicleEntries.isEmpty) {
+      return Center(
+        child: Text('No hay vehículos registrados en este parqueo.'),
+      );
+    }
+
     return ListView.builder(
-      itemCount: occupiedSpaces,
+      itemCount: vehicleEntries.length,
       itemBuilder: (context, index) {
+        var entry = vehicleEntries[index];
         return Card(
           child: ListTile(
             leading: Icon(Icons.directions_car),
-            title: Text("Vehículo ${index + 1}"),
-            subtitle: Text("Tiempo restante: ${Random().nextInt(120)} mins"),
+            title: Text("Vehículo ${entry['vehicle']}"),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("ID de entrada: ${entry['id']}"),
+                Text("Tiempo restante: ${Random().nextInt(120)} mins"),
+              ],
+            ),
           ),
         );
       },
