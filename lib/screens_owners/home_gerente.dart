@@ -17,7 +17,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
   Map<String, dynamic> parkingDetails = {};
   List<Map<String, dynamic>> vehicleEntries = [];
   bool isLoading = true;
-
+  int vehiclesCount = 0;
   @override
   void initState() {
     super.initState();
@@ -51,6 +51,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
 
       setState(() {
         isLoading = false;
+        vehiclesCount = vehicleEntries.length;
       });
       if (vehicleEntries.isNotEmpty) {
         print('Registros de vehículos encontrados:');
@@ -110,8 +111,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
   }
 
   Widget _buildParkingScreen() {
-    int maxCapacity = parkingDetails['maxCapacity'] ?? 100;
-    int occupiedSpaces = parkingDetails['occupiedSpaces'] ?? 50;
+    int maxCapacity = parkingDetails['capacity'] ?? 100;
+    int occupiedSpaces = vehiclesCount;
     int freeSpaces = maxCapacity - occupiedSpaces;
 
     return Column(
@@ -124,6 +125,9 @@ class _ParkingScreenState extends State<ParkingScreen> {
 
   Widget _buildCapacityInfo(
       int maxCapacity, int occupiedSpaces, int freeSpaces) {
+    int remainingSpaces =
+        maxCapacity - vehiclesCount; // Calcula los espacios restantes
+
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -162,7 +166,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Espacios libres: $freeSpaces"),
+              Text(
+                  "Espacios libres: $remainingSpaces"), // Muestra los espacios libres calculados
               Text("Espacios ocupados: $occupiedSpaces"),
             ],
           ),

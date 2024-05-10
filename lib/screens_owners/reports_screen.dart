@@ -114,7 +114,8 @@ class _BarChartPainter extends CustomPainter {
 
     var random = Random();
     for (int i = 0; i < 5; i++) {
-      var height = random.nextDouble() * size.height * 0.8; // Reduce the maximum height
+      var height =
+          random.nextDouble() * size.height * 0.8; // Reduce the maximum height
       canvas.drawLine(
         Offset(i * size.width / 5 + 25, size.height),
         Offset(i * size.width / 5 + 25, size.height - height),
