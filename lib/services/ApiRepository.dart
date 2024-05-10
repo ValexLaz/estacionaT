@@ -60,12 +60,14 @@ abstract class ApiRepository<T> {
 
   Future<List<T>> getAllByParam(String param) async {
     final response = await http.get(Uri.parse('$completeUrl$param'));
+    print(Uri.parse('$completeUrl$param'));
     if (response.statusCode == 200) {
       List<dynamic> jsonList = json.decode(response.body);
       return jsonList
           .map((jsonItem) => fromJson(jsonItem as Map<String, dynamic>))
           .toList();
     } else {
+      print(jsonDecode(response.body));
       throw Exception('Failed to load data from API');
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/common/widgets/cards/ReservationCard.dart';
 import 'package:map_flutter/models/Reservation.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_reservations.dart';
@@ -13,10 +14,18 @@ class ListReservation extends StatefulWidget {
 
 class _ListReservationState extends State<ListReservation> {
   Future<List<Reservation>>? reservations ;
+  
+  @override
+  void initState() {
+  
+    super.initState();
+    loadReservaions();
+  }
+
 
   Future<void> loadReservaions() async {
-      reservations =  ApiReservation().getAllByParam("/user/${
-              Provider.of<TokenProvider>(context, listen: false).userId}");
+      reservations =  ApiReservation().getAllByParam("user/${
+              Provider.of<TokenProvider>(context, listen: false).userId}/");
   }
 
   @override
@@ -32,7 +41,7 @@ class _ListReservationState extends State<ListReservation> {
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              return Text("data");
+              return ReservationCard(reservation: snapshot.data![index]);
             },
           );
         } else {

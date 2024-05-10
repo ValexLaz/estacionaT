@@ -13,7 +13,7 @@ class _ReservationTabBarState extends State<ReservationTabBar> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Reservas'),
