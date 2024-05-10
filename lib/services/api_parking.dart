@@ -117,6 +117,19 @@ Future<void> deleteParkingById(String parkingId) async {
       throw Exception('Failed to post data to API: ${response.body}');
     }
   }
+    Future<List<String>> getParkingPrices(int parkingId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl'+'parking/price/parking/$parkingId'));
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(response.body);
+        return responseData.map((json) => json['price'].toString()).toList();
+      } else {
+        throw Exception('Failed to load parking prices from API');
+      }
+    } catch (e) {
+      throw Exception('Error fetching parking prices: $e');
+    }
+  }
 }
 
 class ApiUser extends ApiService {
@@ -164,4 +177,6 @@ class ApiVehicle extends ApiService {
       throw Exception('Failed to load vehicle details from API');
     }
   }
+
+
 }
