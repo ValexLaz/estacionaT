@@ -7,9 +7,12 @@ import 'package:map_flutter/common/widgets/time_picker.dart';
 import 'package:map_flutter/models/Payment.dart';
 import 'package:map_flutter/models/Price.dart';
 import 'package:map_flutter/models/Reservation.dart';
+import 'package:map_flutter/models/ReservationVehicleEntry.dart';
+import 'package:map_flutter/models/VehicleEntry.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_reservationVehicleEntry.dart';
 import 'package:map_flutter/services/api_reservations.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -94,7 +97,6 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
                         leading: IconButton(
                             icon: Icon(Icons.arrow_back),
                             onPressed: () async {
-                             
                               final response = await http.get(
                                 Uri.parse(
                                     'https://api-sbx.dlocalgo.com/v1/payments/${payment.id}'),
@@ -107,16 +109,30 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
                               if (response.statusCode == 200) {
                                 var data = jsonDecode(response.body);
                                 if (data['status'] == 'PAID') {
-                                  ApiReservation().create(newReservation);
+                                  //ApiReservation().create(newReservation);
+
+                                  ApiReservationVehicleEntry().create(
+                                      ReservationVehicleEntry(
+                                          reservationData: newReservation,
+                                          vehicleEntryData: VehicleEntry(
+                                              user: Provider.of<TokenProvider>(
+                                                      context,
+                                                      listen: false)
+                                                  .userId!,
+                                              vehicle: 2,
+                                              parking: ParkingManager
+                                                  .instance.parking!.id!,
+                                             )));
+
                                   Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) =>NavigationBarScreen() ));
+                                          builder: (context) =>
+                                              NavigationBarScreen()));
                                 } else {
                                   Navigator.pop(context);
                                 }
                               } else {
-                                
                                 print('Failed to check payment status');
                               }
                             }),

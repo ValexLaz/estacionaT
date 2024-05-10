@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
+import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/models/Price.dart';
-import 'package:map_flutter/screens_users/parkingDetails/PriceParkingDetails.dart';
-import 'package:map_flutter/screens_users/parkingDetails/reservation.dart';
+import 'package:map_flutter/common/widgets/cards/PriceParkingDetails.dart';
+import 'package:map_flutter/screens_users/parkingDetails/reservationForm.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:map_flutter/services/api_price.dart';
@@ -27,6 +28,8 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
   Future<List<Price>>? prices;
   @override
   void initState() {
+    ParkingManager.instance
+        .setParking(Parking(id: int.parse(widget.parkingId), name: "parqueo"));
     super.initState();
     fetchParkingData();
   }
@@ -278,7 +281,10 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
                   Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (BuildContext context) => ReservationFormScreen(price: snapshot.data![index],),
+                        builder: (BuildContext context) =>
+                            ReservationFormScreen(
+                          price: snapshot.data![index],
+                        ),
                       ));
                 },
               );
