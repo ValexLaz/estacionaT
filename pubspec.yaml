@@ -44,7 +44,8 @@ dependencies:
   url_launcher: ^6.2.6
   whatsapp_unilink: ^2.1.0
   carousel_slider: ^4.0.0
-
+  webview_flutter: ^2.0.13
+  flutter_time_picker_spinner: ^2.0.0
   
 
 dev_dependencies:

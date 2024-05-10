@@ -35,16 +35,19 @@ class Reservation {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    return  {
       'id': id,
       'start_time': startTime,
       'end_time': endTime,
       'total_amount': totalAmount,
       'price': priceId,
-      'extra_time': extraTime,
       'reservation_date': reservationDate,
       'user': userId,
+      if (extraTime != null) 'extra_time': extraTime,
+
     };
+
+
   }
 
   static List<Reservation> parseList(String responseBody) {

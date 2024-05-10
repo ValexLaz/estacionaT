@@ -3,6 +3,7 @@ import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
 import 'package:map_flutter/models/Price.dart';
 import 'package:map_flutter/screens_users/parkingDetails/PriceParkingDetails.dart';
+import 'package:map_flutter/screens_users/parkingDetails/reservation.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:map_flutter/services/api_price.dart';
@@ -264,18 +265,27 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
       future: prices,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           return ListView.builder(
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              return PriceCard(price: snapshot.data![index]);
+              return PriceCard(
+                price: snapshot.data![index],
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => ReservationFormScreen(price: snapshot.data![index],),
+                      ));
+                },
+              );
             },
           );
         } else {
-          return Center(child: Text('No data available'));
+          return const Center(child: Text('No data available'));
         }
       },
     );

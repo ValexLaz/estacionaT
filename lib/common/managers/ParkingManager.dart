@@ -9,10 +9,6 @@ class ParkingManager {
     _instance ??= ParkingManager._internal();
     return _instance!;
   }
-  void setParking(Parking newParking) {
-    parking = newParking;
-  }
-  Parking? getParking() {
-    return parking;
-  }
+  void setParking(Parking newParking) => parking = newParking;
+  Parking? getParking () => parking;
 }
