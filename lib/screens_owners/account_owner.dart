@@ -3,6 +3,7 @@ import 'package:map_flutter/screens_owners/price_screen.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/screens_owners/opening_hours_screen.dart';
 
 class ParkingOwnerScreen extends StatefulWidget {
   final String parkingId;
@@ -135,11 +136,16 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                             },
                           ),
                           _buildListTile(
-                            title: 'Configuraciones de la cuenta',
+                            title: 'Horarios de atención',
                             icon: Icons.settings,
                             textColor: textColor,
                             onTap: () {
-                              // Lógica para configuraciones de la cuenta
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OpeningHoursScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildListTile(
