@@ -18,7 +18,7 @@ class PriceFormScreen extends StatefulWidget {
 class _PriceFormScreenState extends State<PriceFormScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _isPricePerHourCtrl = TextEditingController();
-  
+
   TextEditingController _isPriceReservationCtrl = TextEditingController();
   TextEditingController _isPriceParkingCtrl = TextEditingController();
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
