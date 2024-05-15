@@ -44,34 +44,37 @@ class _ParkingScreenState extends State<ParkingScreen> {
     }
   }
 
-  Future<void> fetchVehicleEntries() async {
-    try {
-      vehicleEntries = await apiParking
-          .getVehicleEntriesByParkingId(int.parse(widget.parkingId));
+Future<void> fetchVehicleEntries() async {
+  try {
+    List<Map<String, dynamic>> vehicleEntriesList = await apiParking.getVehicleEntryById(widget.parkingId.toString());
 
-      setState(() {
-        isLoading = false;
-        vehiclesCount = vehicleEntries.length;
+    setState(() {
+      vehicleEntries = vehicleEntriesList;
+      vehiclesCount = vehicleEntries.length;
+      isLoading = false;
+    });
+
+    if (vehicleEntries.isNotEmpty) {
+      print('Registros de vehículos encontrados:');
+      vehicleEntries.forEach((entry) {
+        print(entry);
       });
-      if (vehicleEntries.isNotEmpty) {
-        print('Registros de vehículos encontrados:');
-        vehicleEntries.forEach((entry) {
-          print(entry);
-        });
-      }
-    } catch (e) {
-      print('Error fetching vehicle entries: $e');
-      setState(() {
-        isLoading = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar los registros de vehículos.'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-      });
+    } else {
+      print('No se encontraron registros de vehículos para el parqueo ${widget.parkingId}');
     }
+  } catch (e) {
+    print('Error fetching vehicle entries: $e');
+    setState(() {
+      isLoading = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar los registros de vehículos.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    });
   }
+}
 
   Future<void> fetchParkingData() async {
     try {
@@ -190,11 +193,11 @@ class _ParkingScreenState extends State<ParkingScreen> {
         return Card(
           child: ListTile(
             leading: Icon(Icons.directions_car),
-            title: Text("Vehículo ${entry['vehicle']}"),
+            title: Text("Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}", style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("ID de entrada: ${entry['id']}"),
+                Text("Placa: ${entry['vehicle']['registration_plate']}"),
                 Text("Tiempo restante: ${Random().nextInt(120)} mins"),
               ],
             ),

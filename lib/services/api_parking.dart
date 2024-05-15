@@ -91,6 +91,21 @@ class ApiParking {
       throw Exception('Failed to load parking details from API');
     }
   }
+Future<List<Map<String, dynamic>>> getVehicleEntryById(String parkingId) async {
+  final response = await http.get(Uri.parse('$baseUrl' +'parking/VehicleEntryCustom/parking/' +'$parkingId/'));
+  if (response.statusCode == 200) {
+    List<dynamic> responseData = json.decode(response.body);
+    List<Map<String, dynamic>> vehicleEntries = [];
+    for (var entry in responseData) {
+      vehicleEntries.add(entry);
+    }
+    return vehicleEntries;
+  } else {
+    print(response.body);
+    throw Exception('Failed to load parking details from API');
+  }
+}
+
 
   Future<void> updateParkingById(
       String parkingId, Map<String, dynamic> data) async {
