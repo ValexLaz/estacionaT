@@ -120,6 +120,18 @@ class ApiParking {
       throw Exception('Failed to post data to API: ${response.body}');
     }
   }
+  Future<void> createRecord2(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl'+ 'parking/openinghours/'),
+      body: json.encode(data),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 201) {
+        print(response.body);
+      throw Exception('Failed to post data to API');
+    }
+  }
 
   Future<List<String>> getParkingPrices(int parkingId) async {
     try {
@@ -149,6 +161,20 @@ class ApiParking {
       return filteredEntries;
     } else {
       throw Exception('Failed to load vehicle entries from API');
+    }
+  }
+    Future<void> createOpeningHours(Map<String, dynamic> openingHoursData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl' + 'parking/openinghours/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(openingHoursData),
+    );
+
+    if (response.statusCode != 201) {
+        print(response.body);
+      throw Exception('Error al crear el horario de apertura ');
     }
   }
 }

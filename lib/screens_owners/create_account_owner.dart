@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:map_flutter/models/OpeningHours.dart';
 import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +18,7 @@ class SignUpParkingPage extends StatefulWidget {
 
 class _SignUpParkingPageState extends State<SignUpParkingPage> {
   final ApiParking apiParking = ApiParking();
+
   late Color myColor;
   late Size mediaSize;
   TextEditingController parkingNameController = TextEditingController();
@@ -29,6 +32,11 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   TimeOfDay closingTime = TimeOfDay(hour: 20, minute: 0);
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  String _selectedDay = 'Lunes'; // Día por defecto seleccionado
+
+  final List<String> _daysOfWeek = [
+    'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+  ];
 
   // Método para seleccionar una imagen
   Future<void> _pickImage() async {
@@ -78,21 +86,20 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
             children: [
               _buildInputField("Nombre del Parqueo", parkingNameController),
               const SizedBox(height: 20),
-              _buildInputField(
-                  "Capacidad Total de Vehículos", capacityController),
+              _buildInputField("Capacidad Total de Vehículos", capacityController),
               const SizedBox(height: 20),
-              _buildInputField(
-                  "Número de Teléfono del Propietario", ownerPhoneController),
+              _buildInputField("Número de Teléfono del Propietario", ownerPhoneController),
               const SizedBox(height: 20),
               _buildInputField("Correo Electrónico", emailController),
               const SizedBox(height: 20),
               _buildImagePickerButton(),
-              _buildInputField(
-                  "Espacios Disponibles", spacesAvailableController),
+              _buildInputField("Espacios Disponibles", spacesAvailableController),
               const SizedBox(height: 20),
               _buildInputField("URL de la Imagen", imageUrlController),
               const SizedBox(height: 20),
               _buildInputField("Descripción", descriptionController),
+              const SizedBox(height: 20),
+              _buildDayDropdown(),
               const SizedBox(height: 20),
               _buildTimePicker("Apertura", openingTime, (newTime) {
                 setState(() => openingTime = newTime);
@@ -110,7 +117,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   }
 
   bool _validateInputs() {
-    // Validación básica para email
     bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text);
 
     if (parkingNameController.text.isEmpty ||
@@ -151,6 +157,24 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     );
   }
 
+Widget _buildDayDropdown() {
+  List<String> allDays = ['Todos los días', ..._daysOfWeek]; // Agrega la opción 'Todos los días'
+  return DropdownButton<String>(
+    value: _selectedDay,
+    items: allDays.map((String day) {
+      return DropdownMenuItem<String>(
+        value: day,
+        child: Text(day),
+      );
+    }).toList(),
+    onChanged: (String? newValue) {
+      setState(() {
+        _selectedDay = newValue!;
+      });
+    },
+  );
+}
+
   Widget _buildGreyText(String text) {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
@@ -165,8 +189,7 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     );
   }
 
-  Widget _buildTimePicker(
-      String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
+  Widget _buildTimePicker(String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -216,43 +239,50 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
             "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
             "url_image": imageUrlController.text, // Incluye la URL de la imagen
             "description": descriptionController.text,
-            "opening_time": "${openingTime.hour}:${openingTime.minute}",
-            "closing_time": "${closingTime.hour}:${closingTime.minute}",
           };
 
           try {
             final parkingId = await apiParking.createRecord(parkingData);
+            print("Parqueo registrado con ID: $parkingId");
+            final ApiOpeningHours apiOpeningHours = ApiOpeningHours();
+
+            if (_selectedDay == 'Todos los días') {
+                for (String day in _daysOfWeek) {
+                await apiOpeningHours.create(OpeningHours(
+                    day: day,
+                    parking: int.parse(parkingId),
+                    open_time: "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
+                    close_time: "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
+                ));
+                }
+            } else {
+                await apiOpeningHours.create(OpeningHours(
+                day: _selectedDay,
+                parking: int.parse(parkingId),
+                open_time: "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
+                close_time: "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
+                ));
+            }
+
             Navigator.push(
-              context,
-              MaterialPageRoute(
+                context,
+                MaterialPageRoute(
                 builder: (context) => SelectMapScreen(parkingId: int.parse(parkingId)),
-              ),
+                ),
             );
-          } catch (e) {
-            showDialog(
-              context: context,
-              builder: (BuildContext dialogContext) {
-                return AlertDialog(
-                  title: Text('Error de Registro'),
-                  content: Text('Error al registrar el parqueo: $e'),
-                  actions: [
-                    TextButton(
-                      child: Text('Cerrar'),
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
+            } catch (e) {
             print("Error al registrar el parqueo: $e");
-          }
+            _showSnackBar('Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
+            }
+
         }
       },
-      child: const Text(
+      child: Text(
         "Registrar Parqueo",
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+        ),
       ),
     );
   }

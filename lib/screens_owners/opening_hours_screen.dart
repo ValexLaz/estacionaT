@@ -20,7 +20,7 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(
-                '${OpeningHourss[index].day}: ${OpeningHourss[index].startTime} - ${OpeningHourss[index].endTime}'),
+                '${OpeningHourss[index].day}: ${OpeningHourss[index].open_time} - ${OpeningHourss[index].close_time}'),
           );
         },
       ),
@@ -132,9 +132,9 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
                       // Cambio: Verificar que startTime y endTime no sean nulos
                       final nuevo = OpeningHours(
                           day: day!,
-                          startTime: startTime!,
-                          endTime:
-                              endTime!); // Cambio: Utilizar ! para asegurar que startTime y endTime no son nulos
+                          open_time: startTime.toString(),
+                          close_time:
+                              endTime.toString()); // Cambio: Utilizar ! para asegurar que startTime y endTime no son nulos
                       setState(() {
                         OpeningHourss.add(nuevo);
                       });
