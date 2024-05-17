@@ -13,7 +13,6 @@ class ListParkings extends StatefulWidget {
   @override
   State<ListParkings> createState() => _ListParkingsState();
 }
-
 class _ListParkingsState extends State<ListParkings> {
   final ApiParking apiParking = ApiParking();
   List<Map<String, dynamic>> parqueos = [];

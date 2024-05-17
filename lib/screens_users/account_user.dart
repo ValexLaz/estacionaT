@@ -15,24 +15,21 @@ class CuentaScreen extends StatelessWidget {
     final username = Provider.of<TokenProvider>(context).username;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Cuenta',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+            Divider(color: Colors.grey),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Cuenta',
-                    style: TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Divider(color: lightGray)
-              ],
-            ),
-          ),
           _buildUserTile(
             username: username!,
             textColor: textColor,

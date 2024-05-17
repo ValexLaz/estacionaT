@@ -9,8 +9,7 @@ import 'package:map_flutter/services/api_parking.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
-const String MAPBOX_STYLE = 'mapbox/navigation-day-v1';
-
+const String MAPBOX_STYLE = 'mapbox/streets-v12';
 class ParkingMapScreen extends StatefulWidget {
   final String parkingId;
 

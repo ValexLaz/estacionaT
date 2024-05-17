@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});
-
   @override
   State<ListVehicle> createState() => _ListVehicleState();
 }

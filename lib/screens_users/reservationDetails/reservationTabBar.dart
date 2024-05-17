@@ -16,11 +16,21 @@ class _ReservationTabBarState extends State<ReservationTabBar> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Reservas'),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Parqueos',
+                  style:
+                      TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+              Divider(color: Colors.grey),
+            ],
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
         ),
         body: Column(
           children: [
-           Container(
+            Container(
               margin: EdgeInsets.only(
                   bottom: 20,
                   top: 5), // Ajusta el valor del margen según tus necesidades
@@ -52,5 +62,4 @@ class _ReservationTabBarState extends State<ReservationTabBar> {
       ),
     );
   }
-
 }

@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
-import 'package:map_flutter/screens_users/parking_details_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 class ParkingsScreen extends StatefulWidget {
@@ -72,20 +71,20 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Parqueos',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+            Divider(color: Colors.grey),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: Column(
         children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-            child: Row(
-              children: [
-                Text('Parqueos',
-                    style:
-                        TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
-                Divider(color: Colors.grey),
-              ],
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: TextField(
@@ -154,30 +153,31 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                     margin: EdgeInsets.all(8),
                     child: Row(
                       children: [
-                       ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: parking['url_image'] != null && parking['url_image'].isNotEmpty
-              ? Image.network(
-                  parking['url_image'],
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/Logotipo.png',
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    );
-                  },
-                )
-              : Image.asset(
-                  'assets/images/Logotipo.png',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ),
-        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: parking['url_image'] != null &&
+                                  parking['url_image'].isNotEmpty
+                              ? Image.network(
+                                  parking['url_image'],
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.asset(
+                                      'assets/images/Logotipo.png',
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                )
+                              : Image.asset(
+                                  'assets/images/Logotipo.png',
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -239,55 +239,54 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
         height: 40.0,
         child: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-             builder: (context) => NavigationBarScreen(),
-           ));
-         },
-         label: Text(
-           'Ver mapa',
-           style: TextStyle(
-             color:
-                 primaryColor, // Color del texto igual al del icono y el margen
-           ),
-         ),
-         icon: Icon(
-           Icons.map,
-           color: primaryColor,
-         ),
-         backgroundColor: Colors.white,
-         foregroundColor: Colors.white, // Color del texto
-         shape: RoundedRectangleBorder(
-           side: BorderSide(color: primaryColor),
-           borderRadius: BorderRadius.circular(8.0),
-         ),
-       ),
-     ),
-   );
- }
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => NavigationBarScreen(),
+            ));
+          },
+          label: Text(
+            'Ver mapa',
+            style: TextStyle(
+              color:
+                  primaryColor, // Color del texto igual al del icono y el margen
+            ),
+          ),
+          icon: Icon(
+            Icons.map,
+            color: primaryColor,
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.white, // Color del texto
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: primaryColor),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+      ),
+    );
+  }
 
- Widget filterButton(int index, String text) {
-   return ElevatedButton(
-     style: ElevatedButton.styleFrom(
-       backgroundColor:
-           selectedFilterIndex == index ? primaryColor : Colors.white,
-       side: BorderSide(
-         color:
-             selectedFilterIndex == index ? Colors.transparent : primaryColor,
-         width: 1,
-       ),
-       elevation: 0,
-       shape: RoundedRectangleBorder(
-         borderRadius: BorderRadius.circular(10),
-       ),
-     ),
-     onPressed: () => filterParkings(index),
-     child: Text(
-       text,
-       style: TextStyle(
-         color: selectedFilterIndex == index ? Colors.white : primaryColor,
-       ),
-     ),
-   );
- }
+  Widget filterButton(int index, String text) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            selectedFilterIndex == index ? primaryColor : Colors.white,
+        side: BorderSide(
+          color:
+              selectedFilterIndex == index ? Colors.transparent : primaryColor,
+          width: 1,
+        ),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onPressed: () => filterParkings(index),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: selectedFilterIndex == index ? Colors.white : primaryColor,
+        ),
+      ),
+    );
+  }
 }

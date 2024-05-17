@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:map_flutter/screens_owners/price_screen.dart';
+import 'package:map_flutter/screens_owners/ParkingPricesScreen.dart';
+import 'package:map_flutter/screens_owners/opening_hours_screen.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
+import 'package:map_flutter/screens_owners/price_screen.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
-import 'package:map_flutter/screens_owners/opening_hours_screen.dart';
 
 class ParkingOwnerScreen extends StatefulWidget {
   final String parkingId;
@@ -121,6 +122,21 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                             },
                           ),
                           _buildListTile(
+                            title: 'Precios',
+                            icon: Icons.attach_money,
+                            textColor: textColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ParkingPricesScreen(
+                                    parkingId: widget.parkingId,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
                             title: 'Gestionar plazas de parqueo',
                             icon: Icons.directions_car,
                             textColor: textColor,
@@ -152,7 +168,7 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                             },
                           ),
                           _buildListTile(
-                            title: 'Precios',
+                            title: 'Registrar Precios',
                             icon: Icons.attach_money,
                             textColor: textColor,
                             onTap: () {

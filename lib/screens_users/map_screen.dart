@@ -3,8 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_users/parking_details_screen.dart';
-import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/screens_users/routes_screen.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
@@ -18,8 +18,11 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  TextEditingController searchController = TextEditingController();
+
   LatLng? myPosition;
-  bool _isMapReady = false;
+  bool _showParkingDetails = false; // Estado para mostrar/ocultar detalles
+  Map<String, dynamic> _currentParkingDetails = {};
   List<Marker> markers = []; // Lista para almacenar marcadores
   Marker? userLocationMarker;
   final MapController _mapController = MapController();
@@ -36,18 +39,16 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _pointToNorth() {
-    _mapController.rotate(0.0);
-  }
-
   void fetchAndShowParkingInfo(BuildContext context, String parkingId) async {
     try {
       Map<String, dynamic> parkingDetails =
           await ApiParking().getParkingDetailsById(parkingId);
-      showModalBottomSheet(
-        context: context,
-        builder: (ctx) => buildParkingDetailsSheet(ctx, parkingDetails),
-      );
+      if (mounted) {
+        setState(() {
+          _currentParkingDetails = parkingDetails;
+          _showParkingDetails = true; // Mostrar el panel con detalles
+        });
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to load parking details: $e'),
@@ -163,7 +164,6 @@ class _MapScreenState extends State<MapScreen> {
       if (mounted) {
         setState(() {
           myPosition = LatLng(position.latitude, position.longitude);
-          // Crea el marcador para la ubicación actual
           userLocationMarker = Marker(
             point: myPosition!,
             width: 30,
@@ -176,6 +176,8 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           );
+          // Mueve el mapa a la ubicación actual
+          _mapController.move(myPosition!, 18.0);
         });
       }
     } catch (e) {
@@ -186,6 +188,41 @@ class _MapScreenState extends State<MapScreen> {
         ));
       }
     }
+  }
+
+  Future<void> searchAndHighlightParking(String query) async {
+    for (var marker in markers) {
+      if (marker.key.toString().toLowerCase().contains(query.toLowerCase())) {
+        _mapController.move(marker.point, 18.0);
+        setState(() {
+          markers = markers.map((m) {
+            if (m.point == marker.point) {
+              return Marker(
+                point: m.point,
+                width: 40,
+                height: 40,
+                builder: (ctx) => Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.local_parking,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+              );
+            }
+            return m;
+          }).toList();
+        });
+        return;
+      }
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('No se encontró ningún parqueo con ese nombre.')),
+    );
   }
 
   Future<Position> determinePosition() async {
@@ -202,35 +239,219 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: myPosition == null || markers.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : Stack(
+      body: Stack(
+        children: [
+          buildMap(),
+          Positioned(
+            top: 48.0,
+            left: 16.0,
+            right: 16.0,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6.0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar parqueo...',
+                        border: InputBorder.none,
+                        icon: Icon(Icons.search, color: Colors.black),
+                      ),
+                      onSubmitted: (value) {
+                        // Lógica para buscar parqueos basado en el valor ingresado
+                        // Puedes implementar tu propia lógica de búsqueda aquí
+                      },
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _centerOnUserLocation,
+                    icon: Icon(Icons.my_location, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_showParkingDetails) // Mostrar detalles solo si es necesario
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: buildParkingDetailsPanel(context, _currentParkingDetails),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildParkingDetailsPanel(
+      BuildContext context, Map<String, dynamic> details) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              color: Colors.black26,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildMap(),
-                Positioned(
-                  top: 16.0,
-                  right: 16.0,
-                  child: FloatingActionButton(
-                    onPressed: _pointToNorth,
-                    child: Icon(Icons.explore),
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    mini: true,
+                Container(
+                  margin: const EdgeInsets.all(10),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: (details['url_image'] != null &&
+                            details['url_image'].isNotEmpty)
+                        ? Image.network(
+                            details['url_image'],
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/default_placeholder.png',
+                                width: 150,
+                                height: 150,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            'assets/images/Logo.png', // Imagen placeholder por defecto
+                            width: 150,
+                            height:
+                                150, // Ajustado para que la imagen sea cuadrada
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
-                Positioned(
-                  bottom: 16.0,
-                  right: 16.0,
-                  child: FloatingActionButton(
-                    onPressed: _centerOnUserLocation,
-                    child: Icon(Icons.my_location),
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    mini: true,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              details['name'] ?? 'Parking Unknown',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ParkingMapScreen(
+                                      parkingId: details['id'].toString(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child:
+                                  Icon(Icons.directions, color: Colors.white),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                  vertical: 1,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: const BorderSide(color: Colors.blue),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${details['spaces_available'] ?? 'N/A'} espacios disponibles',
+                          style: TextStyle(fontSize: 14, color: Colors.green),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              '10 Bs/hora',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(width: 30),
+                            Icon(Icons.access_time),
+                            Text(
+                              '9:00 - 21:00',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ParkingDetailsScreen(
+                            parkingId: details['id']
+                                .toString(), // Asegúrate de que 'details' contiene 'id'
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text('Ver más detalles',
+                        style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 120, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20), // Added space below the button
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/models/Parking.dart';
-import 'package:map_flutter/common/widgets/cards/PriceParkingDetails.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,7 +9,6 @@ class ParkingDetailsScreen extends StatefulWidget {
 
   const ParkingDetailsScreen({Key? key, required this.parkingId})
       : super(key: key);
-
   @override
   State<ParkingDetailsScreen> createState() => _ParkingDetailsScreenState();
 }

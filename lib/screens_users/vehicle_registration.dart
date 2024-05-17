@@ -12,7 +12,6 @@ class VehicleRegistrationPage extends StatefulWidget {
   _VehicleRegistrationPageState createState() =>
       _VehicleRegistrationPageState();
 }
-
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   late Color myColor =
       const Color(0xFF1b4ee4); // Azul usado anteriormente como color de fondo
