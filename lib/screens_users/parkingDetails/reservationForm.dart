@@ -43,7 +43,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
       context: context,
       initialDate: selectedDate,
       firstDate:
-          DateTime.now().add(Duration(days: 1)), // Solo fechas desde mañana
+          DateTime.now(), // Solo fechas desde mañana
       lastDate: DateTime(2100),
     );
     if (picked != null && picked != selectedDate) {
