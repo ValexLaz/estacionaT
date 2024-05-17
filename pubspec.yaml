@@ -46,6 +46,8 @@ dependencies:
   carousel_slider: ^4.0.0
   webview_flutter: ^2.0.13
   flutter_time_picker_spinner: ^2.0.0
+  firebase_database: ^10.0.8
+
   
 
 dev_dependencies:
