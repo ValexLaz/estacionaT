@@ -8,7 +8,8 @@ import 'package:map_flutter/screens_users/parkingDetails/reservationForm.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:map_flutter/services/api_price.dart';
-
+import 'package:map_flutter/services/api_openinghours.dart';
+import 'package:map_flutter/models/OpeningHours.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ParkingDetailsScreen2 extends StatefulWidget {
@@ -26,6 +27,8 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
   Future<List<Price>>? prices;
+  Future<List<OpeningHours>>? openingHours;
+
   @override
   void initState() {
     ParkingManager.instance
@@ -41,10 +44,21 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
     } catch (e) {}
   }
 
+  Future<void> fetchOpeningHours() async {
+    try {
+      openingHours = ApiOpeningHours()
+          .getOpeningHoursByParkingId(int.parse(widget.parkingId));
+    } catch (e) {}
+  }
+
   Future<void> fetchParkingData() async {
     try {
-      await Future.wait(
-          [fetchParkingDetails(), fetchParkingAddress(), fetchPriceparking()]);
+      await Future.wait([
+        fetchParkingDetails(),
+        fetchParkingAddress(),
+        fetchPriceparking(),
+        fetchOpeningHours()
+      ]);
       setState(() {
         isLoading = false;
       });
@@ -69,10 +83,8 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
           isLoading = false;
         });
       } else {
-        // Asegúrate de actualizar el estado para reflejar que no se encontraron datos.
         setState(() {
           isLoading = false;
-          // Considera mostrar un mensaje de que no se encontraron datos.
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('No se encontraron detalles de la dirección.'),
@@ -85,7 +97,6 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
       print('Error fetching parking address details: $e');
       setState(() {
         isLoading = false;
-        // Manejar adecuadamente el estado de error aquí, mostrando un mensaje al usuario.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar los detalles de la dirección.'),
@@ -252,14 +263,29 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
   }
 
   Widget buildScheduleTab() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Text('Horarios de Operación'),
-          Text('Lunes: 6:00 AM - 10:00 PM'),
-          // Añade el resto de los días y horarios
-        ],
-      ),
+    return FutureBuilder<List<OpeningHours>>(
+      future: openingHours,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No se encontraron horarios.'));
+        } else {
+          List<OpeningHours> openingHours = snapshot.data!;
+          return ListView.builder(
+            itemCount: openingHours.length,
+            itemBuilder: (context, index) {
+              OpeningHours hour = openingHours[index];
+              return ListTile(
+                title: Text(hour.day ?? ''),
+                subtitle: Text('${hour.open_time} - ${hour.close_time}'),
+              );
+            },
+          );
+        }
+      },
     );
   }
 
@@ -268,30 +294,20 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
       future: prices,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No se encontraron precios.'));
+        } else {
+          List<Price> prices = snapshot.data!;
           return ListView.builder(
-            itemCount: snapshot.data!.length,
+            itemCount: prices.length,
             itemBuilder: (context, index) {
-              return PriceCard(
-                price: snapshot.data![index],
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) =>
-                            ReservationFormScreen(
-                          price: snapshot.data![index],
-                        ),
-                      ));
-                },
-              );
+              Price price = prices[index];
+              return PriceCard(price: price);
             },
           );
-        } else {
-          return const Center(child: Text('No data available'));
         }
       },
     );
@@ -300,37 +316,32 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
   Widget buildContactAndMoreTab() {
     return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Contacto'),
-          ElevatedButton.icon(
-            icon: Icon(Icons.call),
-            label: Text('Llamar'),
-            onPressed: () {
-              if (parkingDetails['phone'] != null) {
-                launchPhoneDialer(parkingDetails['phone']);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Número de teléfono no disponible.'),
-                  ),
-                );
-              }
-            },
-          ),
-          ElevatedButton.icon(
-            icon: Icon(Icons.message),
-            label: Text('WhatsApp'),
-            onPressed: () {
-              if (parkingDetails['phone'] != null) {
-                launchWhatsApp(parkingDetails['phone']);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Número de teléfono no disponible.'),
-                  ),
-                );
-              }
-            },
+          if (parkingDetails['phone'] != null)
+            ListTile(
+              leading: Icon(Icons.phone),
+              title: Text('Teléfono:'),
+              subtitle: Text(parkingDetails['phone']),
+              onTap: () => launchPhoneDialer(parkingDetails['phone']),
+            ),
+          if (parkingDetails['whatsapp'] != null)
+            ListTile(
+              //leading: Icon(Icons.whatsapp),
+              title: Text('WhatsApp:'),
+              subtitle: Text(parkingDetails['whatsapp']),
+              onTap: () => launchWhatsApp(parkingDetails['whatsapp']),
+            ),
+          if (parkingDetails['address'] != null)
+            ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('Dirección:'),
+              subtitle: Text(parkingDetails['address']),
+            ),
+          ListTile(
+            leading: Icon(Icons.map),
+            title: Text('Abrir en Google Maps'),
+            onTap: openMapWithDestination,
           ),
         ],
       ),

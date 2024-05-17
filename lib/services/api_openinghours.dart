@@ -32,4 +32,25 @@ class ApiOpeningHours extends ApiRepository<OpeningHours> {
       throw Exception('Failed to load opening hours');
     }
   }
+
+  Future<void> updateOpeningHour(
+      int openingHourId, OpeningHours updatedHour) async {
+    final response = await http.put(
+      Uri.parse('$completeUrl$openingHourId/'),
+      body: json.encode(toJson(updatedHour)),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode != 200) {
+      print(response.body);
+      throw Exception('Failed to update opening hour');
+    }
+  }
+
+  Future<void> deleteOpeningHour(int openingHourId) async {
+    final response =
+        await http.delete(Uri.parse('$completeUrl$openingHourId/'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete opening hour');
+    }
+  }
 }
