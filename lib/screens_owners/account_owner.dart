@@ -9,15 +9,16 @@ class ParkingOwnerScreen extends StatefulWidget {
   final String parkingId;
   const ParkingOwnerScreen({Key? key, required this.parkingId})
       : super(key: key);
+
   @override
   _ParkingOwnerScreenState createState() => _ParkingOwnerScreenState();
 }
 
 class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
   final ApiParking apiParking = ApiParking();
-  List<Map<String, dynamic>> parkings = [];
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -137,26 +138,30 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                           ),
                           _buildListTile(
                             title: 'Horarios de atención',
-                            icon: Icons.settings,
+                            icon: Icons.access_time,
                             textColor: textColor,
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => OpeningHoursScreen(),
+                                  builder: (context) => OpeningHoursScreen(
+                                    parkingId: int.parse(widget.parkingId),
+                                  ),
                                 ),
                               );
                             },
                           ),
                           _buildListTile(
                             title: 'Precios',
-                            icon: Icons.settings,
+                            icon: Icons.attach_money,
                             textColor: textColor,
                             onTap: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => PriceFormScreen()));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PriceFormScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildListTile(
@@ -167,7 +172,8 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => LoginPage()),
+                                  builder: (context) => LoginPage(),
+                                ),
                               );
                             },
                           ),
