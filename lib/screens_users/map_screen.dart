@@ -118,18 +118,19 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           ElevatedButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ParkingMapScreen(
-          parkingId: details['id'].toString(), // Pasar solo el parkingId
-        ),
-      ),
-    );
-  },
-  child: Text('Ver en Mapa'),
-),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ParkingMapScreen(
+                    parkingId:
+                        details['id'].toString(), // Pasar solo el parkingId
+                  ),
+                ),
+              );
+            },
+            child: Text('Ver en Mapa'),
+          ),
         ],
       ),
     );

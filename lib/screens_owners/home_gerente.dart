@@ -13,17 +13,68 @@ class ParkingScreen extends StatefulWidget {
 }
 
 class _ParkingScreenState extends State<ParkingScreen> {
-  
-
   final ApiParking apiParking = ApiParking();
   Map<String, dynamic> parkingDetails = {};
+  List<Map<String, dynamic>> vehicleEntries = [];
   bool isLoading = true;
-
+  int vehiclesCount = 0;
   @override
   void initState() {
     super.initState();
-    fetchParkingData();
+    _fetchData();
   }
+
+  Future<void> _fetchData() async {
+    try {
+      await Future.wait([fetchParkingData(), fetchVehicleEntries()]);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching data: $e');
+      setState(() {
+        isLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
+    }
+  }
+
+Future<void> fetchVehicleEntries() async {
+  try {
+    List<Map<String, dynamic>> vehicleEntriesList = await apiParking.getVehicleEntryById(widget.parkingId.toString());
+
+    setState(() {
+      vehicleEntries = vehicleEntriesList;
+      vehiclesCount = vehicleEntries.length;
+      isLoading = false;
+    });
+
+    if (vehicleEntries.isNotEmpty) {
+      print('Registros de vehículos encontrados:');
+      vehicleEntries.forEach((entry) {
+        print(entry);
+      });
+    } else {
+      print('No se encontraron registros de vehículos para el parqueo ${widget.parkingId}');
+    }
+  } catch (e) {
+    print('Error fetching vehicle entries: $e');
+    setState(() {
+      isLoading = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar los registros de vehículos.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    });
+  }
+}
 
   Future<void> fetchParkingData() async {
     try {
@@ -63,20 +114,23 @@ class _ParkingScreenState extends State<ParkingScreen> {
   }
 
   Widget _buildParkingScreen() {
-    int maxCapacity = parkingDetails['maxCapacity'] ?? 100;
-    int occupiedSpaces = parkingDetails['occupiedSpaces'] ?? 50;
+    int maxCapacity = parkingDetails['capacity'] ?? 100;
+    int occupiedSpaces = vehiclesCount;
     int freeSpaces = maxCapacity - occupiedSpaces;
 
     return Column(
       children: [
         _buildCapacityInfo(maxCapacity, occupiedSpaces, freeSpaces),
-        Expanded(child: _buildVehiclesList(occupiedSpaces)),
+        Expanded(child: _buildVehiclesList()),
       ],
     );
   }
 
   Widget _buildCapacityInfo(
       int maxCapacity, int occupiedSpaces, int freeSpaces) {
+    int remainingSpaces =
+        maxCapacity - vehiclesCount; // Calcula los espacios restantes
+
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -115,7 +169,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Espacios libres: $freeSpaces"),
+              Text(
+                  "Espacios libres: $remainingSpaces"), // Muestra los espacios libres calculados
               Text("Espacios ocupados: $occupiedSpaces"),
             ],
           ),
@@ -124,15 +179,28 @@ class _ParkingScreenState extends State<ParkingScreen> {
     );
   }
 
-  Widget _buildVehiclesList(int occupiedSpaces) {
+  Widget _buildVehiclesList() {
+    if (vehicleEntries.isEmpty) {
+      return Center(
+        child: Text('No hay vehículos registrados en este parqueo.'),
+      );
+    }
+
     return ListView.builder(
-      itemCount: occupiedSpaces,
+      itemCount: vehicleEntries.length,
       itemBuilder: (context, index) {
+        var entry = vehicleEntries[index];
         return Card(
           child: ListTile(
             leading: Icon(Icons.directions_car),
-            title: Text("Vehículo ${index + 1}"),
-            subtitle: Text("Tiempo restante: ${Random().nextInt(120)} mins"),
+            title: Text("Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}", style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Placa: ${entry['vehicle']['registration_plate']}"),
+                Text("Tiempo restante: ${Random().nextInt(120)} mins"),
+              ],
+            ),
           ),
         );
       },

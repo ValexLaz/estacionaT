@@ -3,20 +3,22 @@ import 'package:map_flutter/screens_owners/price_screen.dart';
 import 'package:map_flutter/screens_owners/parking_description.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/screens_owners/opening_hours_screen.dart';
 
 class ParkingOwnerScreen extends StatefulWidget {
   final String parkingId;
   const ParkingOwnerScreen({Key? key, required this.parkingId})
       : super(key: key);
+
   @override
   _ParkingOwnerScreenState createState() => _ParkingOwnerScreenState();
 }
 
 class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
   final ApiParking apiParking = ApiParking();
-  List<Map<String, dynamic>> parkings = [];
   Map<String, dynamic> parkingDetails = {};
   bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -135,22 +137,31 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                             },
                           ),
                           _buildListTile(
-                            title: 'Configuraciones de la cuenta',
-                            icon: Icons.settings,
+                            title: 'Horarios de atención',
+                            icon: Icons.access_time,
                             textColor: textColor,
                             onTap: () {
-                              // Lógica para configuraciones de la cuenta
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OpeningHoursScreen(
+                                    parkingId: int.parse(widget.parkingId),
+                                  ),
+                                ),
+                              );
                             },
                           ),
                           _buildListTile(
                             title: 'Precios',
-                            icon: Icons.settings,
+                            icon: Icons.attach_money,
                             textColor: textColor,
                             onTap: () {
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => PriceFormScreen()));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PriceFormScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildListTile(
@@ -161,7 +172,8 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => LoginPage()),
+                                  builder: (context) => LoginPage(),
+                                ),
                               );
                             },
                           ),

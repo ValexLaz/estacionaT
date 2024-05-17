@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:map_flutter/models/Price.dart';
 import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/models/TypeVehicle.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
@@ -29,17 +32,23 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   TextEditingController plateController = TextEditingController();
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
   TextEditingController phoneController = TextEditingController();
+  TextEditingController _priceController = TextEditingController();
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   late ScrollController _scrollController;
   TypeVehicle? _selectedTypeVehicle;
   List<TypeVehicle> _typeVehicles = [];
+  Price? _selectedPrice;
+  List<Price> _typePrices = [];
+
+
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _fetchTypeVehicles();
+    _fetchPrices();
 
   }
   Future<void> _fetchTypeVehicles() async {
@@ -52,6 +61,21 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
     } catch (e) {
     }
   }
+
+    Future<void> _fetchPrices() async {
+        try {
+        final priceApiService = TypePriceService();
+        final prices = await priceApiService.getAllPriceRecords(int.parse(widget.parkingId));
+        setState(() {
+            _typePrices = prices;
+        });
+        print('Precios obtenidos correctamente: $_typePrices');
+
+        } catch (e) {
+            print('Error al obtener precios: $e');
+
+        }
+    }
   @override
   void dispose() {
     _scrollController.dispose();
@@ -152,6 +176,37 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         const SizedBox(height: 20),
         _buildGreyText("Teléfono"),
         _buildPhoneInputField(phoneController),
+        const SizedBox(height: 20),
+        DropdownButtonFormField<Price>(
+          value: _selectedPrice,
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.directions_car),
+          ),
+          onChanged: (Price? value) {
+            setState(() {
+              _selectedPrice = value;
+            });
+            _priceController.text = value?.id.toString() ?? '';
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Por favor, selecciona un precio';
+            }
+            return null;
+          },
+          items: [
+            DropdownMenuItem(
+            value: null,
+            child: Text('Selecciona el precio'),
+            ),
+            ..._typePrices.map((Price price) {
+            return DropdownMenuItem<Price>(
+                value: price,
+                child: Text(price.price.toString()),
+            );
+            }).toList(),
+        ],
+        ),
         const SizedBox(height: 20),
         _buildGreyText("Hora de inicio"),
         _buildStartTimeField(),

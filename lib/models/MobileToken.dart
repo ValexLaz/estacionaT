@@ -8,7 +8,7 @@ class MobileToken {
   factory MobileToken.fromJson(Map<String, dynamic> json) {
     return MobileToken(
       id: json['id'],
-      user: json['user'],
+      user: json['user'].toString(),
       token: json['token'],
     );
   }
