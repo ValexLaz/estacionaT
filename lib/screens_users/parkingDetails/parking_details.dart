@@ -1,15 +1,13 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
+import 'package:map_flutter/models/OpeningHours.dart';
 import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/models/Price.dart';
-import 'package:map_flutter/common/widgets/cards/PriceParkingDetails.dart';
-import 'package:map_flutter/screens_users/parkingDetails/reservationForm.dart';
-import 'package:map_flutter/services/api_parking.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
-import 'package:map_flutter/models/OpeningHours.dart';
+import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/services/api_price.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ParkingDetailsScreen2 extends StatefulWidget {
@@ -278,9 +276,16 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
             itemCount: openingHours.length,
             itemBuilder: (context, index) {
               OpeningHours hour = openingHours[index];
-              return ListTile(
-                title: Text(hour.day ?? ''),
-                subtitle: Text('${hour.open_time} - ${hour.close_time}'),
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  leading: Icon(Icons.access_time, color: Colors.blue),
+                  title: Text(
+                    hour.day ?? '',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text('${hour.open_time} - ${hour.close_time}'),
+                ),
               );
             },
           );

@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 
-void main()async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
-}   
+}
 
 class MyApp extends StatelessWidget {
   @override

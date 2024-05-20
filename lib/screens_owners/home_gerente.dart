@@ -18,6 +18,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
   List<Map<String, dynamic>> vehicleEntries = [];
   bool isLoading = true;
   int vehiclesCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -44,48 +45,45 @@ class _ParkingScreenState extends State<ParkingScreen> {
     }
   }
 
-Future<void> fetchVehicleEntries() async {
-  try {
-    List<Map<String, dynamic>> vehicleEntriesList = await apiParking.getVehicleEntryById(widget.parkingId.toString());
+  Future<void> fetchVehicleEntries() async {
+    try {
+      List<Map<String, dynamic>> vehicleEntriesList =
+          await apiParking.getVehicleEntryById(widget.parkingId.toString());
 
-    setState(() {
-      vehicleEntries = vehicleEntriesList;
-      vehiclesCount = vehicleEntries.length;
-      isLoading = false;
-    });
-
-    if (vehicleEntries.isNotEmpty) {
-      print('Registros de vehículos encontrados:');
-      vehicleEntries.forEach((entry) {
-        print(entry);
+      setState(() {
+        vehicleEntries = vehicleEntriesList;
+        vehiclesCount = vehicleEntries.length;
       });
-    } else {
-      print('No se encontraron registros de vehículos para el parqueo ${widget.parkingId}');
+
+      if (vehicleEntries.isNotEmpty) {
+        print('Registros de vehículos encontrados:');
+        vehicleEntries.forEach((entry) {
+          print(entry);
+        });
+      } else {
+        print(
+            'No se encontraron registros de vehículos para el parqueo ${widget.parkingId}');
+      }
+    } catch (e) {
+      print('Error fetching vehicle entries: $e');
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los registros de vehículos.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
     }
-  } catch (e) {
-    print('Error fetching vehicle entries: $e');
-    setState(() {
-      isLoading = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al cargar los registros de vehículos.'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    });
   }
-}
 
   Future<void> fetchParkingData() async {
     try {
       parkingDetails = await apiParking.getParkingDetailsById(widget.parkingId);
-      setState(() {
-        isLoading = false;
-      });
+      setState(() {});
     } catch (e) {
       print('Error fetching parking data: $e');
       setState(() {
-        isLoading = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar los datos del parqueo.'),
@@ -100,8 +98,12 @@ Future<void> fetchVehicleEntries() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Parqueo ${widget.parkingId}'),
-        backgroundColor: Color(0xFF1b4ee4),
+        title: Text(
+          'Detalles de Parqueo',
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: isLoading ? _buildLoadingScreen() : _buildParkingScreen(),
     );
@@ -115,7 +117,7 @@ Future<void> fetchVehicleEntries() async {
 
   Widget _buildParkingScreen() {
     int maxCapacity = parkingDetails['capacity'] ?? 100;
-    int occupiedSpaces = vehiclesCount;
+    int occupiedSpaces = parkingDetails['occupiedSpaces'] ?? vehiclesCount;
     int freeSpaces = maxCapacity - occupiedSpaces;
 
     return Column(
@@ -128,9 +130,6 @@ Future<void> fetchVehicleEntries() async {
 
   Widget _buildCapacityInfo(
       int maxCapacity, int occupiedSpaces, int freeSpaces) {
-    int remainingSpaces =
-        maxCapacity - vehiclesCount; // Calcula los espacios restantes
-
     return Container(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -146,10 +145,7 @@ Future<void> fetchVehicleEntries() async {
               Expanded(
                 child: Text(
                   'Capacidad Total:',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                 ),
               ),
               Text(
@@ -170,8 +166,13 @@ Future<void> fetchVehicleEntries() async {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                  "Espacios libres: $remainingSpaces"), // Muestra los espacios libres calculados
-              Text("Espacios ocupados: $occupiedSpaces"),
+                "Espacios libres: $freeSpaces",
+                style: TextStyle(color: Colors.green),
+              ),
+              Text(
+                "Espacios ocupados: $occupiedSpaces",
+                style: TextStyle(color: Colors.red),
+              ),
             ],
           ),
         ],
@@ -191,9 +192,14 @@ Future<void> fetchVehicleEntries() async {
       itemBuilder: (context, index) {
         var entry = vehicleEntries[index];
         return Card(
+          elevation: 4,
+          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           child: ListTile(
-            leading: Icon(Icons.directions_car),
-            title: Text("Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}", style: TextStyle(fontWeight: FontWeight.bold)),
+            leading: Icon(Icons.directions_car, color: Colors.blue),
+            title: Text(
+              "Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

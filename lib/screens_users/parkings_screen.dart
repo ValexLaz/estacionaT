@@ -17,7 +17,6 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   List<Map<String, dynamic>> parkings = [];
   List<Map<String, dynamic>> filteredParkings = [];
   List<Map<String, dynamic>> searchFilteredParkings = [];
-  Color primaryColor = Color(0xFF1b4ee4);
   TextEditingController searchController = TextEditingController();
   int selectedFilterIndex = 1;
   final Random random = Random();
@@ -94,7 +93,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5.0),
-                  borderSide: BorderSide(color: primaryColor),
+                  borderSide: BorderSide(color: Colors.blue),
                 ),
               ),
               onChanged: (value) {
@@ -218,8 +217,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                           ),
                         ),
                         IconButton(
-                          icon:
-                              Icon(Icons.location_on, color: Color(0xFF1b4ee4)),
+                          icon: Icon(Icons.location_on, color: Colors.blue),
                           onPressed: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => NavigationBarScreen(),
@@ -247,17 +245,17 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
             'Ver mapa',
             style: TextStyle(
               color:
-                  primaryColor, // Color del texto igual al del icono y el margen
+                  Colors.blue, // Color del texto igual al del icono y el margen
             ),
           ),
           icon: Icon(
             Icons.map,
-            color: primaryColor,
+            color: Colors.blue,
           ),
           backgroundColor: Colors.white,
           foregroundColor: Colors.white, // Color del texto
           shape: RoundedRectangleBorder(
-            side: BorderSide(color: primaryColor),
+            side: BorderSide(color: Colors.blue),
             borderRadius: BorderRadius.circular(8.0),
           ),
         ),
@@ -269,10 +267,10 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor:
-            selectedFilterIndex == index ? primaryColor : Colors.white,
+            selectedFilterIndex == index ? Colors.blue : Colors.white,
         side: BorderSide(
           color:
-              selectedFilterIndex == index ? Colors.transparent : primaryColor,
+              selectedFilterIndex == index ? Colors.transparent : Colors.blue,
           width: 1,
         ),
         elevation: 0,
@@ -284,7 +282,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       child: Text(
         text,
         style: TextStyle(
-          color: selectedFilterIndex == index ? Colors.white : primaryColor,
+          color: selectedFilterIndex == index ? Colors.white : Colors.blue,
         ),
       ),
     );

@@ -19,13 +19,13 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   TextEditingController searchController = TextEditingController();
-
   LatLng? myPosition;
   bool _showParkingDetails = false; // Estado para mostrar/ocultar detalles
   Map<String, dynamic> _currentParkingDetails = {};
   List<Marker> markers = []; // Lista para almacenar marcadores
   Marker? userLocationMarker;
   final MapController _mapController = MapController();
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +36,38 @@ class _MapScreenState extends State<MapScreen> {
   void _centerOnUserLocation() {
     if (myPosition != null) {
       _mapController.move(myPosition!, 18.0);
+    }
+  }
+
+  Future<void> getCurrentLocation() async {
+    try {
+      Position position = await determinePosition();
+      if (mounted) {
+        setState(() {
+          myPosition = LatLng(position.latitude, position.longitude);
+          userLocationMarker = Marker(
+            point: myPosition!,
+            width: 30,
+            height: 30,
+            builder: (ctx) => Container(
+              child: Icon(
+                Icons.location_on,
+                color: Colors.red,
+                size: 40,
+              ),
+            ),
+          );
+          // Mueve el mapa a la ubicación actual
+          _mapController.move(myPosition!, 18.0);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error obtaining location: $e'),
+          duration: Duration(seconds: 3),
+        ));
+      }
     }
   }
 
@@ -155,38 +187,6 @@ class _MapScreenState extends State<MapScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading parking addresses: $e')),
       );
-    }
-  }
-
-  Future<void> getCurrentLocation() async {
-    try {
-      Position position = await determinePosition();
-      if (mounted) {
-        setState(() {
-          myPosition = LatLng(position.latitude, position.longitude);
-          userLocationMarker = Marker(
-            point: myPosition!,
-            width: 30,
-            height: 30,
-            builder: (ctx) => Container(
-              child: Icon(
-                Icons.location_on,
-                color: Colors.red,
-                size: 40,
-              ),
-            ),
-          );
-          // Mueve el mapa a la ubicación actual
-          _mapController.move(myPosition!, 18.0);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error obtaining location: $e'),
-          duration: Duration(seconds: 3),
-        ));
-      }
     }
   }
 

@@ -1,13 +1,14 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
 import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
@@ -25,7 +26,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   TextEditingController capacityController = TextEditingController();
   TextEditingController ownerPhoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController spacesAvailableController = TextEditingController();
   TextEditingController imageUrlController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TimeOfDay openingTime = TimeOfDay(hour: 8, minute: 0);
@@ -35,12 +35,19 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   String _selectedDay = 'Lunes'; // Día por defecto seleccionado
 
   final List<String> _daysOfWeek = [
-    'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado',
+    'Domingo'
   ];
 
   // Método para seleccionar una imagen
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -51,15 +58,16 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
 
   Future<void> _uploadImageToFirebase() async {
     if (_imageFile == null) return;
-    String fileName = 'parking_images/${DateTime.now().millisecondsSinceEpoch}_${_imageFile!.path.split('/').last}';
+    String fileName =
+        'parking_images/${DateTime.now().millisecondsSinceEpoch}_${_imageFile!.path.split('/').last}';
     try {
-      UploadTask task = FirebaseStorage.instance
-          .ref(fileName)
-          .putFile(_imageFile!);
+      UploadTask task =
+          FirebaseStorage.instance.ref(fileName).putFile(_imageFile!);
 
       final snapshot = await task;
       final urlDownload = await snapshot.ref.getDownloadURL();
-      imageUrlController.text = urlDownload; // Actualiza el controlador de texto de la imagen URL
+      imageUrlController.text =
+          urlDownload; // Actualiza el controlador de texto de la imagen URL
 
       _showSnackBar('Imagen subida con éxito: $urlDownload');
     } catch (e) {
@@ -73,9 +81,12 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Registro de Parqueo"),
-        backgroundColor: Color(0xFF1b4ee4),
-        foregroundColor: Colors.white,
+        title: Text(
+          "Registro de Parqueo",
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -86,14 +97,15 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
             children: [
               _buildInputField("Nombre del Parqueo", parkingNameController),
               const SizedBox(height: 20),
-              _buildInputField("Capacidad Total de Vehículos", capacityController),
+              _buildInputField(
+                  "Capacidad Total de Vehículos", capacityController),
               const SizedBox(height: 20),
-              _buildInputField("Número de Teléfono del Propietario", ownerPhoneController),
+              _buildPhoneInputField(
+                  "Número de Teléfono del Propietario", ownerPhoneController),
               const SizedBox(height: 20),
               _buildInputField("Correo Electrónico", emailController),
               const SizedBox(height: 20),
               _buildImagePickerButton(),
-              _buildInputField("Espacios Disponibles", spacesAvailableController),
               const SizedBox(height: 20),
               _buildInputField("URL de la Imagen", imageUrlController),
               const SizedBox(height: 20),
@@ -117,22 +129,22 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   }
 
   bool _validateInputs() {
-    bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text);
+    bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(emailController.text);
 
     if (parkingNameController.text.isEmpty ||
         capacityController.text.isEmpty ||
         ownerPhoneController.text.isEmpty ||
         emailController.text.isEmpty ||
         !emailValid ||
-        spacesAvailableController.text.isEmpty ||
         imageUrlController.text.isEmpty ||
         descriptionController.text.isEmpty) {
-      _showSnackBar('Por favor, complete todos los campos correctamente antes de continuar.');
+      _showSnackBar(
+          'Por favor, complete todos los campos correctamente antes de continuar.');
       return false;
     }
-    if (int.tryParse(capacityController.text) == null ||
-        int.tryParse(spacesAvailableController.text) == null) {
-      _showSnackBar('Ingrese un número válido en los campos de capacidad y espacios disponibles.');
+    if (int.tryParse(capacityController.text) == null) {
+      _showSnackBar('Ingrese un número válido en el campo de capacidad.');
       return false;
     }
     return true;
@@ -145,11 +157,12 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
 
   // Botón para iniciar la selección de imagen
   Widget _buildImagePickerButton() {
-    return ElevatedButton(
+    return ElevatedButton.icon(
       onPressed: _pickImage,
-      child: Text('Seleccionar imagen'),
+      icon: Icon(Icons.image, color: Colors.white),
+      label: Text('Seleccionar imagen', style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: myColor,
+        backgroundColor: Colors.blue,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -157,26 +170,25 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     );
   }
 
-Widget _buildDayDropdown() {
-  List<String> allDays = ['Todos los días', ..._daysOfWeek]; // Agrega la opción 'Todos los días'
-  return DropdownButton<String>(
-    value: _selectedDay,
-    items: allDays.map((String day) {
-      return DropdownMenuItem<String>(
-        value: day,
-        child: Text(day),
-      );
-    }).toList(),
-    onChanged: (String? newValue) {
-      setState(() {
-        _selectedDay = newValue!;
-      });
-    },
-  );
-}
-
-  Widget _buildGreyText(String text) {
-    return Text(text, style: const TextStyle(color: Colors.grey));
+  Widget _buildDayDropdown() {
+    List<String> allDays = [
+      'Todos los días',
+      ..._daysOfWeek
+    ]; // Agrega la opción 'Todos los días'
+    return DropdownButton<String>(
+      value: _selectedDay,
+      items: allDays.map((String day) {
+        return DropdownMenuItem<String>(
+          value: day,
+          child: Text(day),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedDay = newValue!;
+        });
+      },
+    );
   }
 
   Widget _buildInputField(String label, TextEditingController controller) {
@@ -189,7 +201,20 @@ Widget _buildDayDropdown() {
     );
   }
 
-  Widget _buildTimePicker(String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
+  Widget _buildPhoneInputField(String label, TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+        prefixText: '+591 ', // Prefijo de país para Bolivia
+      ),
+      keyboardType: TextInputType.phone,
+    );
+  }
+
+  Widget _buildTimePicker(
+      String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -227,7 +252,8 @@ Widget _buildDayDropdown() {
       ),
       onPressed: () async {
         if (_validateInputs()) {
-          final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
+          final tokenProvider =
+              Provider.of<TokenProvider>(context, listen: false);
           final userId = tokenProvider.userId;
 
           Map<String, dynamic> parkingData = {
@@ -236,7 +262,6 @@ Widget _buildDayDropdown() {
             "phone": ownerPhoneController.text,
             "email": emailController.text,
             "user": userId,
-            "spaces_available": int.tryParse(spacesAvailableController.text) ?? 0,
             "url_image": imageUrlController.text, // Incluye la URL de la imagen
             "description": descriptionController.text,
           };
@@ -247,34 +272,39 @@ Widget _buildDayDropdown() {
             final ApiOpeningHours apiOpeningHours = ApiOpeningHours();
 
             if (_selectedDay == 'Todos los días') {
-                for (String day in _daysOfWeek) {
+              for (String day in _daysOfWeek) {
                 await apiOpeningHours.create(OpeningHours(
-                    day: day,
-                    parking: int.parse(parkingId),
-                    open_time: "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
-                    close_time: "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
+                  day: day,
+                  parking: int.parse(parkingId),
+                  open_time:
+                      "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
+                  close_time:
+                      "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
                 ));
-                }
+              }
             } else {
-                await apiOpeningHours.create(OpeningHours(
+              await apiOpeningHours.create(OpeningHours(
                 day: _selectedDay,
                 parking: int.parse(parkingId),
-                open_time: "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
-                close_time: "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
-                ));
+                open_time:
+                    "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
+                close_time:
+                    "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
+              ));
             }
 
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                builder: (context) => SelectMapScreen(parkingId: int.parse(parkingId)),
-                ),
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    SelectMapScreen(parkingId: int.parse(parkingId)),
+              ),
             );
-            } catch (e) {
+          } catch (e) {
             print("Error al registrar el parqueo: $e");
-            _showSnackBar('Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
-            }
-
+            _showSnackBar(
+                'Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
+          }
         }
       },
       child: Text(

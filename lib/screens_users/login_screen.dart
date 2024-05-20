@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/firebase/firebase_api.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import 'create_account_page.dart';
@@ -28,6 +29,17 @@ class _LoginPageState extends State<LoginPage> {
   bool obscurePassword = true;
   bool _isLoading =
       false; // Estado para controlar la visualización del indicador de carga
+
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    await Permission.location.request();
+    await Permission.notification.request();
+  }
 
   @override
   Widget build(BuildContext context) {
