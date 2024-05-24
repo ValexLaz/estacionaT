@@ -71,7 +71,10 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Parqueo registrado exitosamente')));
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => PriceFormScreen(parkingId: widget.parkingId)));
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      PriceFormScreen(parkingId: widget.parkingId)));
         } else {
           print('Error al guardar la ubicación: ${response.body}');
         }
@@ -143,13 +146,27 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pop(context); // Acción para el botón "Anterior"
+                        // Code for previous action
                       },
                       child: Container(
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Anterior", style: TextStyle(color: Colors.grey)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.arrow_back, size: 20),
+                              SizedBox(width: 5),
+                              Text(
+                                "Anterior",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -166,7 +183,21 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Siguiente", style: TextStyle(color: Colors.blue)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Siguiente",
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 5),
+                              Icon(Icons.arrow_forward, size: 20),
+                            ],
+                          ),
                         ),
                       ),
                     ),

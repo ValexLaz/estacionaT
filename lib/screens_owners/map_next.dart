@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
-import 'package:map_flutter/common/widgets/AlertSnackBar.dart';
 import 'package:map_flutter/common/widgets/input_form.dart';
 import 'package:map_flutter/common/widgets/multipleInput_form.dart';
 import 'package:map_flutter/models/Parking.dart';
@@ -23,7 +21,6 @@ class PriceFormScreen extends StatefulWidget {
 class _PriceFormScreenState extends State<PriceFormScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _isPricePerHourCtrl = TextEditingController();
-
   TextEditingController _isPriceReservationCtrl = TextEditingController();
   TextEditingController _isPriceParkingCtrl = TextEditingController();
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
@@ -61,10 +58,10 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
     primaryColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          Positioned.fill(top: 80, child: _buildBottom()),
+          Positioned.fill(top: 80, child: _buildFormBackground()),
           Positioned(
             bottom: 0,
             left: 0,
@@ -76,14 +73,18 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context); // Acción para el botón "Anterior"
-                      },
                       child: Container(
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Anterior", style: TextStyle(color: Colors.grey)),
+                          child: Text(
+                            "Anterior",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -98,13 +99,32 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
                       onTap: () async {
                         await _registerPrice();
                         Navigator.pushReplacement(
-                            context, MaterialPageRoute(builder: (context) => ListParkings()));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ListParkings()));
                       },
                       child: Container(
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Terminar", style: TextStyle(color: Colors.blue)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Terminar",
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              SizedBox(width: 5),
+                              Icon(
+                                Icons.check,
+                                color: Colors.blue,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -118,21 +138,14 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
     );
   }
 
-  Widget _buildBottom() {
+  Widget _buildFormBackground() {
     return SizedBox(
       width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: _buildForm(),
-          ),
+      child: Container(
+        color: Colors.white, // Fondo blanco
+        padding: const EdgeInsets.all(32.0),
+        child: SingleChildScrollView(
+          child: _buildForm(),
         ),
       ),
     );
@@ -143,9 +156,9 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Agregar un nuevo paquete",
+          "Agrega los precios de tu estacionamiento",
           style: TextStyle(
-            color: primaryColor,
+            color: Colors.black,
             fontSize: 32,
             fontWeight: FontWeight.w500,
           ),

@@ -54,14 +54,8 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Detalles del Parqueo',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
-            Divider(color: Colors.grey),
-          ],
-        ),
+        title: Text('Detalles del Parqueo',
+            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
@@ -77,142 +71,115 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                 ],
               ),
             )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(16.0),
-                      bottomRight: Radius.circular(16.0),
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      parkingDetails['name'] ?? 'Nombre del parqueo',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
-                    child: parkingDetails['urlImage'] != null &&
-                            parkingDetails['urlImage'].isNotEmpty
-                        ? Image.network(
-                            parkingDetails['urlImage'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/Logotipo.png',
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          )
-                        : Image.asset(
-                            'assets/images/Logotipo.png',
-                            fit: BoxFit.cover,
+                  ),
+                  _buildListTile(
+                    title: 'Detalles del parqueo',
+                    icon: Icons.directions_car,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ParkingDetailsScreen(
+                            parkingId: widget.parkingId,
                           ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-                _buildUserTile(
-                  username: parkingDetails['name'] ?? 'Parking Name',
-                  textColor: textColor,
-                  lightGray: lightGray,
-                  onTap: () {},
-                ),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      _buildSubtitle('Información', textColor),
-                      _buildListTile(
-                        title: 'Detalles del parqueo',
-                        icon: Icons.directions_car,
-                        textColor: textColor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ParkingDetailsScreen(
-                                parkingId: widget.parkingId,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildListTile(
-                        title: 'Precios',
-                        icon: Icons.attach_money,
-                        textColor: textColor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ParkingPricesScreen(
-                                parkingId: widget.parkingId,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildListTile(
-                        title: 'Gestionar plazas de parqueo',
-                        icon: Icons.directions_car,
-                        textColor: textColor,
-                        onTap: () {
-                          // Lógica para gestionar plazas de parqueo
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildListTile(
-                        title: 'Ver historial de reservas',
-                        icon: Icons.history,
-                        textColor: textColor,
-                        onTap: () {
-                          // Lógica para ver historial de reservas
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildSubtitle('Configuración', textColor),
-                      _buildListTile(
-                        title: 'Horarios de atención',
-                        icon: Icons.access_time,
-                        textColor: textColor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OpeningHoursScreen(
-                                parkingId: int.parse(widget.parkingId),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildListTile(
-                        title: 'Registrar Precios',
-                        icon: Icons.attach_money,
-                        textColor: textColor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PriceFormScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      Divider(color: lightGray),
-                      _buildListTile(
-                        title: 'Cerrar sesión',
-                        icon: Icons.exit_to_app,
-                        textColor: Colors.red,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginPage()),
-                          );
-                        },
-                      ),
-                    ],
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Precios',
+                    icon: Icons.attach_money,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ParkingPricesScreen(
+                            parkingId: widget.parkingId,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Gestionar plazas de parqueo',
+                    icon: Icons.directions_car,
+                    textColor: textColor,
+                    onTap: () {
+                      // Lógica para gestionar plazas de parqueo
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Ver historial de reservas',
+                    icon: Icons.history,
+                    textColor: textColor,
+                    onTap: () {
+                      // Lógica para ver historial de reservas
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildSubtitle('Configuración', textColor),
+                  _buildListTile(
+                    title: 'Horarios de atención',
+                    icon: Icons.access_time,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OpeningHoursScreen(
+                            parkingId: int.parse(widget.parkingId),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Registrar Precios',
+                    icon: Icons.attach_money,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PriceFormScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Cerrar sesión',
+                    icon: Icons.exit_to_app,
+                    textColor: Colors.red,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -225,30 +192,6 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
         style: TextStyle(
             fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
       ),
-    );
-  }
-
-  Widget _buildUserTile({
-    required String username,
-    required Color textColor,
-    required Color lightGray,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 20,
-        child: Icon(Icons.person, size: 20, color: Colors.blue),
-        backgroundColor: lightGray,
-      ),
-      title: Text(
-        username,
-        style: TextStyle(
-          fontSize: 20,
-          color: textColor,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      onTap: onTap,
     );
   }
 
