@@ -490,7 +490,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
                       ? "${DateTime.now().toString().split(' ')[0]} ${endTime!.hour}:${endTime!.minute}:00"
                       : '',
                   "totalamount": 50.0,
-                  "price": 4
+                  "price": int.parse(_priceController.text)
                 }
               ]
             };
