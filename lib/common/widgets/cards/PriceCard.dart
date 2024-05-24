@@ -7,8 +7,14 @@ import 'package:flutter/material.dart';
 class PriceCard extends StatelessWidget {
   final Price price;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
-  const PriceCard({Key? key, required this.price, this.onTap}) : super(key: key);
+  const PriceCard({
+    Key? key,
+    required this.price,
+    this.onTap,
+    this.onDelete,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +35,17 @@ class PriceCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              SizedBox(height: 10.0),
+              if (onDelete != null) ...[
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: onDelete, // Llamar al callback de eliminación
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(height: 10.0), // Espacio entre líneas de texto
               Text(
                 'Precio: Bs ${price.price.toStringAsFixed(2)}',

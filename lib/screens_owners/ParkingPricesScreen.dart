@@ -6,7 +6,8 @@ import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
 class ParkingPricesScreen extends StatefulWidget {
   final String parkingId;
 
-  const ParkingPricesScreen({Key? key, required this.parkingId}) : super(key: key);
+  const ParkingPricesScreen({Key? key, required this.parkingId})
+      : super(key: key);
 
   @override
   _ParkingPricesScreenState createState() => _ParkingPricesScreenState();
@@ -24,9 +25,35 @@ class _ParkingPricesScreenState extends State<ParkingPricesScreen> {
   Future<void> fetchPrices() async {
     try {
       TypePriceService typePriceService = TypePriceService();
-      prices = typePriceService.getAllPriceRecords(int.parse(widget.parkingId));
+      List<Price> fetchedPrices = await typePriceService.getAllPriceRecords(int.parse(widget.parkingId));
+      setState(() {
+        prices = Future.value(fetchedPrices);
+      });
     } catch (e) {
       print('Error fetching prices: $e');
+      setState(() {
+        prices = Future.error('Error fetching prices: $e');
+      });
+    }
+  }
+
+  Future<void> deletePrice(int? priceId) async {
+    if (priceId == null) {
+      print('Error: priceId es null');
+      return;
+    }
+    try {
+      TypePriceService typePriceService = TypePriceService();
+      await typePriceService.deletePriceRecord(priceId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Precio eliminado exitosamente')),
+      );
+      await fetchPrices();
+    } catch (e) {
+      print('Error deleting price: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar el precio: $e')),
+      );
     }
   }
 
@@ -44,14 +71,23 @@ class _ParkingPricesScreenState extends State<ParkingPricesScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No se encontraron precios.'));
+            return Center(child: Text('No tienes precios registrados.'));
           } else {
             List<Price> prices = snapshot.data!;
             return ListView.builder(
               itemCount: prices.length,
               itemBuilder: (context, index) {
                 Price price = prices[index];
-                return PriceCard(price: price);
+                return PriceCard(
+                  price: price,
+                  onDelete: () {
+                    if (price.id != null) {
+                      deletePrice(price.id); // Pasar el callback de eliminación
+                    } else {
+                      print('Error: El precio no tiene un ID válido');
+                    }
+                  },
+                );
               },
             );
           }
