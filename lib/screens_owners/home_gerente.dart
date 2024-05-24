@@ -94,6 +94,88 @@ class _ParkingScreenState extends State<ParkingScreen> {
     }
   }
 
+  Widget getVehicleIcon(int type) {
+    switch (type) {
+      case 1:
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Image.asset('assets/Icons/sedan.png', color: Colors.white),
+          ),
+        );
+      case 2:
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child:
+                Image.asset('assets/Icons/camioneta.png', color: Colors.white),
+          ),
+        );
+      case 3:
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Image.asset('assets/Icons/jeep.png', color: Colors.white),
+          ),
+        );
+      case 4:
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(12.0),
+              child:
+                  Image.asset('assets/Icons/vagoneta.png', color: Colors.white),
+            ),
+          ),
+        );
+      case 5:
+        return Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Icon(Icons.motorcycle, size: 32, color: Colors.white),
+          ),
+        );
+      default:
+        return Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Icon(Icons.directions_car, size: 32, color: Colors.white),
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -195,7 +277,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           elevation: 4,
           margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           child: ListTile(
-            leading: Icon(Icons.directions_car, color: Colors.blue),
+            leading: getVehicleIcon(entry['vehicle']['type_vehicle']),
             title: Text(
               "Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
               style: TextStyle(fontWeight: FontWeight.bold),

@@ -4,11 +4,12 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
+import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
-import 'package:map_flutter/screens_owners/select_map_screen.dart';
+
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
 
@@ -44,8 +45,9 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   ];
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -108,37 +110,44 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 20),
-                  _buildInputField(
-                      "Nombre del Parqueo", parkingNameController),
+                  _buildInputField("Nombre del Parqueo", parkingNameController),
                   const SizedBox(height: 20),
                   _buildInputField(
                       "Capacidad Total de Vehículos", capacityController),
                   const SizedBox(height: 20),
-                  _buildPhoneInputField(
-                      "Número de Teléfono del Propietario",
+                  _buildPhoneInputField("Número de Teléfono del Propietario",
                       ownerPhoneController),
                   const SizedBox(height: 14),
                   _buildInputField("Correo Electrónico", emailController),
                   const SizedBox(height: 12),
                   _buildImagePickerButton(),
                   if (_imageFile != null) ...[
-                    const SizedBox(height: 12),
-                    Image.file(_imageFile!, height: 200),
-                    const SizedBox(height: 12),
+                    Image.file(
+                      _imageFile!,
+                      height: 250,
+                      width: 250,
+                    ),
                     _buildUploadImageButton(),
                   ],
                   const SizedBox(height: 12),
                   _buildInputField("Descripción", descriptionController),
                   const SizedBox(height: 10),
+                  Text(
+                    "Horarios de Apertura y Cierre",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Seleccionar Horario",
+                        "Seleccionar toda la semana",
                         style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
                       ),
                       Switch(
                         value: _selectedDays.every((day) => day),
@@ -190,13 +199,25 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pop(context); // Acción para el botón "Anterior"
+                        Navigator.pop(
+                            context); // Acción para el botón "Anterior"
                       },
                       child: Container(
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Anterior", style: TextStyle(color: Colors.grey)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.arrow_back, color: Colors.grey),
+                              SizedBox(width: 5),
+                              Text("Anterior",
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -210,8 +231,9 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                     child: GestureDetector(
                       onTap: () async {
                         if (_validateInputs()) {
-                          final tokenProvider =
-                              Provider.of<TokenProvider>(context, listen: false);
+                          final tokenProvider = Provider.of<TokenProvider>(
+                              context,
+                              listen: false);
                           final userId = tokenProvider.userId;
 
                           Map<String, dynamic> parkingData = {
@@ -250,8 +272,8 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    SelectMapScreen(parkingId: int.parse(parkingId)),
+                                builder: (context) => SelectMapScreen(
+                                    parkingId: int.parse(parkingId)),
                               ),
                             );
                           } catch (e) {
@@ -265,7 +287,21 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                         height: 50,
                         color: Colors.white,
                         child: Center(
-                          child: Text("Siguiente", style: TextStyle(color: Colors.blue)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Siguiente",
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(width: 5),
+                              Icon(Icons.arrow_forward, color: Colors.blue),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -330,9 +366,9 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     return ElevatedButton.icon(
       onPressed: _uploadImageToFirebase,
       icon: Icon(Icons.cloud_upload, color: Colors.white),
-      label: Text('Subir imagen', style: TextStyle(color: Colors.white)),
+      label: Text('Subir', style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -493,24 +529,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class SecondPage extends StatelessWidget {
-  final int parkingId;
-
-  const SecondPage({Key? key, required this.parkingId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Segunda Parte"),
-      ),
-      body: Center(
-        child: Text("Aquí va el contenido de la segunda parte."),
-      ),
     );
   }
 }

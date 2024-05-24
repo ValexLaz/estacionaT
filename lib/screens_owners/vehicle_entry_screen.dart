@@ -10,6 +10,7 @@ import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
+import 'package:map_flutter/services/car_api.dart';
 import 'package:provider/provider.dart';
 
 class VehicleEntryPage extends StatefulWidget {
@@ -22,7 +23,7 @@ class VehicleEntryPage extends StatefulWidget {
 }
 
 class _VehicleEntryPageState extends State<VehicleEntryPage> {
-  late Color myColor;
+  late Color primaryColor = const Color(0xFF1b4ee4);
   late Size mediaSize;
   final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
@@ -55,7 +56,9 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       setState(() {
         _typeVehicles = typeVehicles;
       });
-    } catch (e) {}
+    } catch (e) {
+      _showSnackBar('Error al cargar los tipos de vehículos');
+    }
   }
 
   Future<void> _fetchPrices() async {
@@ -82,56 +85,41 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   Widget build(BuildContext context) {
     print('El parkingId es: ${widget.parkingId}');
 
-    myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildContent(),
-          ),
-        ],
+      appBar: AppBar(
+        title: Text('Agregar vehículo', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Remove the back button
       ),
-    );
-  }
-
-  Widget _buildContent() {
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
-      child: Scrollbar(
-        thumbVisibility: true,
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: _buildForm(),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: _buildVehicleEntryForm(),
         ),
       ),
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildVehicleEntryForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Registro de Vehículo",
-            style: TextStyle(
-                color: myColor, fontSize: 32, fontWeight: FontWeight.w500)),
+        _buildAutoCompleteField(
+          "Marca del vehículo",
+          brandController,
+          (query) => CarApi.fetchCarMakes(query),
+        ),
         const SizedBox(height: 20),
-        _buildGreyText("Marca"),
-        _buildInputField(brandController),
+        _buildAutoCompleteField(
+          "Modelo",
+          modelController,
+          (query) => CarApi.fetchCarModels(brandController.text, query),
+        ),
         const SizedBox(height: 20),
-        _buildGreyText("Modelo"),
-        _buildInputField(modelController),
+        _buildInputField("Placa", plateController, isPlate: true),
         const SizedBox(height: 20),
-        _buildGreyText("Placa del Vehículo"),
-        _buildInputField(plateController),
-        const SizedBox(height: 20),
-        _buildGreyText("Tipo de Vehículo"),
         _buildTypeVehicleDropdown(),
         const SizedBox(height: 20),
         _buildGreyText("Teléfono"),
@@ -140,22 +128,25 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         _buildGreyText("Precio"),
         _buildPriceDropdown(),
         const SizedBox(height: 20),
-        _buildGreyText("Hora de inicio"),
-        _buildStartTimeField(),
-        const SizedBox(height: 20),
-        _buildGreyText("Hora de fin"),
-        _buildEndTimeField(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildTimePicker("Hora de inicio", startTime, (newTime) {
+              setState(() => startTime = newTime);
+            }),
+            _buildTimePicker("Hora de fin", endTime, (newTime) {
+              setState(() => endTime = newTime);
+            }),
+          ],
+        ),
         const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildCancelButton(),
             _buildRegisterButton(),
           ],
         ),
-        const SizedBox(
-            height:
-                40), // Agregar espacio al final para que el botón no quede oculto al desplazar
+        const SizedBox(height: 40),
       ],
     );
   }
@@ -164,14 +155,181 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
 
-  Widget _buildInputField(TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: myColor),
+  Widget _buildTimePicker(
+      String label, TimeOfDay? time, ValueChanged<TimeOfDay> onTimeChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.grey),
         ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final TimeOfDay? picked = await showTimePicker(
+              context: context,
+              initialTime: time ?? TimeOfDay.now(),
+              initialEntryMode: TimePickerEntryMode.input,
+              builder: (BuildContext context, Widget? child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    timePickerTheme: TimePickerThemeData(
+                      dialHandColor: primaryColor,
+                      entryModeIconColor: primaryColor,
+                      dayPeriodTextColor: MaterialStateColor.resolveWith(
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : primaryColor),
+                      dayPeriodColor: MaterialStateColor.resolveWith((states) =>
+                          states.contains(MaterialState.selected)
+                              ? primaryColor
+                              : Colors.white),
+                      dayPeriodShape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                      hourMinuteTextColor: MaterialStateColor.resolveWith(
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : primaryColor),
+                      hourMinuteShape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.blue),
+                      ),
+                    ),
+                  ),
+                  child: MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(alwaysUse24HourFormat: false),
+                    child: child ?? Container(),
+                  ),
+                );
+              },
+            );
+            if (picked != null && picked != time) {
+              onTimeChanged(picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  time != null
+                      ? "${time.hourOfPeriod.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} ${time.period == DayPeriod.am ? 'AM' : 'PM'}"
+                      : 'Seleccionar',
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAutoCompleteField(
+    String label,
+    TextEditingController controller,
+    Future<List<String>> Function(String) optionsBuilder,
+  ) {
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) async {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<String>.empty();
+        }
+        return await optionsBuilder(textEditingValue.text);
+      },
+      onSelected: (String selection) {
+        controller.text = capitalizeFirstLetter(selection);
+      },
+      fieldViewBuilder: (
+        BuildContext context,
+        TextEditingController fieldTextEditingController,
+        FocusNode fieldFocusNode,
+        VoidCallback onFieldSubmitted,
+      ) {
+        return SizedBox(
+          height: 50,
+          child: TextField(
+            controller: fieldTextEditingController,
+            focusNode: fieldFocusNode,
+            decoration: InputDecoration(
+              labelText: label,
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (text) {
+              controller.value = controller.value.copyWith(
+                text: capitalizeFirstLetter(text),
+                selection: TextSelection.fromPosition(
+                  TextPosition(offset: text.length),
+                ),
+              );
+            },
+            onEditingComplete: () {
+              controller.text = capitalizeFirstLetter(controller.text);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInputField(String label, TextEditingController controller,
+      {bool isPlate = false}) {
+    return SizedBox(
+      height: 50,
+      child: Row(
+        children: [
+          if (isPlate)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Image.asset(
+                'assets/Icons/placa3.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType:
+                  isPlate ? TextInputType.visiblePassword : TextInputType.text,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (text) {
+                controller.value = controller.value.copyWith(
+                  text: capitalizeFirstLetter(text),
+                  selection: TextSelection.fromPosition(
+                    TextPosition(offset: text.length),
+                  ),
+                );
+              },
+              onEditingComplete: () {
+                controller.text = capitalizeFirstLetter(controller.text);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,53 +337,21 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   Widget _buildPhoneInputField(TextEditingController controller) {
     return Row(
       children: [
-        Expanded(
-          flex: 1,
-          child: DropdownButtonFormField<String>(
-            value: _selectedCountryCode,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: myColor),
-              ),
-            ),
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedCountryCode = newValue;
-              });
-            },
-            items: [
-              DropdownMenuItem(
-                value: '+591',
-                child: Text('Bolivia (+591)'),
-              ),
-              DropdownMenuItem(
-                value: '+54',
-                child: Text('Argentina (+54)'),
-              ),
-              DropdownMenuItem(
-                value: '+55',
-                child: Text('Brasil (+55)'),
-              ),
-              DropdownMenuItem(
-                value: '+56',
-                child: Text('Chile (+56)'),
-              ),
-            ],
-          ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Icon(Icons.phone, color: primaryColor, size: 30),
         ),
-        const SizedBox(width: 8),
         Expanded(
-          flex: 2,
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
+              hintText: 'Número de teléfono',
               border: OutlineInputBorder(),
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: myColor),
+                borderSide: BorderSide(color: primaryColor),
               ),
             ),
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.phone,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly
             ],
@@ -241,7 +367,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       value: _selectedTypeVehicle,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.directions_car, color: myColor),
+        prefixIcon: Icon(Icons.directions_car, color: primaryColor),
       ),
       onChanged: (TypeVehicle? value) {
         setState(() {
@@ -255,18 +381,19 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         }
         return null;
       },
-      items: [
-        DropdownMenuItem(
-          value: null,
-          child: Text('Selecciona un tipo de vehículo'),
-        ),
-        ..._typeVehicles.map((TypeVehicle typeVehicle) {
-          return DropdownMenuItem<TypeVehicle>(
-            value: typeVehicle,
-            child: Text(typeVehicle.name),
-          );
-        }).toList(),
-      ],
+      items: _typeVehicles.map((TypeVehicle typeVehicle) {
+        return DropdownMenuItem<TypeVehicle>(
+          value: typeVehicle,
+          child: Row(
+            children: [
+              _getVehicleIcon(typeVehicle.name),
+              const SizedBox(width: 10),
+              Text(typeVehicle.name),
+            ],
+          ),
+        );
+      }).toList(),
+      hint: Text('Selecciona un tipo de vehículo'),
     );
   }
 
@@ -275,7 +402,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       value: _selectedPrice,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.attach_money, color: myColor),
+        prefixIcon: Icon(Icons.attach_money, color: primaryColor),
       ),
       onChanged: (Price? value) {
         setState(() {
@@ -289,87 +416,26 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         }
         return null;
       },
-      items: [
-        DropdownMenuItem(
-          value: null,
-          child: Text('Selecciona el precio'),
-        ),
-        ..._typePrices.map((Price price) {
-          return DropdownMenuItem<Price>(
-            value: price,
-            child: Text(price.price.toString()),
-          );
-        }).toList(),
-      ],
+      items: _typePrices.map((Price price) {
+        return DropdownMenuItem<Price>(
+          value: price,
+          child: Text(price.price.toString()),
+        );
+      }).toList(),
     );
-  }
-
-  Widget _buildStartTimeField() {
-    return GestureDetector(
-      onTap: () {
-        _selectStartTime(context);
-      },
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(startTime != null
-            ? startTime!.format(context)
-            : 'Seleccionar hora de inicio'),
-      ),
-    );
-  }
-
-  Widget _buildEndTimeField() {
-    return GestureDetector(
-      onTap: () {
-        _selectEndTime(context);
-      },
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(endTime != null
-            ? endTime!.format(context)
-            : 'Seleccionar hora de fin'),
-      ),
-    );
-  }
-
-  Future<void> _selectStartTime(BuildContext context) async {
-    final TimeOfDay? selectedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (selectedTime != null) {
-      setState(() {
-        startTime = selectedTime;
-      });
-    }
-  }
-
-  Future<void> _selectEndTime(BuildContext context) async {
-    final TimeOfDay? selectedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (selectedTime != null) {
-      setState(() {
-        endTime = selectedTime;
-      });
-    }
   }
 
   Widget _buildRegisterButton() {
-    return SizedBox(
-      width: mediaSize.width * 0.4,
+    return Container(
+      width: mediaSize.width * 0.8,
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
         onPressed: () async {
           if (brandController.text.isEmpty ||
               modelController.text.isEmpty ||
@@ -424,7 +490,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
                       ? "${DateTime.now().toString().split(' ')[0]} ${endTime!.hour}:${endTime!.minute}:00"
                       : '',
                   "totalamount": 50.0,
-                  "price": 4
+                  "price": int.parse(_priceController.text)
                 }
               ]
             };
@@ -453,6 +519,15 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
+                            // Update ParkingScreen
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    MainScreen(parkingId: widget.parkingId),
+                              ),
+                            );
                           },
                           child: Text('Aceptar'),
                         ),
@@ -470,36 +545,75 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
             }
           }
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: myColor,
-          shape: const StadiumBorder(),
-          elevation: 20,
-          shadowColor: myColor,
-          minimumSize: const Size.fromHeight(60),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Registrar",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+          ],
         ),
-        child: const Text("Registrar", style: TextStyle(color: Colors.white)),
       ),
     );
   }
 
-  Widget _buildCancelButton() {
-    return SizedBox(
-      width: mediaSize.width * 0.4,
-      child: OutlinedButton(
-        onPressed: () {
-          Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                  builder: (context) =>
-                      MainScreen(parkingId: widget.parkingId)),
-              (Route<dynamic> route) => false);
-        },
-        style: OutlinedButton.styleFrom(
-          shape: const StadiumBorder(),
-          side: BorderSide(color: myColor),
-          minimumSize: const Size.fromHeight(60),
-        ),
-        child: const Text("Cancelar", style: TextStyle(color: Colors.black)),
-      ),
-    );
+  String capitalizeFirstLetter(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1);
+  }
+
+  void _showSnackBar(String message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Widget _getVehicleIcon(String typeName) {
+    switch (typeName.toLowerCase()) {
+      case 'sedan':
+        return Image.asset(
+          'assets/Icons/sedan.png',
+          width: 44,
+          height: 44,
+        );
+      case 'camioneta':
+        return Image.asset(
+          'assets/Icons/camioneta.png',
+          width: 44,
+          height: 44,
+        );
+      case 'jeep':
+        return Image.asset(
+          'assets/Icons/jeep.png',
+          width: 44,
+          height: 44,
+        );
+      case 'vagoneta':
+        return Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Image.asset(
+            'assets/Icons/vagoneta.png',
+            width: 24,
+            height: 24,
+          ),
+        );
+      case 'moto':
+        return Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Icon(
+            Icons.motorcycle,
+            size: 24,
+          ),
+        );
+      default:
+        return Icon(
+          Icons.directions_car,
+          size: 24,
+        );
+    }
   }
 }

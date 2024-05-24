@@ -28,6 +28,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   int selectedFilterIndex = 1;
   final Random random = Random();
   LatLng? userLocation;
+  bool isLoading = true; // Nueva bandera para indicar el estado de carga
 
   @override
   void initState() {
@@ -49,7 +50,6 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       List<Map<String, dynamic>> addresses =
           await apiParking.getAllParkingAddresses();
 
-      // Combina los datos de parqueo con sus direcciones correspondientes
       data = data.map((parking) {
         var address = addresses.firstWhere(
             (addr) => addr['parking'] == parking['id'],
@@ -65,11 +65,15 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       setState(() {
         parkings = data;
         filteredParkings = data;
+        isLoading = false; // Datos cargados, se desactiva el loader
       });
       filterParkings(selectedFilterIndex);
       calculateRoutesForAllParkings();
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
+      setState(() {
+        isLoading = false; // Desactiva el loader en caso de error
+      });
     }
   }
 
@@ -155,7 +159,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             child: Container(
-              color: Colors.white, // Fondo blanco para el buscador
+              color: Colors.white,
               height: 48,
               child: TextField(
                 controller: searchController,
@@ -205,172 +209,169 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
           Expanded(
             child: Container(
               color: Colors.grey[350],
-              child: ListView.builder(
-                itemCount: searchController.text.isNotEmpty
-                    ? searchFilteredParkings.length
-                    : filteredParkings.length,
-                itemBuilder: (context, index) {
-                  var parking = searchController.text.isNotEmpty
-                      ? searchFilteredParkings[index]
-                      : filteredParkings[index];
-                  int spacesAvailable = parking['spaces_available'];
-                  bool isAvailable = spacesAvailable > 0;
-                  String availabilityText =
-                      isAvailable ? 'Disponible' : 'Sin espacios';
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator()) // Mostrar loader
+                  : ListView.builder(
+                      itemCount: searchController.text.isNotEmpty
+                          ? searchFilteredParkings.length
+                          : filteredParkings.length,
+                      itemBuilder: (context, index) {
+                        var parking = searchController.text.isNotEmpty
+                            ? searchFilteredParkings[index]
+                            : filteredParkings[index];
+                        int spacesAvailable = parking['spaces_available'];
+                        bool isAvailable = spacesAvailable > 0;
+                        String availabilityText =
+                            isAvailable ? 'Disponible' : 'Sin espacios';
 
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ParkingDetailsScreen2(
-                            parkingId: parking['id'].toString(),
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      color: Colors.white,
-                      child: Row(
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(
-                                left: 8.0,
-                                top: 8.0,
-                                bottom: 8.0), // Ajusta los márgenes
-
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(15.0),
-                              child: parking['url_image'] != null &&
-                                      parking['url_image'].isNotEmpty
-                                  ? Image.network(
-                                      parking['url_image'],
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Image.asset(
-                                          'assets/images/Logotipo.png',
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        );
-                                      },
-                                    )
-                                  : Image.asset(
-                                      'assets/images/Logotipo.png',
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
-                          ),
-
-// Modifica el Padding del Column que contiene la descripción
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                  horizontal: 8.0), // Ajusta el padding
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    parking['name'],
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    parking['street'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  if (parking.containsKey('eta') &&
-                                      parking.containsKey('distance'))
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8.0),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.directions_car,
-                                            color: Colors.black,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            '${parking['eta']}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 1.0,
-                                            height: 20.0,
-                                            color: Colors.black,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
-                                          ),
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            isAvailable
-                                                ? 'Disponible'
-                                                : 'Sin espacios',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: isAvailable
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                right:
-                                    18.0), // Ajusta el padding para mover más a la izquierda
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.blue,
-                                  size: 24,
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ParkingDetailsScreen2(
+                                  parkingId: parking['id'].toString(),
                                 ),
-                                if (parking.containsKey('distance'))
-                                  Text(
-                                    parking['distance'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.blue,
+                              ),
+                            );
+                          },
+                          child: Card(
+                            color: Colors.white,
+                            child: Row(
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      left: 8.0, top: 8.0, bottom: 8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    child: parking['url_image'] != null &&
+                                            parking['url_image'].isNotEmpty
+                                        ? Image.network(
+                                            parking['url_image'],
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                'assets/images/Logotipo.png',
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              );
+                                            },
+                                          )
+                                        : Image.asset(
+                                            'assets/images/Logotipo.png',
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          parking['name'],
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          parking['street'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        if (parking.containsKey('eta') &&
+                                            parking.containsKey('distance'))
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8.0),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.directions_car,
+                                                  color: Colors.black,
+                                                  size: 16,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  '${parking['eta']}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: 1.0,
+                                                  height: 20.0,
+                                                  color: Colors.black,
+                                                  margin: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8.0),
+                                                ),
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.green,
+                                                  size: 16,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  isAvailable
+                                                      ? 'Disponible'
+                                                      : 'Sin espacios',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: isAvailable
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 18.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        color: Colors.blue,
+                                        size: 24,
+                                      ),
+                                      if (parking.containsKey('distance'))
+                                        Text(
+                                          parking['distance'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
         ],

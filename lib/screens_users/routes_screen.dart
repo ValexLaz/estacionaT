@@ -25,8 +25,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   LatLng? parkingLocation;
   List<LatLng> routePoints = [];
   String etaText = '';
-  String _distanceText = '';
-  String _instructions = '';
+  String distanceText = '';
   Map<String, dynamic>? parkingDetails;
   final MapController mapController = MapController();
 
@@ -59,14 +58,15 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
             double.tryParse(addressDetails['longitude'].toString()) ?? 0.0;
         parkingLocation = LatLng(latitude, longitude);
 
-        // Ensure both locations are set before fetching the route
         if (userLocation != null && parkingLocation != null) {
           await _getRoute();
+          _fitMapToBounds();
         }
 
         setState(() {
           parkingDetails = details;
         });
+        print('Parking details loaded: $parkingDetails');
       } else {
         throw Exception("Latitude and/or longitude data is missing or invalid");
       }
@@ -76,39 +76,90 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   }
 
   Future<void> _getRoute() async {
+    if (userLocation == null || parkingLocation == null) {
+      print('User location or parking location is null');
+      return;
+    }
+
     String url =
-        'https://api.mapbox.com/directions/v5/mapbox/driving/${userLocation!.longitude},${userLocation!.latitude};${parkingLocation!.longitude},${parkingLocation!.latitude}?steps=true&geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN';
+        'https://api.mapbox.com/directions/v5/mapbox/driving/${userLocation!.longitude},${userLocation!.latitude};${parkingLocation!.longitude},${parkingLocation!.latitude}?alternatives=false&steps=true&geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN';
 
     var response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
       var coordinates = jsonResponse['routes'][0]['geometry']['coordinates'];
-      var duration =
-          jsonResponse['routes'][0]['duration']; // Duración en segundos
-      var distance =
-          jsonResponse['routes'][0]['distance']; // Distancia en metros
-      List<String> instructions = []; // Lista para almacenar instrucciones
-
-      for (var leg in jsonResponse['routes'][0]['legs']) {
-        for (var step in leg['steps']) {
-          instructions.add(step['maneuver']['instruction']);
-        }
-      }
+      var duration = jsonResponse['routes'][0]['duration'];
+      var distance = jsonResponse['routes'][0]['distance'];
 
       setState(() {
         routePoints = coordinates
             .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
             .toList();
         int durationMinutes = (duration / 60).round();
-        double distanceKm = distance / 1000; // Convertir a kilómetros
-        etaText = "$durationMinutes minutos";
-        _instructions =
-            instructions.join('\n'); // Juntar instrucciones con salto de línea
-        _distanceText =
-            "${distanceKm.toStringAsFixed(2)} km"; // Formatear distancia
+        double distanceKm = distance / 1000;
+        etaText = "$durationMinutes min";
+        distanceText = "${distanceKm.toStringAsFixed(1)} km";
       });
     } else {
       print('Request failed with status: ${response.statusCode}.');
+    }
+  }
+
+  Future<void> _getAlternativeRoute() async {
+    if (userLocation == null || parkingLocation == null) {
+      print('User location or parking location is null');
+      return;
+    }
+
+    String url =
+        'https://api.mapbox.com/directions/v5/mapbox/driving/${userLocation!.longitude},${userLocation!.latitude};${parkingLocation!.longitude},${parkingLocation!.latitude}?alternatives=true&steps=true&geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN';
+
+    try {
+      print('Fetching alternative route with URL: $url');
+      var response = await http.get(Uri.parse(url));
+      print('Response status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        print('JSON Response: $jsonResponse');
+        if (jsonResponse['routes'] != null &&
+            jsonResponse['routes'].length > 1) {
+          var alternativeRoute =
+              jsonResponse['routes'][1]; // Use the alternative route
+          var coordinates = alternativeRoute['geometry']['coordinates'];
+          var duration = alternativeRoute['duration'];
+          var distance = alternativeRoute['distance'];
+
+          setState(() {
+            routePoints = coordinates
+                .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+                .toList();
+            int durationMinutes = (duration / 60).round();
+            double distanceKm = distance / 1000;
+            etaText = "$durationMinutes min";
+            distanceText = "${distanceKm.toStringAsFixed(1)} km";
+          });
+          _fitMapToBounds();
+          print('Alternative route found and state updated');
+        } else {
+          print('No alternative route found.');
+        }
+      } else {
+        print('Request failed with status: ${response.statusCode}.');
+      }
+    } catch (e) {
+      print('Error fetching alternative route: $e');
+    }
+  }
+
+  void _fitMapToBounds() {
+    if (userLocation != null && parkingLocation != null) {
+      LatLngBounds bounds = LatLngBounds(userLocation!, parkingLocation!);
+      mapController.fitBounds(
+        bounds,
+        options: FitBoundsOptions(
+          padding: EdgeInsets.all(50),
+        ),
+      );
     }
   }
 
@@ -116,11 +167,17 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Parking Map'),
+        title: Text(
+          'Navegación',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Remove back button
       ),
       body: Stack(
         children: [
-          userLocation == null || parkingLocation == null || routePoints.isEmpty
+          userLocation == null || parkingLocation == null
               ? Center(child: CircularProgressIndicator())
               : FlutterMap(
                   mapController: mapController,
@@ -137,53 +194,6 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                         'id': MAPBOX_STYLE,
                       },
                     ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: userLocation!,
-                          builder: (ctx) => Container(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.navigation,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Marker(
-                          point: parkingLocation!,
-                          builder: (ctx) => Container(
-                            width:
-                                48, // Ajusta el tamaño del cuadrado según sea necesario
-                            height:
-                                48, // Ajusta el tamaño del cuadrado según sea necesario
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.local_parking,
-                                color: Colors.white,
-                                size: 25,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                     PolylineLayer(
                       polylines: [
                         Polyline(
@@ -193,31 +203,139 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                         ),
                       ],
                     ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: userLocation!,
+                          builder: (ctx) => Container(
+                            child: Icon(
+                              Icons.navigation,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue,
+                            ),
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.all(4.0),
+                          ),
+                        ),
+                        Marker(
+                          point: parkingLocation!,
+                          builder: (ctx) => Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(8.0),
+                              color: Colors.blue,
+                            ),
+                            child: Icon(
+                              Icons.local_parking,
+                              color: Colors.white,
+                              size: 25,
+                            ),
+                            padding: EdgeInsets.all(4.0),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
           Positioned(
-            top: 20,
-            left: 20,
+            bottom: 16,
+            left: 16,
+            right: 16,
             child: Card(
+              margin: EdgeInsets.zero,
+              color: Colors.blueAccent,
               child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Column(
+                padding: EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      etaText.isEmpty
-                          ? 'Calculando Tiempo...'
-                          : 'Tiempo: $etaText',
-                      style: TextStyle(fontSize: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            etaText.isEmpty
+                                ? 'Calculando Ruta...'
+                                : "${etaText} (${distanceText})",
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold, // Added fontWeight
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Según tu ubicación actual',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    Text(
-                      _distanceText.isEmpty
-                          ? 'Calculando Distance...'
-                          : 'Distancia: $_distanceText',
-                      style: TextStyle(fontSize: 16),
+                    Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: IconButton(
+                            onPressed: _getAlternativeRoute,
+                            icon: Icon(
+                              Icons.alt_route,
+                              color: Colors.blue,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              color: Colors.blue,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
+          Positioned(
+            bottom: 124, // Aligns with the bottom padding of the Card
+            right: 16, // Places the button in the bottom right corner
+            child: FloatingActionButton(
+              onPressed: () {
+                if (userLocation != null) {
+                  mapController.move(userLocation!, 13.0);
+                }
+              },
+              backgroundColor: Colors.white,
+              child: Icon(Icons.my_location, color: Colors.black),
             ),
           ),
         ],
