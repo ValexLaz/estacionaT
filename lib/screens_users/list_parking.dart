@@ -91,7 +91,7 @@ class _ListParkingsState extends State<ListParkings> {
               children: [
                 Expanded(
                   child: Container(
-                    color: Colors.grey[100],
+                    color: Colors.white,
                     child: parqueos.isEmpty
                         ? Center(
                             child: Text(
@@ -115,16 +115,20 @@ class _ListParkingsState extends State<ListParkings> {
                                   );
                                 },
                                 child: Card(
+                                  color: Colors.white,
                                   margin: EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  elevation: 3,
                                   child: Row(
                                     children: [
                                       Container(
-                                        margin: EdgeInsets.all(8),
+                                        margin: EdgeInsets.only(
+                                            left: 8.0,
+                                            top: 8.0,
+                                            bottom: 8.0), // Ajusta los márgenes
+
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
@@ -218,8 +222,8 @@ class _ListParkingsState extends State<ListParkings> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.delete,
-                                            color: primaryColor),
+                                        icon: Icon(Icons.delete_forever,
+                                            color: Colors.red),
                                         onPressed: () async {
                                           await deleteParking(
                                               parqueo.id.toString());
@@ -245,15 +249,16 @@ class _ListParkingsState extends State<ListParkings> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      padding:
-                          EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                      padding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 100), // Increase horizontal padding
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     icon: Icon(Icons.add, color: Colors.white),
                     label: Text(
-                      'Registrar Parqueo',
+                      'Añadir Parqueo',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white,

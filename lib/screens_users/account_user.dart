@@ -128,8 +128,8 @@ class CuentaScreen extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         radius: 20,
-        child: Icon(Icons.person, size: 20, color: Colors.blue),
         backgroundColor: lightGray,
+        child: Icon(Icons.person_2, size: 40, color: Colors.white),
       ),
       title: Text(
         username,
@@ -152,6 +152,7 @@ class CuentaScreen extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: textColor),
       title: Text(title, style: TextStyle(color: textColor)),
+      trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
       onTap: onTap,
     );
   }

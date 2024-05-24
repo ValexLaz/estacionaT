@@ -38,45 +38,128 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     }
   }
 
+  Map<String, dynamic> getVehicleTypeInfo(int type) {
+    switch (type) {
+      case 1:
+        return {
+          'icon': 'assets/Icons/sedan.png',
+          'name': 'Sedán',
+        };
+      case 2:
+        return {
+          'icon': 'assets/Icons/camioneta.png',
+          'name': 'Camioneta',
+        };
+      case 3:
+        return {
+          'icon': 'assets/Icons/jeep.png',
+          'name': 'Jeep',
+        };
+      case 4:
+        return {
+          'icon': 'assets/Icons/vagoneta.png',
+          'name': 'Vagoneta',
+        };
+      case 5:
+        return {
+          'icon': Icons.motorcycle,
+          'name': 'Motocicleta',
+        };
+      default:
+        return {
+          'icon': Icons.help,
+          'name': 'Desconocido',
+        };
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalles del Vehículo',
+        title: Text('Información del Vehículo',
             style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(Icons.directions_car,
-                        size: 150, color: Color(0xFF1b4ee4)),
-                    SizedBox(height: 24.0),
-                    Text(
-                      'Marca: ${vehicleDetails['brand'] ?? 'No disponible'}',
-                      style: TextStyle(
-                          fontSize: 24.0, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          if (!isLoading)
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: buildVehicleIcon(vehicleDetails['type_vehicle']),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Detalles del Vehículo',
+                          style: TextStyle(
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        buildDetailItem('Marca', vehicleDetails['brand']),
+                        buildDetailItem('Modelo', vehicleDetails['model']),
+                        buildDetailItem('Placa de Registro',
+                            vehicleDetails['registration_plate']),
+                      ],
                     ),
-                    SizedBox(height: 16.0),
-                    Text(
-                      'Modelo: ${vehicleDetails['model'] ?? 'No disponible'}',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      'Placa de Registro: ${vehicleDetails['registration_plate'] ?? 'No disponible'}',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    // Agrega más campos según sea necesario
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildVehicleIcon(int? type) {
+    if (type == null) {
+      return Icon(Icons.help, size: 150, color: Colors.black);
+    }
+    final typeInfo = getVehicleTypeInfo(type);
+    final icon = typeInfo['icon'];
+
+    return icon is IconData
+        ? Icon(icon, size: 250, color: Colors.black)
+        : Image.asset(icon, width: 250, height: 250, color: Colors.black);
+  }
+
+  Widget buildDetailItem(String title, String? detail) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: 4.0),
+          Text(
+            detail ?? 'No disponible',
+            style: TextStyle(
+              fontSize: 16.0,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

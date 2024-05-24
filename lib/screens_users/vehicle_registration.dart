@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/models/TypeVehicle.dart';
-import 'package:map_flutter/services/api_parking.dart';
-import 'package:provider/provider.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
+import 'package:map_flutter/services/car_api.dart';
+import 'package:provider/provider.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -12,23 +13,24 @@ class VehicleRegistrationPage extends StatefulWidget {
   _VehicleRegistrationPageState createState() =>
       _VehicleRegistrationPageState();
 }
+
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
-  late Color myColor =
-      const Color(0xFF1b4ee4); // Azul usado anteriormente como color de fondo
+  late Color myColor = const Color(0xFF1b4ee4);
   late Size mediaSize;
   final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
   TextEditingController modelController = TextEditingController();
   TextEditingController plateController = TextEditingController();
-  TextEditingController _typeVehicleIDCtrl = TextEditingController();
   TypeVehicle? _selectedTypeVehicle;
   List<TypeVehicle> _typeVehicles = [];
   FocusNode brandFocusNode = FocusNode();
   FocusNode modelFocusNode = FocusNode();
   FocusNode plateFocusNode = FocusNode();
+  List<Car> _searchResults = [];
+  bool _isLoading = false;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _fetchTypeVehicles();
   }
@@ -41,9 +43,29 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         _typeVehicles = typeVehicles;
       });
     } catch (e) {
+      _showSnackBar('Error al cargar los tipos de vehículos');
     }
   }
 
+  void _searchCars() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final cars =
+          await CarApi.fetchCars(brandController.text, modelController.text);
+      setState(() {
+        _searchResults = cars;
+      });
+    } catch (e) {
+      _showSnackBar('Error al buscar vehículos');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,13 +73,12 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('Registrar vehículo', style: TextStyle(color: Colors.white)),
-        backgroundColor: myColor,
+        title: Text('Agregar vehículo', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      backgroundColor: Colors.white, // Color de fondo blanco
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        // Eliminé Stack y Positioned para simplificar el layout
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: _buildVehicleRegistrationForm(),
@@ -70,29 +91,30 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildGreyText("Marca del vehículo"),
-        _buildInputField(brandController,
-            icon: Icons.directions_car, focusNode: brandFocusNode),
+        _buildAutoCompleteField(
+          "Marca del vehículo",
+          brandController,
+          (query) => CarApi.fetchCarMakes(query),
+        ),
         const SizedBox(height: 20),
-        _buildGreyText("Modelo"),
-        _buildInputField(modelController,
-            icon: Icons.car_rental, focusNode: modelFocusNode),
+        _buildAutoCompleteField(
+          "Modelo",
+          modelController,
+          (query) => CarApi.fetchCarModels(brandController.text, query),
+        ),
         const SizedBox(height: 20),
-        _buildGreyText("Placa"),
-        _buildInputField(plateController,
-            icon: Icons.confirmation_number, focusNode: plateFocusNode),
+        _buildInputField("Placa", plateController, isPlate: true),
         const SizedBox(height: 20),
-        _buildGreyText("Tipo de vehículo"), // Añadido
         DropdownButtonFormField<TypeVehicle>(
           value: _selectedTypeVehicle,
           decoration: InputDecoration(
-            prefixIcon: Icon(Icons.directions_car),
+            labelText: 'Selecciona un tipo de vehículo',
+            border: OutlineInputBorder(),
           ),
           onChanged: (TypeVehicle? value) {
             setState(() {
               _selectedTypeVehicle = value;
             });
-            _typeVehicleIDCtrl.text = value?.id.toString() ?? '';
           },
           validator: (value) {
             if (value == null) {
@@ -100,30 +122,155 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
             }
             return null;
           },
-          items: [
-            DropdownMenuItem(
-              value: null,
-              child: Text('Selecciona un tipo de vehículo'),
-            ),
-            ..._typeVehicles.map((TypeVehicle typeVehicle) {
-              return DropdownMenuItem<TypeVehicle>(
-                value: typeVehicle,
-                child: Text(typeVehicle.name),
-              );
-            }).toList(),
-          ],
-        ), // Añadido
-        const SizedBox(height: 40),
+          items: _typeVehicles.map((TypeVehicle typeVehicle) {
+            return DropdownMenuItem<TypeVehicle>(
+              value: typeVehicle,
+              child: Row(
+                children: [
+                  _getVehicleIcon(typeVehicle.name),
+                  const SizedBox(width: 10),
+                  Text(typeVehicle.name),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 20),
         _buildRegisterVehicleButton(),
         const SizedBox(height: 20),
       ],
     );
   }
 
+  Widget _buildAutoCompleteField(
+    String label,
+    TextEditingController controller,
+    Future<List<String>> Function(String) optionsBuilder,
+  ) {
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) async {
+        if (textEditingValue.text.isEmpty) {
+          return const Iterable<String>.empty();
+        }
+        return await optionsBuilder(textEditingValue.text);
+      },
+      onSelected: (String selection) {
+        controller.text = capitalizeFirstLetter(selection);
+      },
+      fieldViewBuilder: (
+        BuildContext context,
+        TextEditingController fieldTextEditingController,
+        FocusNode fieldFocusNode,
+        VoidCallback onFieldSubmitted,
+      ) {
+        return SizedBox(
+          height: 50,
+          child: TextField(
+            controller: fieldTextEditingController,
+            focusNode: fieldFocusNode,
+            decoration: InputDecoration(
+              labelText: label,
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (text) {
+              controller.value = controller.value.copyWith(
+                text: capitalizeFirstLetter(text),
+                selection: TextSelection.fromPosition(
+                  TextPosition(offset: text.length),
+                ),
+              );
+            },
+            onEditingComplete: () {
+              controller.text = capitalizeFirstLetter(controller.text);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (_searchResults.isEmpty) {
+      return Text('No se encontraron vehículos.');
+    } else {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: _searchResults.length,
+        itemBuilder: (context, index) {
+          final car = _searchResults[index];
+          return ListTile(
+            title: Text('${car.make} ${car.model}'),
+            subtitle: Text('Año: ${car.year}'),
+          );
+        },
+      );
+    }
+  }
+
+  Widget _getVehicleIcon(String typeName) {
+    switch (typeName.toLowerCase()) {
+      case 'sedan':
+        return Image.asset(
+          'assets/Icons/sedan.png',
+          width: 44,
+          height: 44,
+        );
+      case 'camioneta':
+        return Image.asset(
+          'assets/Icons/camioneta.png',
+          width: 44,
+          height: 44,
+        );
+      case 'jeep':
+        return Image.asset(
+          'assets/Icons/jeep.png',
+          width: 44,
+          height: 44,
+        );
+      case 'vagoneta':
+        return Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Image.asset(
+            'assets/Icons/vagoneta.png',
+            width: 24,
+            height: 24,
+          ),
+        );
+      case 'moto':
+        return Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Icon(
+            Icons.motorcycle,
+            size: 24,
+          ),
+        );
+      default:
+        return Icon(
+          Icons.directions_car,
+          size: 24,
+        );
+    }
+  }
+
+  String capitalizeFirstLetter(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1);
+  }
+
   bool _validateInputs() {
+    brandController.text = capitalizeFirstLetter(brandController.text);
+    modelController.text = capitalizeFirstLetter(modelController.text);
+
+    print('Brand: ${brandController.text}');
+    print('Model: ${modelController.text}');
+    print('Plate: ${plateController.text}');
+    print('Selected Type Vehicle: ${_selectedTypeVehicle?.name}');
+
     if (brandController.text.isEmpty ||
         modelController.text.isEmpty ||
-        plateController.text.isEmpty) {
+        plateController.text.isEmpty ||
+        _selectedTypeVehicle == null) {
       _showSnackBar('Por favor complete todos los campos antes de continuar.');
       return false;
     }
@@ -135,68 +282,111 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  Widget _buildGreyText(String text) {
-    return Text(text, style: const TextStyle(color: Colors.grey));
-  }
-
-  Widget _buildInputField(TextEditingController controller,
-      {IconData? icon, FocusNode? focusNode}) {
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      decoration: InputDecoration(
-        prefixIcon:
-            focusNode!.hasFocus ? null : (icon != null ? Icon(icon) : null),
+  Widget _buildInputField(String label, TextEditingController controller,
+      {bool isPlate = false}) {
+    return SizedBox(
+      height: 50,
+      child: Row(
+        children: [
+          if (isPlate)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Image.asset(
+                'assets/Icons/placa3.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType:
+                  isPlate ? TextInputType.visiblePassword : TextInputType.text,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (text) {
+                controller.value = controller.value.copyWith(
+                  text: capitalizeFirstLetter(text),
+                  selection: TextSelection.fromPosition(
+                    TextPosition(offset: text.length),
+                  ),
+                );
+              },
+              onEditingComplete: () {
+                controller.text = capitalizeFirstLetter(controller.text);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildRegisterVehicleButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: myColor,
-      ),
-      onPressed: () async {
-        if (_validateInputs()) {
-          final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
-          final userId = tokenProvider.userId;
-          Map<String, dynamic> vehicleData = {
-            "brand": brandController.text,
-            "model": modelController.text,
-            "registration_plate": plateController.text,
-            "user": userId,
-            "type_vehicle": _selectedTypeVehicle?.id, 
-            "is_userexternal": false,
-          };
+    return Container(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: myColor,
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () async {
+          if (_validateInputs()) {
+            final tokenProvider =
+                Provider.of<TokenProvider>(context, listen: false);
+            final userId = tokenProvider.userId;
+            Map<String, dynamic> vehicleData = {
+              "brand": brandController.text,
+              "model": modelController.text,
+              "registration_plate": plateController.text,
+              "user": userId,
+              "type_vehicle": _selectedTypeVehicle?.id,
+              "is_userexternal": false,
+            };
 
-          try {
-            await apiVehicle.createRecord(vehicleData);
-            Navigator.pop(context);
-          } catch (e) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Error de Registro'),
-                  content: Text('Error al registrar el vehículo: $e'),
-                  actions: [
-                    TextButton(
-                      child: Text('Cerrar'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-            print("Error al registrar el vehículo: $e");
+            try {
+              await apiVehicle.createRecord(vehicleData);
+              Navigator.pop(context);
+            } catch (e) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Error de Registro'),
+                    content: Text('Error al registrar el vehículo: $e'),
+                    actions: [
+                      TextButton(
+                        child: Text('Cerrar'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+              print("Error al registrar el vehículo: $e");
+            }
           }
-        }
-      },
-      child: Text(
-        "Registrar vehículo",
-        style: TextStyle(color: Colors.white),
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Agregar",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }

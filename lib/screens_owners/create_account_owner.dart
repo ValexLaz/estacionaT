@@ -4,12 +4,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
-import 'package:map_flutter/screens_owners/select_map_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
-
+import 'package:map_flutter/screens_owners/select_map_screen.dart';
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
 
@@ -26,13 +25,13 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   TextEditingController capacityController = TextEditingController();
   TextEditingController ownerPhoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController imageUrlController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TimeOfDay openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay closingTime = TimeOfDay(hour: 20, minute: 0);
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  String _selectedDay = 'Lunes'; // Día por defecto seleccionado
+  List<bool> _selectedDays = List<bool>.filled(7, false);
+  String _imageUrl = '';
 
   final List<String> _daysOfWeek = [
     'Lunes',
@@ -44,7 +43,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     'Domingo'
   ];
 
-  // Método para seleccionar una imagen
   Future<void> _pickImage() async {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery);
@@ -52,7 +50,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
-      _uploadImageToFirebase();
     }
   }
 
@@ -66,10 +63,11 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
 
       final snapshot = await task;
       final urlDownload = await snapshot.ref.getDownloadURL();
-      imageUrlController.text =
-          urlDownload; // Actualiza el controlador de texto de la imagen URL
+      setState(() {
+        _imageUrl = urlDownload;
+      });
 
-      _showSnackBar('Imagen subida con éxito: $urlDownload');
+      _showSnackBar('Imagen subida con éxito');
     } catch (e) {
       _showSnackBar('Error al subir imagen: $e');
     }
@@ -80,50 +78,203 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     myColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Registro de Parqueo",
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
-      ),
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInputField("Nombre del Parqueo", parkingNameController),
-              const SizedBox(height: 20),
-              _buildInputField(
-                  "Capacidad Total de Vehículos", capacityController),
-              const SizedBox(height: 20),
-              _buildPhoneInputField(
-                  "Número de Teléfono del Propietario", ownerPhoneController),
-              const SizedBox(height: 20),
-              _buildInputField("Correo Electrónico", emailController),
-              const SizedBox(height: 20),
-              _buildImagePickerButton(),
-              const SizedBox(height: 20),
-              _buildInputField("URL de la Imagen", imageUrlController),
-              const SizedBox(height: 20),
-              _buildInputField("Descripción", descriptionController),
-              const SizedBox(height: 20),
-              _buildDayDropdown(),
-              const SizedBox(height: 20),
-              _buildTimePicker("Apertura", openingTime, (newTime) {
-                setState(() => openingTime = newTime);
-              }),
-              _buildTimePicker("Cierre", closingTime, (newTime) {
-                setState(() => closingTime = newTime);
-              }),
-              const SizedBox(height: 20),
-              _buildSignUpButton(),
-            ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            title: Text(
+              "Registrar Parqueo",
+              style: TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
+            iconTheme: IconThemeData(color: Colors.black),
+            floating: true,
+            snap: true,
           ),
-        ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Cuentanos más acerca de tu parqueo",
+                    style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "Esta información se mostrará en la aplicación para que los clientes puedan encontrarte y reservar un espacio en tu parqueo. También podrán contactarte si tienen alguna pregunta o necesitan asistencia.",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInputField(
+                      "Nombre del Parqueo", parkingNameController),
+                  const SizedBox(height: 20),
+                  _buildInputField(
+                      "Capacidad Total de Vehículos", capacityController),
+                  const SizedBox(height: 20),
+                  _buildPhoneInputField(
+                      "Número de Teléfono del Propietario",
+                      ownerPhoneController),
+                  const SizedBox(height: 14),
+                  _buildInputField("Correo Electrónico", emailController),
+                  const SizedBox(height: 12),
+                  _buildImagePickerButton(),
+                  if (_imageFile != null) ...[
+                    const SizedBox(height: 12),
+                    Image.file(_imageFile!, height: 200),
+                    const SizedBox(height: 12),
+                    _buildUploadImageButton(),
+                  ],
+                  const SizedBox(height: 12),
+                  _buildInputField("Descripción", descriptionController),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Seleccionar Horario",
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Switch(
+                        value: _selectedDays.every((day) => day),
+                        onChanged: (bool value) {
+                          setState(() {
+                            _selectedDays = List<bool>.filled(7, value);
+                          });
+                        },
+                        activeColor: Colors.blue,
+                        inactiveThumbColor: Colors.blue,
+                        inactiveTrackColor: Colors.white.withOpacity(0.5),
+                        trackOutlineColor:
+                            MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (!states.contains(MaterialState.selected)) {
+                              return Colors.blue;
+                            }
+                            return null;
+                          },
+                        ),
+                        focusColor: Colors.blue,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildDaysSelection(),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildTimePicker("Apertura", openingTime, (newTime) {
+                        setState(() => openingTime = newTime);
+                      }),
+                      _buildTimePicker("Cierre", closingTime, (newTime) {
+                        setState(() => closingTime = newTime);
+                      }),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context); // Acción para el botón "Anterior"
+                      },
+                      child: Container(
+                        height: 50,
+                        color: Colors.white,
+                        child: Center(
+                          child: Text("Anterior", style: TextStyle(color: Colors.grey)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.black,
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (_validateInputs()) {
+                          final tokenProvider =
+                              Provider.of<TokenProvider>(context, listen: false);
+                          final userId = tokenProvider.userId;
+
+                          Map<String, dynamic> parkingData = {
+                            "name": parkingNameController.text,
+                            "capacity":
+                                int.tryParse(capacityController.text) ?? 0,
+                            "phone": '+591${ownerPhoneController.text}',
+                            "email": emailController.text,
+                            "user": userId,
+                            "url_image": _imageUrl,
+                            "description": descriptionController.text,
+                            "spaces_available":
+                                int.tryParse(capacityController.text) ?? 0,
+                          };
+
+                          try {
+                            final parkingId =
+                                await apiParking.createRecord(parkingData);
+                            print("Parqueo registrado con ID: $parkingId");
+                            final ApiOpeningHours apiOpeningHours =
+                                ApiOpeningHours();
+
+                            for (int i = 0; i < _selectedDays.length; i++) {
+                              if (_selectedDays[i]) {
+                                await apiOpeningHours.create(OpeningHours(
+                                  day: _daysOfWeek[i],
+                                  parking: int.parse(parkingId),
+                                  open_time:
+                                      "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
+                                  close_time:
+                                      "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
+                                ));
+                              }
+                            }
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    SelectMapScreen(parkingId: int.parse(parkingId)),
+                              ),
+                            );
+                          } catch (e) {
+                            print("Error al registrar el parqueo: $e");
+                            _showSnackBar(
+                                'Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
+                          }
+                        }
+                      },
+                      child: Container(
+                        height: 50,
+                        color: Colors.white,
+                        child: Center(
+                          child: Text("Siguiente", style: TextStyle(color: Colors.blue)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -137,14 +288,20 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
         ownerPhoneController.text.isEmpty ||
         emailController.text.isEmpty ||
         !emailValid ||
-        imageUrlController.text.isEmpty ||
-        descriptionController.text.isEmpty) {
+        _imageUrl.isEmpty ||
+        descriptionController.text.isEmpty ||
+        !_selectedDays.contains(true)) {
       _showSnackBar(
           'Por favor, complete todos los campos correctamente antes de continuar.');
       return false;
     }
     if (int.tryParse(capacityController.text) == null) {
       _showSnackBar('Ingrese un número válido en el campo de capacidad.');
+      return false;
+    }
+    if (ownerPhoneController.text.length != 8 ||
+        int.tryParse(ownerPhoneController.text) == null) {
+      _showSnackBar('Ingrese un número de teléfono válido de 8 dígitos.');
       return false;
     }
     return true;
@@ -155,7 +312,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  // Botón para iniciar la selección de imagen
   Widget _buildImagePickerButton() {
     return ElevatedButton.icon(
       onPressed: _pickImage,
@@ -170,149 +326,190 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
     );
   }
 
-  Widget _buildDayDropdown() {
-    List<String> allDays = [
-      'Todos los días',
-      ..._daysOfWeek
-    ]; // Agrega la opción 'Todos los días'
-    return DropdownButton<String>(
-      value: _selectedDay,
-      items: allDays.map((String day) {
-        return DropdownMenuItem<String>(
-          value: day,
-          child: Text(day),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedDay = newValue!;
-        });
-      },
+  Widget _buildUploadImageButton() {
+    return ElevatedButton.icon(
+      onPressed: _uploadImageToFirebase,
+      icon: Icon(Icons.cloud_upload, color: Colors.white),
+      label: Text('Subir imagen', style: TextStyle(color: Colors.white)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDaysSelection() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(7, (index) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedDays[index] = !_selectedDays[index];
+                });
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _selectedDays[index] ? Colors.blue : Colors.white,
+                    border: Border.all(color: Colors.blue, width: 2),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _daysOfWeek[index][0],
+                      style: TextStyle(
+                        color:
+                            _selectedDays[index] ? Colors.white : Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 
   Widget _buildInputField(String label, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
+    return SizedBox(
+      height: 50,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
       ),
     );
   }
 
   Widget _buildPhoneInputField(String label, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-        prefixText: '+591 ', // Prefijo de país para Bolivia
+    return SizedBox(
+      height: 70,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        keyboardType: TextInputType.phone,
+        maxLength: 8,
       ),
-      keyboardType: TextInputType.phone,
     );
   }
 
   Widget _buildTimePicker(
       String label, TimeOfDay time, ValueChanged<TimeOfDay> onTimeChanged) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: const TextStyle(color: Colors.grey),
         ),
-        IconButton(
-          icon: const Icon(Icons.timer),
-          onPressed: () async {
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
             final TimeOfDay? picked = await showTimePicker(
               context: context,
               initialTime: time,
+              initialEntryMode: TimePickerEntryMode.input,
+              builder: (BuildContext context, Widget? child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    timePickerTheme: TimePickerThemeData(
+                      dialHandColor: Colors.blue,
+                      entryModeIconColor: Colors.blue,
+                      dayPeriodTextColor: MaterialStateColor.resolveWith(
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : Colors.blue),
+                      dayPeriodColor: MaterialStateColor.resolveWith((states) =>
+                          states.contains(MaterialState.selected)
+                              ? Colors.blue
+                              : Colors.white),
+                      dayPeriodShape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                      hourMinuteTextColor: MaterialStateColor.resolveWith(
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : Colors.blue),
+                      hourMinuteShape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    textButtonTheme: TextButtonThemeData(
+                      style: ButtonStyle(
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.blue),
+                      ),
+                    ),
+                  ),
+                  child: MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(alwaysUse24HourFormat: false),
+                    child: child ?? Container(),
+                  ),
+                );
+              },
             );
             if (picked != null && picked != time) {
               onTimeChanged(picked);
             }
           },
-        ),
-        Text(
-          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
-          style: TextStyle(color: myColor, fontSize: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "${time.hourOfPeriod.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} ${time.period == DayPeriod.am ? 'AM' : 'PM'}",
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildSignUpButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: myColor,
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+class SecondPage extends StatelessWidget {
+  final int parkingId;
+
+  const SecondPage({Key? key, required this.parkingId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Segunda Parte"),
       ),
-      onPressed: () async {
-        if (_validateInputs()) {
-          final tokenProvider =
-              Provider.of<TokenProvider>(context, listen: false);
-          final userId = tokenProvider.userId;
-
-          Map<String, dynamic> parkingData = {
-            "name": parkingNameController.text,
-            "capacity": int.tryParse(capacityController.text) ?? 0,
-            "phone": ownerPhoneController.text,
-            "email": emailController.text,
-            "user": userId,
-            "url_image": imageUrlController.text, // Incluye la URL de la imagen
-            "description": descriptionController.text,
-          };
-
-          try {
-            final parkingId = await apiParking.createRecord(parkingData);
-            print("Parqueo registrado con ID: $parkingId");
-            final ApiOpeningHours apiOpeningHours = ApiOpeningHours();
-
-            if (_selectedDay == 'Todos los días') {
-              for (String day in _daysOfWeek) {
-                await apiOpeningHours.create(OpeningHours(
-                  day: day,
-                  parking: int.parse(parkingId),
-                  open_time:
-                      "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
-                  close_time:
-                      "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
-                ));
-              }
-            } else {
-              await apiOpeningHours.create(OpeningHours(
-                day: _selectedDay,
-                parking: int.parse(parkingId),
-                open_time:
-                    "${openingTime.hour.toString().padLeft(2, '0')}:${openingTime.minute.toString().padLeft(2, '0')}:00",
-                close_time:
-                    "${closingTime.hour.toString().padLeft(2, '0')}:${closingTime.minute.toString().padLeft(2, '0')}:00",
-              ));
-            }
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    SelectMapScreen(parkingId: int.parse(parkingId)),
-              ),
-            );
-          } catch (e) {
-            print("Error al registrar el parqueo: $e");
-            _showSnackBar(
-                'Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
-          }
-        }
-      },
-      child: Text(
-        "Registrar Parqueo",
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-        ),
+      body: Center(
+        child: Text("Aquí va el contenido de la segunda parte."),
       ),
     );
   }

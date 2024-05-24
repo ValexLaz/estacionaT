@@ -1,10 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:map_flutter/screens_users/list_parking.dart';
+import 'package:map_flutter/screens_owners/map_next.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
@@ -70,7 +71,7 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Parqueo registrado exitosamente')));
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => ListParkings()));
+              context, MaterialPageRoute(builder: (context) => PriceFormScreen(parkingId: widget.parkingId)));
         } else {
           print('Error al guardar la ubicación: ${response.body}');
         }
@@ -133,15 +134,44 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(16),
-            child: ElevatedButton(
-              onPressed: saveLocation,
-              child: Text('Confirmar ubicación'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                textStyle: TextStyle(fontSize: 16),
+            padding: EdgeInsets.all(8),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context); // Acción para el botón "Anterior"
+                      },
+                      child: Container(
+                        height: 50,
+                        color: Colors.white,
+                        child: Center(
+                          child: Text("Anterior", style: TextStyle(color: Colors.grey)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.black,
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: saveLocation,
+                      child: Container(
+                        height: 50,
+                        color: Colors.white,
+                        child: Center(
+                          child: Text("Siguiente", style: TextStyle(color: Colors.blue)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
