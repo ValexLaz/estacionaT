@@ -11,9 +11,11 @@ import 'package:map_flutter/models/ReservationVehicleEntry.dart';
 import 'package:map_flutter/models/VehicleEntry.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
+import 'package:map_flutter/screens_users/parkingDetails/payment.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_reservationVehicleEntry.dart';
 import 'package:map_flutter/services/api_reservations.dart';
+import 'package:map_flutter/services/payment/QrGenerator.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -42,8 +44,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate:
-          DateTime.now(), // Solo fechas desde mañana
+      firstDate: DateTime.now(), // Solo fechas desde mañana
       lastDate: DateTime(2100),
     );
     if (picked != null && picked != selectedDate) {
@@ -59,7 +60,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
       final userId = tokenProvider.userId;
@@ -85,8 +86,22 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
         userId: userId,
       );
       ReservationManager().setReservation(newReservation);
-
-      makePayment(totalAmount).then((payment) {
+      Payment? payment = await makePayment(totalAmount);
+      String? qrBase64;
+      try {
+        qrBase64 = await QRCodeService().generateQRCode();
+      } catch (error) {
+        print('Error generating QR code: $error');
+      }
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PaymentScreen(
+                    payment: payment!,
+                    reservation: newReservation,
+                    qrBase64: qrBase64!,
+                  )));
+/*       makePayment(totalAmount).then((payment) {
         if (payment != null) {
           Navigator.push(
             context,
@@ -145,6 +160,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
           );
         }
       });
+     */
     }
   }
 
@@ -166,9 +182,6 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
     if (response.statusCode == 200) {
       return Payment.fromJson(jsonDecode(response.body));
     } else {
-      print(totalAmount);
-      print(totalARG);
-      print(jsonDecode(response.body));
       print('Failed to load payment');
       return null;
     }

@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:map_flutter/models/Reservation.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_reservations.dart';
 import 'package:provider/provider.dart';
 
 class ReservaScreen extends StatefulWidget {
@@ -47,6 +49,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
     reservationRef.onValue.listen((event) {
       reservationData = Map<String, dynamic>.from(event.snapshot.value as Map);
       final newDuration = parseDurationFromString(reservationData['remaining_time'] ?? "0:00:00");
+      Future<List<Reservation>> reservationID = ApiReservation().getAllByParam('${reservationData['reservation']}/');
       setState(() {
         reservationData =
             Map<String, dynamic>.from(event.snapshot.value as Map);
@@ -62,13 +65,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
       });
       _timer.cancel();
       startTimer();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
+      });
   }
 
   Duration parseDurationFromString(String durationString) {
@@ -87,8 +84,8 @@ class _ReservaScreenState extends State<ReservaScreen> {
     );
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     return Scaffold(
-        body: reservationData.isEmpty
-            ? Center(child: CircularProgressIndicator())
+        body: reservationData.isEmpty 
+            ? Center(child: Text("Aun no tienes reservas en curso"))
             : Container(
                 color: Colors.white,
                 child: Column(
@@ -228,5 +225,11 @@ class _ReservaScreenState extends State<ReservaScreen> {
                   ],
                 ),
               ));
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 }

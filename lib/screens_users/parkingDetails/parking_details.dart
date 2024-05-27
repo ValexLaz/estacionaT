@@ -5,6 +5,7 @@ import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
 import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/models/Price.dart';
+import 'package:map_flutter/screens_users/parkingDetails/reservationForm.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/services/api_price.dart';
@@ -310,7 +311,16 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
             itemCount: prices.length,
             itemBuilder: (context, index) {
               Price price = prices[index];
-              return PriceCard(price: price);
+              return PriceCard(price: price,onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) =>
+                            ReservationFormScreen(
+                          price: snapshot.data![index],
+                        ),
+                      ));
+                },);
             },
           );
         }
