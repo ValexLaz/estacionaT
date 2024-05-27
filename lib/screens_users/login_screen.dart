@@ -195,7 +195,10 @@ class _LoginPageState extends State<LoginPage> {
       onPressed: _isLoading ? null : _attemptLogin,
       child: _isLoading
           ? CircularProgressIndicator(color: Colors.white)
-          : Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
+          : Text("Iniciar Sesión",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18)), // Increase the font size to 18
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF1b4ee4),
         shape: StadiumBorder(),
@@ -311,7 +314,10 @@ class _LoginPageState extends State<LoginPage> {
       ),
       child: Text(
         "Crear cuenta",
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18, // Increase the font size to 18
+        ),
       ),
     );
   }

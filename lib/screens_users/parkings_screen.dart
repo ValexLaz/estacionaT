@@ -1,9 +1,16 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
 import 'package:map_flutter/services/api_parking.dart';
+
+const String MAPBOX_ACCESS_TOKEN =
+    'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
 
 class ParkingsScreen extends StatefulWidget {
   const ParkingsScreen({Key? key}) : super(key: key);
@@ -20,23 +27,89 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   TextEditingController searchController = TextEditingController();
   int selectedFilterIndex = 1;
   final Random random = Random();
+  LatLng? userLocation;
+  bool isLoading = true; // Nueva bandera para indicar el estado de carga
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    _determinePosition().then((_) => fetchData());
+  }
+
+  Future<void> _determinePosition() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      userLocation = LatLng(position.latitude, position.longitude);
+    });
   }
 
   Future<void> fetchData() async {
     try {
       List<Map<String, dynamic>> data = await apiParking.getAllParkings();
+      List<Map<String, dynamic>> addresses =
+          await apiParking.getAllParkingAddresses();
+
+      data = data.map((parking) {
+        var address = addresses.firstWhere(
+            (addr) => addr['parking'] == parking['id'],
+            orElse: () => {});
+        parking['latitude'] = address['latitude'] ?? 'No disponible';
+        parking['longitude'] = address['longitude'] ?? 'No disponible';
+        parking['street'] = address['street']?.isNotEmpty == true
+            ? address['street']
+            : 'Ubicación no disponible';
+        return parking;
+      }).toList();
+
       setState(() {
         parkings = data;
         filteredParkings = data;
+        isLoading = false; // Datos cargados, se desactiva el loader
       });
       filterParkings(selectedFilterIndex);
+      calculateRoutesForAllParkings();
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
+      setState(() {
+        isLoading = false; // Desactiva el loader en caso de error
+      });
+    }
+  }
+
+  Future<void> calculateRoutesForAllParkings() async {
+    if (userLocation == null) return;
+
+    for (var parking in parkings) {
+      if (parking['latitude'] != 'No disponible' &&
+          parking['longitude'] != 'No disponible') {
+        double latitude =
+            double.tryParse(parking['latitude'].toString()) ?? 0.0;
+        double longitude =
+            double.tryParse(parking['longitude'].toString()) ?? 0.0;
+        LatLng parkingLocation = LatLng(latitude, longitude);
+
+        String url =
+            'https://api.mapbox.com/directions/v5/mapbox/driving/${userLocation!.longitude},${userLocation!.latitude};${longitude},${latitude}?steps=true&geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN';
+
+        var response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          var jsonResponse = json.decode(response.body);
+          var duration =
+              jsonResponse['routes'][0]['duration']; // Duración en segundos
+          var distance =
+              jsonResponse['routes'][0]['distance']; // Distancia en metros
+
+          setState(() {
+            int durationMinutes = (duration / 60).round();
+            double distanceKm = distance / 1000; // Convertir a kilómetros
+            parking['eta'] = "$durationMinutes min.";
+            parking['distance'] = "${distanceKm.toStringAsFixed(2)} km";
+          });
+        } else {
+          print('Request failed with status: ${response.statusCode}.');
+        }
+      }
     }
   }
 
@@ -47,7 +120,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
     switch (index) {
       case 3:
         List<Map<String, dynamic>> shuffledParkings = List.from(parkings);
-        shuffledParkings.shuffle(random); // Mezcla los parqueos aleatoriamente
+        shuffledParkings.shuffle(random);
         filteredParkings = shuffledParkings;
         break;
       case 1:
@@ -59,8 +132,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
             parkings.where((p) => p['spaces_available'] <= 0).toList();
         break;
       case 3:
-        filteredParkings =
-            parkings; // Restablece a todos los parqueos sin filtro
+        filteredParkings = parkings;
         break;
       default:
         filteredParkings = parkings;
@@ -85,150 +157,221 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar parqueos...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5.0),
-                  borderSide: BorderSide(color: Colors.blue),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Container(
+              color: Colors.white,
+              height: 48,
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Buscar parqueos...',
+                  prefixIcon: Icon(Icons.search),
+                  suffixIcon: PopupMenuButton<int>(
+                    onSelected: (int index) {
+                      filterParkings(index);
+                    },
+                    icon: Icon(Icons.filter_list),
+                    itemBuilder: (context) => [
+                      PopupMenuItem<int>(
+                        value: 0,
+                        child: Text('Cerca de ti'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 1,
+                        child: Text('Disponibles'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 2,
+                        child: Text('No Disponibles'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 3,
+                        child: Text('Todos'),
+                      ),
+                    ],
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5.0),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 10.0),
                 ),
-              ),
-              onChanged: (value) {
-                searchFilteredParkings = filteredParkings.where((parking) {
-                  String parkingName = parking['name'].toLowerCase();
-                  return parkingName.contains(value.toLowerCase());
-                }).toList();
-                setState(() {});
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  filterButton(0, 'Cerca de ti'),
-                  SizedBox(width: 5), // Espacio entre los botones
-                  filterButton(1, 'Disponibles'),
-                  SizedBox(width: 5), // Espacio entre los botones
-                  filterButton(2, 'No Disponibles'),
-                  SizedBox(width: 5), // Espacio entre los botones
-                  filterButton(3, 'Todos'),
-                ],
+                onChanged: (value) {
+                  searchFilteredParkings = filteredParkings.where((parking) {
+                    String parkingName = parking['name'].toLowerCase();
+                    return parkingName.contains(value.toLowerCase());
+                  }).toList();
+                  setState(() {});
+                },
               ),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: searchController.text.isNotEmpty
-                  ? searchFilteredParkings.length
-                  : filteredParkings.length,
-              itemBuilder: (context, index) {
-                var parking = searchController.text.isNotEmpty
-                    ? searchFilteredParkings[index]
-                    : filteredParkings[index];
-                int spacesAvailable = parking['spaces_available'];
-                bool isAvailable = spacesAvailable > 0;
-                String availabilityText =
-                    isAvailable ? '$spacesAvailable espacios' : 'Sin espacios';
+            child: Container(
+              color: Colors.grey[350],
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator()) // Mostrar loader
+                  : ListView.builder(
+                      itemCount: searchController.text.isNotEmpty
+                          ? searchFilteredParkings.length
+                          : filteredParkings.length,
+                      itemBuilder: (context, index) {
+                        var parking = searchController.text.isNotEmpty
+                            ? searchFilteredParkings[index]
+                            : filteredParkings[index];
+                        int spacesAvailable = parking['spaces_available'];
+                        bool isAvailable = spacesAvailable > 0;
+                        String availabilityText =
+                            isAvailable ? 'Disponible' : 'Sin espacios';
 
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ParkingDetailsScreen2(
-                          parkingId: parking['id'].toString(),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    margin: EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: parking['url_image'] != null &&
-                                  parking['url_image'].isNotEmpty
-                              ? Image.network(
-                                  parking['url_image'],
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'assets/images/Logotipo.png',
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                )
-                              : Image.asset(
-                                  'assets/images/Logotipo.png',
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ParkingDetailsScreen2(
+                                  parkingId: parking['id'].toString(),
                                 ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                            );
+                          },
+                          child: Card(
+                            color: Colors.white,
+                            child: Row(
                               children: [
-                                Text(
-                                  parking['name'],
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      left: 8.0, top: 8.0, bottom: 8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    child: parking['url_image'] != null &&
+                                            parking['url_image'].isNotEmpty
+                                        ? Image.network(
+                                            parking['url_image'],
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                'assets/images/Logotipo.png',
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              );
+                                            },
+                                          )
+                                        : Image.asset(
+                                            'assets/images/Logotipo.png',
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text("Tarifa: 0.00 Bs",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                    )),
-                                SizedBox(height: 4),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 2,
-                                    horizontal: 8,
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          parking['name'],
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          parking['street'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        if (parking.containsKey('eta') &&
+                                            parking.containsKey('distance'))
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8.0),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.directions_car,
+                                                  color: Colors.black,
+                                                  size: 16,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  '${parking['eta']}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: 1.0,
+                                                  height: 20.0,
+                                                  color: Colors.black,
+                                                  margin: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8.0),
+                                                ),
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.green,
+                                                  size: 16,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  isAvailable
+                                                      ? 'Disponible'
+                                                      : 'Sin espacios',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: isAvailable
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isAvailable ? Colors.green : Colors.red,
-                                    borderRadius: BorderRadius.circular(
-                                        10), // Esquinas redondeadas
-                                  ),
-                                  child: Text(
-                                    availabilityText,
-                                    style: TextStyle(color: Colors.white),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 18.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.location_on,
+                                        color: Colors.blue,
+                                        size: 24,
+                                      ),
+                                      if (parking.containsKey('distance'))
+                                        Text(
+                                          parking['distance'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.location_on, color: Colors.blue),
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => NavigationBarScreen(),
-                            ));
-                          },
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
             ),
           ),
         ],
@@ -244,8 +387,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
           label: Text(
             'Ver mapa',
             style: TextStyle(
-              color:
-                  Colors.blue, // Color del texto igual al del icono y el margen
+              color: Colors.blue,
             ),
           ),
           icon: Icon(
@@ -253,36 +395,11 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
             color: Colors.blue,
           ),
           backgroundColor: Colors.white,
-          foregroundColor: Colors.white, // Color del texto
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: Colors.blue),
             borderRadius: BorderRadius.circular(8.0),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget filterButton(int index, String text) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            selectedFilterIndex == index ? Colors.blue : Colors.white,
-        side: BorderSide(
-          color:
-              selectedFilterIndex == index ? Colors.transparent : Colors.blue,
-          width: 1,
-        ),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      onPressed: () => filterParkings(index),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: selectedFilterIndex == index ? Colors.white : Colors.blue,
         ),
       ),
     );

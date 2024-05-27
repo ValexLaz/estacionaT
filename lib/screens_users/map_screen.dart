@@ -243,7 +243,7 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           buildMap(),
           Positioned(
-            top: 48.0,
+            top: 64.0,
             left: 16.0,
             right: 16.0,
             child: Container(
@@ -340,75 +340,77 @@ class _MapScreenState extends State<MapScreen> {
                             },
                           )
                         : Image.asset(
-                            'assets/images/Logo.png', // Imagen placeholder por defecto
+                            'assets/images/Logo.png',
                             width: 150,
-                            height:
-                                150, // Ajustado para que la imagen sea cuadrada
+                            height: 150,
                             fit: BoxFit.cover,
                           ),
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              details['name'] ?? 'Parking Unknown',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ParkingMapScreen(
-                                      parkingId: details['id'].toString(),
-                                    ),
-                                  ),
-                                );
-                              },
-                              child:
-                                  Icon(Icons.directions, color: Colors.white),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                  vertical: 1,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: const BorderSide(color: Colors.blue),
+                            Flexible(
+                              child: Text(
+                                details['name'] ?? 'Parking Unknown',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        Text(
-                          '${details['spaces_available'] ?? 'N/A'} espacios disponibles',
-                          style: TextStyle(fontSize: 14, color: Colors.green),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${details['spaces_available'] ?? 'N/A'} espacios disponibles',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.green),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 12),
                         Row(
                           children: [
                             Text(
                               '10 Bs/hora',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(width: 30),
+                            SizedBox(width: 10),
+                            Container(
+                              width: 1,
+                              height: 20,
+                              color: Colors.black,
+                            ),
+                            SizedBox(width: 10),
                             Icon(Icons.access_time),
                             Text(
                               '9:00 - 21:00',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -422,30 +424,62 @@ class _MapScreenState extends State<MapScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ParkingDetailsScreen(
-                            parkingId: details['id']
-                                .toString(), // Asegúrate de que 'details' contiene 'id'
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ParkingDetailsScreen(
+                                parkingId: details['id'].toString(),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text('Ver más detalles',
+                            style: TextStyle(color: Colors.blue)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.blue,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.blue),
                           ),
+                          minimumSize: Size(150, 50),
                         ),
-                      );
-                    },
-                    child: Text('Ver más detalles',
-                        style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 120, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
+                      SizedBox(width: 10),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ParkingMapScreen(
+                                parkingId: details['id'].toString(),
+                              ),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.directions, color: Colors.white),
+                        label: Text('Cómo llegar',
+                            style: TextStyle(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          minimumSize: Size(150, 50),
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 20), // Added space below the button
+                  SizedBox(height: 20),
                 ],
               ),
             ),
