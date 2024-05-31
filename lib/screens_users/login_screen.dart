@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    myColor = Theme.of(context).primaryColor;
+    myColor = Theme.of(context).colorScheme.primary;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: const Color(0xFF1b4ee4),
@@ -58,6 +58,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildTop() {
     return Container(
+      margin: EdgeInsets.only(top: 35),
       width: mediaSize.width,
       height: mediaSize.height / 5,
       child: Center(
@@ -200,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
                   color: Colors.white,
                   fontSize: 18)), // Increase the font size to 18
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
+        backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
         minimumSize: Size.fromHeight(60),
@@ -307,7 +308,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
+        backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
         minimumSize: Size.fromHeight(60),

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:map_flutter/common/styles/AppTheme.dart';
 import 'package:map_flutter/firebase_options.dart';
 import 'package:map_flutter/screens_users/login_screen.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
@@ -21,10 +22,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Login Demo',
-        theme: ThemeData(
-          useMaterial3: true,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
+        theme: AppTheme.themeData,
         home: LoginPage(),
       ),
     );

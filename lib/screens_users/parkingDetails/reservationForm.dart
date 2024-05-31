@@ -1,23 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:map_flutter/common/managers/ParkingManager.dart';
+
 import 'package:map_flutter/common/managers/ReservationManager.dart';
 import 'package:map_flutter/common/widgets/time_picker.dart';
 import 'package:map_flutter/models/Payment.dart';
 import 'package:map_flutter/models/Price.dart';
 import 'package:map_flutter/models/Reservation.dart';
-import 'package:map_flutter/models/ReservationVehicleEntry.dart';
-import 'package:map_flutter/models/VehicleEntry.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
-import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
-import 'package:map_flutter/screens_users/parkingDetails/payment.dart';
+import 'package:map_flutter/screens_users/parkingDetails/paymentDetails.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
-import 'package:map_flutter/services/api_reservationVehicleEntry.dart';
-import 'package:map_flutter/services/api_reservations.dart';
-import 'package:map_flutter/services/payment/QrGenerator.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class ReservationFormScreen extends StatefulWidget {
@@ -86,106 +78,13 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
         userId: userId,
       );
       ReservationManager().setReservation(newReservation);
-      Payment? payment = await makePayment(totalAmount);
-      String? qrBase64;
-      try {
-        qrBase64 = await QRCodeService().generateQRCode();
-      } catch (error) {
-        print('Error generating QR code: $error');
-      }
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => PaymentScreen(
-                    payment: payment!,
-                    reservation: newReservation,
-                    qrBase64: qrBase64!,
-                  )));
-/*       makePayment(totalAmount).then((payment) {
-        if (payment != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => Scaffold(
-                      appBar: AppBar(
-                        title: Text('Payment'),
-                        leading: IconButton(
-                            icon: Icon(Icons.arrow_back),
-                            onPressed: () async {
-                              final response = await http.get(
-                                Uri.parse(
-                                    'https://api-sbx.dlocalgo.com/v1/payments/${payment.id}'),
-                                headers: {
-                                  'Authorization':
-                                      'Bearer RtJZkjQOcgoaXEJaJsRsSjtmPVSSsmmL:4NVVLk2gf4g5KJZHgT0Fvt7olF7iKnmoqZdjgMXT',
-                                },
-                              );
-
-                              if (response.statusCode == 200) {
-                                var data = jsonDecode(response.body);
-                                if (data['status'] == 'PAID') {
-                                  //ApiReservation().create(newReservation);
-
-                                  ApiReservationVehicleEntry().create(
-                                      ReservationVehicleEntry(
-                                          reservationData: newReservation,
-                                          vehicleEntryData: VehicleEntry(
-                                              user: Provider.of<TokenProvider>(
-                                                      context,
-                                                      listen: false)
-                                                  .userId!,
-                                              vehicle: 2,
-                                              parking: ParkingManager
-                                                  .instance.parking!.id!,
-                                             )));
-
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              NavigationBarScreen()));
-                                } else {
-                                  Navigator.pop(context);
-                                }
-                              } else {
-                                print('Failed to check payment status');
-                              }
-                            }),
-                      ),
-                      body: WebView(
-                        initialUrl: payment.redirectUrl,
-                        javascriptMode: JavascriptMode.unrestricted,
-                      ),
-                    )),
-          );
-        }
-      });
-     */
-    }
+              builder: (context) => PaymentDetails(reservation: newReservation))); 
+      }
   }
 
-  Future<Payment?> makePayment(double totalAmount) async {
-    double totalARG = double.parse((totalAmount * 128.33).toStringAsFixed(2));
-    final response = await http.post(
-      Uri.parse('https://api-sbx.dlocalgo.com/v1/payments'),
-      headers: {
-        'authorization':
-            'Bearer RtJZkjQOcgoaXEJaJsRsSjtmPVSSsmmL:4NVVLk2gf4g5KJZHgT0Fvt7olF7iKnmoqZdjgMXT',
-        'content-type': 'application/json',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'amount': totalARG,
-        'currency': 'ARS',
-        'country': 'AR',
-      }),
-    );
-    if (response.statusCode == 200) {
-      return Payment.fromJson(jsonDecode(response.body));
-    } else {
-      print('Failed to load payment');
-      return null;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,18 +98,22 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
+              Text("Hora Inicio"),
               CustomTimePicker(
                 startTime: TimeOfDay(hour: 8, minute: 0),
                 endTime: TimeOfDay(hour: 22, minute: 0),
                 onTimeSelected: (time) =>
                     setState(() => selectedStartTime = time),
               ),
+              Divider(color: Colors.grey,),
+               Text("Hora Final"),
               CustomTimePicker(
                 startTime: TimeOfDay(hour: 8, minute: 0),
                 endTime: TimeOfDay(hour: 22, minute: 0),
                 onTimeSelected: (time) =>
                     setState(() => selectedEndTime = time),
               ),
+               Divider(color: Colors.grey,),  
               ListTile(
                 title: Text('Fecha de reservación: ${selectedDate.toLocal()}'
                     .split(' ')[0]),

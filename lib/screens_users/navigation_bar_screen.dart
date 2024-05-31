@@ -44,7 +44,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Colors.white.withOpacity(0.7),
-          selectedItemColor: Colors.white,
+          selectedItemColor: Color(0xFFFFFFFF),
           currentIndex: _currentIndex,
           onTap: onTabTapped,
           items: const [
@@ -65,7 +65,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
               label: 'Cuenta',
             ),
           ],
-          backgroundColor: Color(0xFF1b4ee4),
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           elevation: 20,
           selectedLabelStyle: TextStyle(color: Colors.white),
           unselectedLabelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),

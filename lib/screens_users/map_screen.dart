@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:map_flutter/screens_users/parking_details_screen.dart';
+import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
 import 'package:map_flutter/screens_users/routes_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
@@ -133,7 +133,7 @@ class _MapScreenState extends State<MapScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ParkingDetailsScreen(
+                  builder: (context) => ParkingDetailsScreen2(
                     parkingId: details['id']
                         .toString(), // Asegúrate de que 'details' contiene 'id'
                   ),
@@ -420,19 +420,20 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
+       
+              Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Container(
+                    margin: EdgeInsets.only(left: 10,right: 10),
+                    child:  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ParkingDetailsScreen(
+                              builder: (context) => ParkingDetailsScreen2(
                                 parkingId: details['id'].toString(),
                               ),
                             ),
@@ -452,7 +453,6 @@ class _MapScreenState extends State<MapScreen> {
                           minimumSize: Size(150, 50),
                         ),
                       ),
-                      SizedBox(width: 10),
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
@@ -479,10 +479,12 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  
+                  ),
+                 SizedBox(height: 20),
                 ],
               ),
-            ),
+            
           ],
         ),
       ),
@@ -570,9 +572,8 @@ class _MapScreenState extends State<MapScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ParkingDetailsScreen(
-                      parkingId: details['parkingId']
-                          .toString(), // Asegúrate de que el parkingId se maneja correctamente
+                    builder: (context) => ParkingDetailsScreen2(
+                      parkingId: details['parkingId'].toString(),
                     ),
                   ),
                 );
