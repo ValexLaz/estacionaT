@@ -1,9 +1,13 @@
+// reports.dart
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:map_flutter/models/reports.dart';
+import 'package:map_flutter/services/api_reports.dart';
 
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({Key? key}) : super(key: key);
+  final String parkingId; // Recibir el ID del parqueo como String
+
+  const ReportsPage({Key? key, required this.parkingId}) : super(key: key);
 
   @override
   State<ReportsPage> createState() => _ReportsPageState();
@@ -12,10 +16,13 @@ class ReportsPage extends StatefulWidget {
 class _ReportsPageState extends State<ReportsPage> {
   late Color myColor;
   late Size mediaSize;
+  late Future<List<Report>> reportsFuture;
 
-  int vehiclesEntered = Random().nextInt(100);
-  int vehiclesExited = Random().nextInt(100);
-  double totalIncome = Random().nextDouble() * 1000;
+  @override
+  void initState() {
+    super.initState();
+    reportsFuture = ReportRepository().fetchReports();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,19 +31,46 @@ class _ReportsPageState extends State<ReportsPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildCard(),
-            const SizedBox(height: 20),
-            _buildDashboard(),
-          ],
-        ),
+      body: FutureBuilder<List<Report>>(
+        future: reportsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            List<Report> reports = snapshot.data!;
+            // Convertir el parkingId a int para la comparación
+            int parkingIdInt = int.tryParse(widget.parkingId) ?? -1;
+            List<Report> filteredReports = reports
+                .where((report) => report.parking == parkingIdInt)
+                .toList();
+
+            if (filteredReports.isEmpty) {
+              return Center(
+                  child:
+                      Text('No data found for parking ID ${widget.parkingId}'));
+            }
+
+            Report report = filteredReports[0];
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildCard(report),
+                  const SizedBox(height: 20),
+                  _buildDashboard(),
+                ],
+              ),
+            );
+          } else {
+            return Center(child: Text('No data found'));
+          }
+        },
       ),
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(Report report) {
     return Card(
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
@@ -48,15 +82,11 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             _buildReportRow(
               "Vehículos que ingresaron",
-              vehiclesEntered.toString(),
-            ),
-            _buildReportRow(
-              "Vehículos que salieron",
-              vehiclesExited.toString(),
+              report.vehicleCount.toString(),
             ),
             _buildReportRow(
               "Total de ingresos",
-              "\$${totalIncome.toStringAsFixed(2)}",
+              "\$${report.totalEarnings.toStringAsFixed(2)}",
             ),
           ],
         ),
@@ -128,10 +158,4 @@ class _BarChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: ReportsPage(),
-  ));
 }

@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
     _screens = [
       ParkingScreen(parkingId: widget.parkingId),
       VehicleEntryPage(parkingId: widget.parkingId),
-      ReportsPage(),
+      ReportsPage(parkingId: widget.parkingId),
       ParkingOwnerScreen(parkingId: widget.parkingId),
     ];
   }
