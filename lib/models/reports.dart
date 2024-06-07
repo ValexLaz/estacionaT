@@ -1,19 +1,22 @@
 class Report {
   final int parking;
   final double totalEarnings;
-  final int vehicleCount;
+  final int reservationVehicleCount;
+  final int externalVehicleCount;
 
   Report({
     required this.parking,
     required this.totalEarnings,
-    required this.vehicleCount,
+    required this.reservationVehicleCount,
+    required this.externalVehicleCount,
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
     return Report(
-      parking: json['parking'],
-      totalEarnings: json['total_earnings'],
-      vehicleCount: json['vehicle_count'],
+      parking: json['parking_id'] ?? 0,
+      totalEarnings: json['total_earnings']?.toDouble() ?? 0.0,
+      reservationVehicleCount: json['reservation_vehicle_count'] ?? 0,
+      externalVehicleCount: json['external_vehicle_count'] ?? 0,
     );
   }
 
@@ -21,7 +24,8 @@ class Report {
     return {
       'parking': parking,
       'total_earnings': totalEarnings,
-      'vehicle_count': vehicleCount,
+      'reservation_vehicle_count': reservationVehicleCount,
+      'external_vehicle_count': externalVehicleCount,
     };
   }
 }

@@ -7,7 +7,7 @@ import 'package:map_flutter/screens_users/routes_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
-    'pk.eyJ1IjoicGl0bWFjIiwiYSI6ImNsY3BpeWxuczJhOTEzbnBlaW5vcnNwNzMifQ.ncTzM4bW-jpq-hUFutnR1g';
+    'pk.eyJ1Ijoia2VuZGFsNjk2IiwiYSI6ImNsdnJvZ3o3cjBlbWQyanBqcGh1b3ZhbTcifQ.d5h3QddVskl61Rr8OGmnQQ';
 const String MAPBOX_STYLE = 'mapbox/streets-v12';
 
 class MapScreen extends StatefulWidget {
