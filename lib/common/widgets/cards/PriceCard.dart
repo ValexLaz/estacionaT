@@ -18,71 +18,95 @@ class PriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 4.0, // Sombra para destacar la tarjeta
-        margin: const EdgeInsets.all(8.0), // Margen alrededor de la tarjeta
+    return Card(
+      elevation: 4.0,
+      margin: const EdgeInsets.all(8.0),
+      child: Container(
+        color: Theme.of(context).primaryColor,
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // Espaciado interno de la tarjeta
+          padding: const EdgeInsets.only(left:16.0,top:16.0,bottom:16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(
-                'Tipo de Vehículo: ${price.typeVehicle ?? "No especificado"}',
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10.0),
-              if (onDelete != null) ...[
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: onDelete, // Llamar al callback de eliminación
+              Row(children: [
+                Container(
+                  width: 100,
+                  height: 50,
+                  margin: EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Center(
+                      child: Text(
+                    'Bs ${price.price.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.green[700],
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  )),
                 ),
-              ],
-              SizedBox(height: 10.0), // Espacio entre líneas de texto
-              Text(
-                'Precio: Bs ${price.price.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 18.0,
-                  color: Colors.green[700],
-                  fontWeight: FontWeight.w500,
+                SizedBox(width: 10), // Espacio entre el precio y el texto
+                Expanded(
+                  child: Text(
+                    'Vehículo: ${price.typeVehicle ?? "No especificado"}',
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-              if (price.isReservation) ...[
-                SizedBox(height: 5.0),
-                Chip(
-                  label: Text('Requiere Reservación'),
-                  backgroundColor: Colors.orangeAccent,
-                ),
-              ],
-              if (price.isPriceHour) ...[
-                SizedBox(height: 5.0),
-                Chip(
-                  label: Text('Precio por Hora'),
-                  backgroundColor: Colors.blueAccent,
-                ),
-              ],
-              if (price.isEntryFee) ...[
-                SizedBox(height: 5.0),
-                Chip(
-                  label: Text('Cuota de Entrada'),
-                  backgroundColor: Colors.redAccent,
-                ),
-              ],
-              if (price.priceHour != null) ...[
-                SizedBox(height: 10.0),
-                Text(
-                  'Horario de Tarifa: De ${formatTimeOfDay(price.priceHour!.startTime)} a ${formatTimeOfDay(price.priceHour!.endTime)}',
-                  style: TextStyle(fontSize: 16.0),
-                ),
-              ],
+              ]),
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (price.isReservation)
+                        Text(
+                          'Requiere Reservación',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.surface),
+                        ),
+                      if (price.isPriceHour)
+                        Text('Precio por Hora',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.surface)),
+                      if (price.isEntryFee)
+                        Text('Cuota de Entrada',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.surface)),
+                      if (price.priceHour != null)
+                        Text(
+                          'Horario : De ${formatTimeOfDay(price.priceHour!.startTime)} a ${formatTimeOfDay(price.priceHour!.endTime)}',
+                          style: TextStyle(
+                              fontSize: 16.0,
+                              color: Theme.of(context).colorScheme.surface),
+                        ),
+                    ],
+                  ),
+                  if (onTap != null)
+                    Container(
+                      padding:EdgeInsets.only(left: 20,bottom: 15),
+                      child: IconButton(
+                          onPressed: onTap,
+                          icon: Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                          )),
+                    ),
+                  if (onDelete != null)
+                  Container(
+                    padding:EdgeInsets.only(left: 20,bottom: 15),
+                    child: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red,size: 30,),
+                      onPressed: onDelete,
+                    ),
+                  )
+                   
+                ],
+              )
             ],
           ),
         ),

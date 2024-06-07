@@ -54,6 +54,7 @@ dependencies:
   dotted_line: ^3.2.2
   permission_handler: ^11.3.1
   firebase_auth: ^4.20.0
+  flutter_datetime_picker_plus: ^2.2.0
   
 
 dev_dependencies:
