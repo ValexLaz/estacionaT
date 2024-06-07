@@ -10,10 +10,10 @@ class ReportRepository {
     final response =
         await http.get(Uri.parse('${baseUrl}reservation/parking-earnings/'));
     if (response.statusCode == 200) {
+        print("aqui tan" + response.body);
       List<dynamic> jsonList = json.decode(response.body);
       return jsonList.map((jsonItem) => Report.fromJson(jsonItem)).toList();
     } else {
-      print(response.body);
       throw Exception('Failed to load reports');
     }
   }

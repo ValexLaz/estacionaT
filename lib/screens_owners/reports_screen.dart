@@ -1,4 +1,3 @@
-// reports.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:map_flutter/models/reports.dart';
@@ -71,24 +70,31 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildCard(Report report) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildReportRow(
-              "Vehículos que ingresaron",
-              report.vehicleCount.toString(),
-            ),
-            _buildReportRow(
-              "Total de ingresos",
-              "\$${report.totalEarnings.toStringAsFixed(2)}",
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 30), // Añadir padding superior de 20 píxeles
+      child: Card(
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildReportRow(
+                "Vehículos con reserva",
+                report.reservationVehicleCount.toString(),
+              ),
+              _buildReportRow(
+                "Vehículos sin reserva",
+                report.externalVehicleCount.toString(),
+              ),
+              _buildReportRow(
+                "Total de ingresos",
+                "\$${report.totalEarnings.toStringAsFixed(2)}",
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -145,7 +151,7 @@ class _BarChartPainter extends CustomPainter {
     var random = Random();
     for (int i = 0; i < 5; i++) {
       var height =
-          random.nextDouble() * size.height * 0.8; // Reduce the maximum height
+          random.nextDouble() * size.height * 0.8; 
       canvas.drawLine(
         Offset(i * size.width / 5 + 25, size.height),
         Offset(i * size.width / 5 + 25, size.height - height),
