@@ -55,9 +55,13 @@ class _ReportsPageState extends State<ReportsPage> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildCard(report),
-                  const SizedBox(height: 20),
-                  _buildDashboard(),
+                  _buildHeader(),
+                  _buildCard("Vehículos con reserva",
+                      report.reservationVehicleCount.toString()),
+                  _buildCard("Vehículos sin reserva",
+                      report.externalVehicleCount.toString()),
+                  _buildCard("Total de ingresos",
+                      "\$${report.totalEarnings.toStringAsFixed(2)}"),
                 ],
               ),
             );
@@ -69,11 +73,24 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _buildCard(Report report) {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(top: 30), // Añadir padding superior de 20 píxeles
+      padding: const EdgeInsets.only(top: 30, bottom: 10),
+      child: Text(
+        'Estado del Parqueo',
+        style: TextStyle(
+          color: myColor,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       child: Card(
-        margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
@@ -81,87 +98,26 @@ class _ReportsPageState extends State<ReportsPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildReportRow(
-                "Vehículos con reserva",
-                report.reservationVehicleCount.toString(),
+              Text(
+                title,
+                style: TextStyle(
+                  color: myColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              _buildReportRow(
-                "Vehículos sin reserva",
-                report.externalVehicleCount.toString(),
-              ),
-              _buildReportRow(
-                "Total de ingresos",
-                "\$${report.totalEarnings.toStringAsFixed(2)}",
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  color: myColor,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildReportRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: myColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: myColor,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDashboard() {
-    return Container(
-      width: mediaSize.width,
-      height: 200,
-      child: CustomPaint(
-        painter: _BarChartPainter(myColor),
-      ),
-    );
-  }
-}
-
-class _BarChartPainter extends CustomPainter {
-  final Color primaryColor;
-
-  _BarChartPainter(this.primaryColor);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = primaryColor
-      ..strokeWidth = 10;
-
-    var random = Random();
-    for (int i = 0; i < 5; i++) {
-      var height =
-          random.nextDouble() * size.height * 0.8; 
-      canvas.drawLine(
-        Offset(i * size.width / 5 + 25, size.height),
-        Offset(i * size.width / 5 + 25, size.height - height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }
