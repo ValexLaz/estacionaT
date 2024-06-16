@@ -57,6 +57,14 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: primaryColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Stack(
         children: [
           Positioned.fill(top: 80, child: _buildBottom()),

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:map_flutter/models/reports.dart';
 import 'package:map_flutter/services/api_reports.dart';
 
+import 'package:map_flutter/common/styles/AppTheme.dart'; // Importar el tema
+
 class ReportsPage extends StatefulWidget {
   final String parkingId; // Recibir el ID del parqueo como String
 
@@ -25,11 +27,11 @@ class _ReportsPageState extends State<ReportsPage> {
 
   @override
   Widget build(BuildContext context) {
-    myColor = Theme.of(context).primaryColor;
+    myColor = Theme.of(context).colorScheme.primary;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: FutureBuilder<List<Report>>(
         future: reportsFuture,
         builder: (context, snapshot) {
@@ -39,7 +41,6 @@ class _ReportsPageState extends State<ReportsPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             List<Report> reports = snapshot.data!;
-            // Convertir el parkingId a int para la comparación
             int parkingIdInt = int.tryParse(widget.parkingId) ?? -1;
             List<Report> filteredReports = reports
                 .where((report) => report.parking == parkingIdInt)
@@ -77,7 +78,7 @@ class _ReportsPageState extends State<ReportsPage> {
     return Padding(
       padding: const EdgeInsets.only(top: 30, bottom: 10),
       child: Text(
-        'Estado del Parqueo',
+        'Reportes del Parqueo',
         style: TextStyle(
           color: myColor,
           fontSize: 24,
@@ -91,17 +92,20 @@ class _ReportsPageState extends State<ReportsPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       child: Card(
+        color: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Padding(
+        child: Container(
+          width: mediaSize.width * 0.9, // Ocupa el 90% del ancho de la pantalla
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: TextStyle(
-                  color: myColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -110,7 +114,7 @@ class _ReportsPageState extends State<ReportsPage> {
               Text(
                 value,
                 style: TextStyle(
-                  color: myColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 16,
                 ),
               ),
