@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
+import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:map_flutter/services/api_parking.dart';
 
 class OpeningHoursScreen extends StatefulWidget {
   final int parkingId;
@@ -29,13 +32,24 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
   }
 
   void _navigateToEditScreen(OpeningHours hour) async {
-    // Aquí puedes implementar la lógica para navegar a la pantalla de edición
-    // y pasar el objeto OpeningHours correspondiente como argumento.
-    // Después de la edición, puedes refrescar la lista.
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => EditOpeningHourScreen(openingHour: hour),
+      ),
+    );
+
+    if (result == true) {
+      _refreshOpeningHours();
+    }
+  }
+
+  void _navigateToCreateScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            CreateOpeningHourScreen(parkingId: widget.parkingId),
       ),
     );
 
@@ -131,6 +145,11 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
           }
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToCreateScreen,
+        child: Icon(Icons.add),
+        tooltip: 'Registrar horario',
+      ),
     );
   }
 }
@@ -216,6 +235,92 @@ class _EditOpeningHourScreenState extends State<EditOpeningHourScreen> {
             ElevatedButton(
               onPressed: _updateOpeningHour,
               child: Text('Actualizar Horario'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CreateOpeningHourScreen extends StatefulWidget {
+  final int parkingId;
+
+  CreateOpeningHourScreen({required this.parkingId});
+
+  @override
+  _CreateOpeningHourScreenState createState() =>
+      _CreateOpeningHourScreenState();
+}
+
+class _CreateOpeningHourScreenState extends State<CreateOpeningHourScreen> {
+  late TextEditingController _dayController;
+  late TextEditingController _openTimeController;
+  late TextEditingController _closeTimeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dayController = TextEditingController();
+    _openTimeController = TextEditingController();
+    _closeTimeController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _dayController.dispose();
+    _openTimeController.dispose();
+    _closeTimeController.dispose();
+    super.dispose();
+  }
+
+  void _registerOpeningHour() async {
+    final newHour = {
+      'day': _dayController.text,
+      'open_time': _openTimeController.text,
+      'close_time': _closeTimeController.text,
+      'parking': widget.parkingId,
+    };
+
+    try {
+      await ApiParking().createOpeningHours(newHour);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Horario registrado exitosamente')),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar horario: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Registrar Horario'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _dayController,
+              decoration: InputDecoration(labelText: 'Día'),
+            ),
+            TextField(
+              controller: _openTimeController,
+              decoration: InputDecoration(labelText: 'Hora de Apertura'),
+            ),
+            TextField(
+              controller: _closeTimeController,
+              decoration: InputDecoration(labelText: 'Hora de Cierre'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _registerOpeningHour,
+              child: Text('Registrar Horario'),
             ),
           ],
         ),
