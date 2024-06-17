@@ -1,10 +1,14 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'dart:math';
+
+import 'package:intl/intl.dart';
 import 'package:map_flutter/models/reports.dart';
 import 'package:map_flutter/services/api_reports.dart';
 
+import 'package:map_flutter/common/styles/AppTheme.dart'; // Importar el tema
+
 class ReportsPage extends StatefulWidget {
-  final String parkingId; // Recibir el ID del parqueo como String
+  final String parkingId;
 
   const ReportsPage({Key? key, required this.parkingId}) : super(key: key);
 
@@ -16,20 +20,50 @@ class _ReportsPageState extends State<ReportsPage> {
   late Color myColor;
   late Size mediaSize;
   late Future<List<Report>> reportsFuture;
+  DateTime? selectedDate;
 
   @override
   void initState() {
     super.initState();
-    reportsFuture = ReportRepository().fetchReports();
+    reportsFuture = _fetchReports();
+  }
+
+  Future<List<Report>> _fetchReports() {
+    int parkingIdInt = int.tryParse(widget.parkingId) ?? -1;
+    return ReportRepository().fetchReports(parkingIdInt);
+  }
+
+  void _selectDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        reportsFuture = _fetchReports();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    myColor = Theme.of(context).primaryColor;
+    myColor = Theme.of(context).colorScheme.primary;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: Text('Reportes del Parqueo'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: _selectDate,
+          ),
+        ],
+      ),
       body: FutureBuilder<List<Report>>(
         future: reportsFuture,
         builder: (context, snapshot) {
@@ -39,25 +73,38 @@ class _ReportsPageState extends State<ReportsPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             List<Report> reports = snapshot.data!;
-            // Convertir el parkingId a int para la comparación
             int parkingIdInt = int.tryParse(widget.parkingId) ?? -1;
-            List<Report> filteredReports = reports
-                .where((report) => report.parking == parkingIdInt)
-                .toList();
+            List<Report> filteredReports = reports.where((report) {
+              return report.parkingId == parkingIdInt &&
+                  (selectedDate == null ||
+                      DateFormat('yyyy-MM-dd')
+                              .format(DateTime.parse(report.date)) ==
+                          DateFormat('yyyy-MM-dd').format(selectedDate!));
+            }).toList();
 
             if (filteredReports.isEmpty) {
               return Center(
-                  child:
-                      Text('No data found for parking ID ${widget.parkingId}'));
+                  child: Text(
+                      'No data found for parking ID ${widget.parkingId} on selected date'));
             }
 
-            Report report = filteredReports[0];
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildCard(report),
-                  const SizedBox(height: 20),
-                  _buildDashboard(),
+                  _buildHeader(),
+                  ...filteredReports.map((report) => Column(
+                        children: [
+                          _buildCard("Fecha", report.date),
+                          _buildCard("Vehículos con reserva",
+                              report.reservationVehicleCount.toString()),
+                          _buildCard("Vehículos sin reserva",
+                              report.externalVehicleCount.toString()),
+                          _buildCard("Total de vehículos ingresados",
+                              report.entryVehicleCount.toString()),
+                          _buildCard("Total de ingresos",
+                              "\$${report.totalEarnings.toStringAsFixed(2)}"),
+                        ],
+                      )),
                 ],
               ),
             );
@@ -69,99 +116,54 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _buildCard(Report report) {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(top: 30), // Añadir padding superior de 20 píxeles
+      padding: const EdgeInsets.only(top: 30, bottom: 10),
+      child: Text(
+        'Reportes del Parqueo',
+        style: TextStyle(
+          color: myColor,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       child: Card(
-        margin: const EdgeInsets.all(16),
+        color: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
-        child: Padding(
+        child: Container(
+          width: mediaSize.width * 0.9,
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildReportRow(
-                "Vehículos con reserva",
-                report.reservationVehicleCount.toString(),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              _buildReportRow(
-                "Vehículos sin reserva",
-                report.externalVehicleCount.toString(),
-              ),
-              _buildReportRow(
-                "Total de ingresos",
-                "\$${report.totalEarnings.toStringAsFixed(2)}",
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildReportRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: myColor,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: myColor,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDashboard() {
-    return Container(
-      width: mediaSize.width,
-      height: 200,
-      child: CustomPaint(
-        painter: _BarChartPainter(myColor),
-      ),
-    );
-  }
-}
-
-class _BarChartPainter extends CustomPainter {
-  final Color primaryColor;
-
-  _BarChartPainter(this.primaryColor);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = primaryColor
-      ..strokeWidth = 10;
-
-    var random = Random();
-    for (int i = 0; i < 5; i++) {
-      var height =
-          random.nextDouble() * size.height * 0.8; 
-      canvas.drawLine(
-        Offset(i * size.width / 5 + 25, size.height),
-        Offset(i * size.width / 5 + 25, size.height - height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }
