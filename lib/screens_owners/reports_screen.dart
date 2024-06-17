@@ -98,7 +98,7 @@ class _ReportsPageState extends State<ReportsPage> {
                           _buildCard("Vehículos con reserva",
                               report.reservationVehicleCount.toString()),
                           _buildCard("Vehículos sin reserva",
-                              report.externalVehicleCount.toString()),
+                              (report.externalVehicleCount - 1).toString()),
                           _buildCard("Total de vehículos ingresados",
                               report.entryVehicleCount.toString()),
                           _buildCard("Total de ingresos",
