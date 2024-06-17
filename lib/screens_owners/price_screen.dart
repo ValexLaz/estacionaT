@@ -106,14 +106,15 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
           ),
         ),
         InputForm(
-          name: "Precio",
-          inputWidget: TextFormField(
+        name: "Precio",
+        inputWidget: TextFormField(
             controller: _priceController,
             keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.payments),
+            prefixIcon: Icon(Icons.payments),
             ),
-          ),
+        ),
         ),
         InputForm(
             name: "Categoria",
