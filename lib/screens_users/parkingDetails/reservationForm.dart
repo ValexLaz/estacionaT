@@ -76,6 +76,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
         reservationDate:
             '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}',
         userId: userId,
+        state: ReservationState.pending
       );
       ReservationManager().setReservation(newReservation);
       Navigator.push(

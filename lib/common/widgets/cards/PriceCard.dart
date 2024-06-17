@@ -22,7 +22,7 @@ class PriceCard extends StatelessWidget {
       elevation: 4.0,
       margin: const EdgeInsets.all(8.0),
       child: Container(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).colorScheme.secondary,
         child: Padding(
           padding: const EdgeInsets.only(left:16.0,top:16.0,bottom:16.0),
           child: Column(

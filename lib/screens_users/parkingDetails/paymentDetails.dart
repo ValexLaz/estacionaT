@@ -98,7 +98,7 @@ class _PaymentDetailsState extends State<PaymentDetails> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => QRPayment(qrBase64: qrBase64),
+                    builder: (context) => QRPayment(qrBase64: qrBase64,reservation: widget.reservation,),
                   ),
                 );
               } catch (error) {
@@ -179,13 +179,13 @@ class CardDebitCredit extends StatelessWidget {
                 var data = jsonDecode(response.body);
                 if (data['status'] == 'PAID') {
                   //ApiReservation().create(newReservation);
-
+                  reservation.state = ReservationState.confirmed;
                   ApiReservationVehicleEntry().create(ReservationVehicleEntry(
                       reservationData: reservation,
                       vehicleEntryData: VehicleEntry(
                         user: Provider.of<TokenProvider>(context, listen: false)
                             .userId!,
-                        vehicle: 2,
+                        vehicle: 71,
                         parking: ParkingManager.instance.parking!.id!,
                       )));
 
@@ -218,12 +218,35 @@ class CardDebitCredit extends StatelessWidget {
 
 class QRPayment extends StatelessWidget {
   final String qrBase64;
-  const QRPayment({super.key, required this.qrBase64});
+  final Reservation reservation;
+  const QRPayment({super.key, required this.qrBase64,required this.reservation});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+           appBar: AppBar(
+        title: Text('Payment'),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () async {
+              
+                  reservation.state = ReservationState.pending;
+                  ApiReservationVehicleEntry().create(ReservationVehicleEntry(
+                      reservationData: reservation,
+                      vehicleEntryData: VehicleEntry(
+                        user: Provider.of<TokenProvider>(context, listen: false)
+                            .userId!,
+                        vehicle: 71,
+                        parking: ParkingManager.instance.parking!.id!,
+                      )));
+
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NavigationBarScreen()));
+            }),
+      ),
+      
       body: SizedBox(
           height: 300,
           child: Center(
