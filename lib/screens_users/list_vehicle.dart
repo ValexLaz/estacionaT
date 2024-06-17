@@ -68,7 +68,7 @@ class _ListVehicleState extends State<ListVehicle> {
 
   Widget getVehicleIcon(int type) {
     switch (type) {
-      case 1:
+      case 5:
         return Container(
           width: 64,
           height: 64,
@@ -80,7 +80,7 @@ class _ListVehicleState extends State<ListVehicle> {
             child: Image.asset('assets/Icons/sedan.png', color: Colors.white),
           ),
         );
-      case 2:
+      case 4:
         return Container(
           width: 64,
           height: 64,
@@ -105,7 +105,7 @@ class _ListVehicleState extends State<ListVehicle> {
             child: Image.asset('assets/Icons/jeep.png', color: Colors.white),
           ),
         );
-      case 4:
+      case 2:
         return Container(
           width: 64,
           height: 64,
@@ -121,7 +121,7 @@ class _ListVehicleState extends State<ListVehicle> {
             ),
           ),
         );
-      case 5:
+      case 1:
         return Container(
           width: 64,
           height: 64,
@@ -232,7 +232,7 @@ class _ListVehicleState extends State<ListVehicle> {
                                                 "Placa: ${vehicle['registration_plate']}",
                                                 style: TextStyle(
                                                     color: Colors.black87),
-                                              ),
+                                              ), 
                                             ],
                                           ),
                                         ),
@@ -270,7 +270,7 @@ class _ListVehicleState extends State<ListVehicle> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
+                      backgroundColor: Color(0xFF4285f4),
                       padding: EdgeInsets.symmetric(
                           vertical: 12,
                           horizontal: 100), // Increase horizontal padding

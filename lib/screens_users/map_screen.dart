@@ -5,6 +5,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_users/parkingDetails/parking_details.dart';
 import 'package:map_flutter/screens_users/routes_screen.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:map_flutter/services/api_price.dart'; // Asegúrate de importar esto
+import 'package:map_flutter/models/Price.dart'; // Asegúrate de importar esto
 
 const String MAPBOX_ACCESS_TOKEN = 'pk.eyJ1Ijoia2VuZGFsNjk2IiwiYSI6ImNsdnJvZ3o3cjBlbWQyanBqcGh1b3ZhbTcifQ.d5h3QddVskl61Rr8OGmnQQ';
 const String MAPBOX_STYLE = 'mapbox/streets-v12';
@@ -26,6 +28,7 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   List<Map<String, dynamic>> parkingAddresses = [];
   List<String> suggestions = [];
+  double? _lowestPrice;
 
   @override
   void initState() {
@@ -62,7 +65,7 @@ class _MapScreenState extends State<MapScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error obtaining location: $e'),
+          content: Text('Error obteniendo la ubicación: $e'),
           duration: const Duration(seconds: 3),
         ));
       }
@@ -72,15 +75,20 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> fetchAndShowParkingInfo(BuildContext context, String parkingId) async {
     try {
       Map<String, dynamic> parkingDetails = await ApiParking().getParkingDetailsById(parkingId);
+      List<Price> parkingPrices = await ApiPrice().getAllByParam('parking/$parkingId/');
+      double lowestPrice = parkingPrices.isNotEmpty
+          ? parkingPrices.map((price) => price.price).reduce((a, b) => a < b ? a : b)
+          : double.infinity;
       if (mounted) {
         setState(() {
           _currentParkingDetails = parkingDetails;
           _showParkingDetails = true;
+          _lowestPrice = lowestPrice == double.infinity ? null : lowestPrice;
         });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to load parking details: $e'),
+        content: Text('Error al cargar los detalles del parqueo: $e'),
         duration: const Duration(seconds: 2),
       ));
     }
@@ -98,7 +106,7 @@ class _MapScreenState extends State<MapScreen> {
         }).toList();
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading parking addresses: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error cargando las direcciones de parqueos: $e')));
     }
   }
 
@@ -151,7 +159,7 @@ class _MapScreenState extends State<MapScreen> {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied');
+      return Future.error('Los permisos de ubicación están permanentemente denegados');
     }
     return Geolocator.getCurrentPosition();
   }
@@ -347,9 +355,9 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text(
-                      '10 Bs/hora',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    Text(
+                      _lowestPrice != null ? '$_lowestPrice Bs/hora' : 'N/A',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 10),
                     Container(width: 1, height: 20, color: Colors.black),
