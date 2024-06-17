@@ -84,7 +84,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
     );
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     return Scaffold(
-        body: reservationData.isEmpty 
+        body: reservationData.isEmpty || _duration.inSeconds <= 0
             ? Center(child: Text("Aun no tienes reservas en curso"))
             : Container(
                 color: Colors.white,
