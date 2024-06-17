@@ -152,20 +152,7 @@ class _ParkingOwnerScreenState extends State<ParkingOwnerScreen> {
                       );
                     },
                   ),
-                  Divider(color: lightGray),
-                  _buildListTile(
-                    title: 'Registrar Precios',
-                    icon: Icons.attach_money,
-                    textColor: textColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PriceFormScreen(),
-                        ),
-                      );
-                    },
-                  ),
+
                   Divider(color: lightGray),
                   _buildListTile(
                     title: 'Cerrar sesión',

@@ -67,7 +67,7 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(top: 80, child: _buildBottom()),
+          Positioned.fill(top: 10, child: _buildBottom()),
         ],
       ),
     );
@@ -98,7 +98,7 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Agregar un nuevo paquete",
+          "Agregar un nuevo precio",
           style: TextStyle(
             color: primaryColor,
             fontSize: 32,

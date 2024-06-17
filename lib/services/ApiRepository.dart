@@ -58,17 +58,22 @@ abstract class ApiRepository<T> {
     }
   }
 
-  Future<List<T>> getAllByParam(String param) async {
+Future<List<T>> getAllByParam(String param) async {
+  try {
     final response = await http.get(Uri.parse('$completeUrl$param'));
-    print(Uri.parse('$completeUrl$param'));
+    print(response.body);
     if (response.statusCode == 200) {
       List<dynamic> jsonList = json.decode(response.body);
       return jsonList
           .map((jsonItem) => fromJson(jsonItem as Map<String, dynamic>))
           .toList();
     } else {
-      print(jsonDecode(response.body));
       throw Exception('Failed to load data from API');
     }
+  } catch (e) {
+    // Manejar el error aquí
+    print('Error al obtener datos de la API: $e');
+    rethrow;
   }
+}
 }

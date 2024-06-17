@@ -74,7 +74,7 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      PriceFormScreen(parkingId: widget.parkingId)));
+                      PriceParkingFormScreen(parkingId: widget.parkingId)));
         } else {
           print('Error al guardar la ubicación: ${response.body}');
         }
