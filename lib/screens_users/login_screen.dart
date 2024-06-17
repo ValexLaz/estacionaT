@@ -204,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
-        minimumSize: Size.fromHeight(60),
+        minimumSize: Size.fromHeight(50),
       ),
     );
   }
@@ -311,7 +311,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
-        minimumSize: Size.fromHeight(60),
+        minimumSize: Size.fromHeight(50),
       ),
       child: Text(
         "Crear cuenta",
