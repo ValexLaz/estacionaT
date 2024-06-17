@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'login_screen.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -17,7 +15,6 @@ class _SignUpPageState extends State<SignUpPage> {
   late Size mediaSize;
   TextEditingController nameController = TextEditingController();
   TextEditingController last_nameController = TextEditingController();
-
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
@@ -45,80 +42,46 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         backgroundColor: Colors.white,
       ),
-      backgroundColor: Colors.white, // Cambiado aquí para tener fondo blanco
-      body: Stack(
-        children: [
-          Positioned(bottom: 0, child: _buildBottom()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTop() {
-    return Container(
-      width: mediaSize.width,
-      height: 200,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/Logotipo.png'),
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottom() {
-    return SizedBox(
-      width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: _buildForm(),
-          ),
-        ),
-      ),
+      backgroundColor: Colors.white, 
+      body: _buildForm(),
     );
   }
 
   Widget _buildForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        _buildGreyText("Nombre (este también será tu nombre de usuario)"),
-        _buildInputField(nameController,
-            icon: Icons.person, focusNode: nameFocusNode),
-        const SizedBox(height: 20),
-        _buildGreyText("Apellido"),
-        _buildInputField(last_nameController,
-            icon: Icons.person, focusNode: last_nameFocusNode),
-        const SizedBox(height: 20),
-        _buildGreyText("Correo Electrónico"),
-        _buildInputField(emailController,
-            icon: Icons.email, focusNode: emailFocusNode),
-        const SizedBox(height: 20),
-        _buildGreyText("Número Telefónico"),
-        _buildInputField(phoneController,
-            icon: Icons.phone, focusNode: phoneFocusNode),
-        const SizedBox(height: 20),
-        _buildGreyText("Contraseña"),
-        _buildPasswordInputField(
-            passwordController, passwordFocusNode, obscurePassword),
-        const SizedBox(height: 20),
-        _buildGreyText("Confirmar Contraseña"),
-        _buildPasswordInputField(confirmPasswordController,
-            confirmPasswordFocusNode, obscureConfirmPassword),
-        const SizedBox(height: 40),
-        _buildSignUpButton(),
-        const SizedBox(height: 20),
-      ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          _buildGreyText("Nombre (este también será tu nombre de usuario)"),
+          _buildInputField(nameController,
+              icon: Icons.person, focusNode: nameFocusNode),
+          const SizedBox(height: 20),
+          _buildGreyText("Apellido"),
+          _buildInputField(last_nameController,
+              icon: Icons.person, focusNode: last_nameFocusNode),
+          const SizedBox(height: 20),
+          _buildGreyText("Correo Electrónico"),
+          _buildInputField(emailController,
+              icon: Icons.email, focusNode: emailFocusNode),
+          const SizedBox(height: 20),
+          _buildGreyText("Número Telefónico"),
+          _buildInputField(phoneController,
+              icon: Icons.phone, focusNode: phoneFocusNode),
+          const SizedBox(height: 20),
+          _buildGreyText("Contraseña"),
+          _buildPasswordInputField(
+              passwordController, passwordFocusNode, obscurePassword),
+          const SizedBox(height: 20),
+          _buildGreyText("Confirmar Contraseña"),
+          _buildPasswordInputField(confirmPasswordController,
+              confirmPasswordFocusNode, obscureConfirmPassword),
+          const SizedBox(height: 40),
+          _buildSignUpButton(),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 
@@ -160,6 +123,11 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  bool isPasswordValid(String password) {
+    final passwordRegex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+    return passwordRegex.hasMatch(password);
+  }
+
   Widget _buildSignUpButton() {
     return ElevatedButton(
       onPressed: () async {
@@ -168,7 +136,51 @@ class _SignUpPageState extends State<SignUpPage> {
         String last_name = last_nameController.text.trim();
         String email = emailController.text.trim();
         String password = passwordController.text.trim();
+        String confirmPassword = confirmPasswordController.text.trim();
         String phone = phoneController.text.trim();
+
+        if (!isPasswordValid(password)) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Contraseña inválida'),
+                content: Text(
+                    'La contraseña debe tener al menos 8 caracteres y estar compuesta por números y letras.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cerrar'),
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
+
+        if (password != confirmPassword) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Error de contraseña'),
+                content: Text('Las contraseñas no coinciden.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cerrar'),
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
 
         // Crear el cuerpo de la solicitud
         Map<String, String> requestBody = {
