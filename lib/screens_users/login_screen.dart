@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     myColor = Theme.of(context).colorScheme.primary;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(0xFF1b4ee4),
+      backgroundColor: const Color(0xFF4285F3),
       body: Column(
         children: [
           _buildTop(),
@@ -204,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
-        minimumSize: Size.fromHeight(60),
+        minimumSize: Size.fromHeight(50),
       ),
     );
   }
@@ -311,7 +311,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
         elevation: 20,
-        minimumSize: Size.fromHeight(60),
+        minimumSize: Size.fromHeight(50),
       ),
       child: Text(
         "Crear cuenta",

@@ -17,7 +17,7 @@ class ListParkings extends StatefulWidget {
 class _ListParkingsState extends State<ListParkings> {
   final ApiParking apiParking = ApiParking();
   List<Parking> parqueos = [];
-  Color primaryColor = Color(0xFF1b4ee4);
+  Color primaryColor = Color(0xFF4285f4);
   bool isLoading = true;
 
   @override
@@ -248,7 +248,7 @@ class _ListParkingsState extends State<ListParkings> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
+                      backgroundColor: Color(0xFF4285f4),
                       padding: EdgeInsets.symmetric(
                           vertical: 12,
                           horizontal: 100), // Increase horizontal padding
