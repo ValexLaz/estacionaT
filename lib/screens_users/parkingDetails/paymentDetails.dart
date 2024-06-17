@@ -93,7 +93,7 @@ class _PaymentDetailsState extends State<PaymentDetails> {
             onTap: () async {
               LoadingDialog.showLoadingDialog(context,loadingText: "Generando Qr ...");
               try {
-                String qrBase64 = await QRCodeService().generateQRCode();
+                String qrBase64 = await QRCodeService(id: widget.reservation.id.toString()).generateQRCode();
                 LoadingDialog.hideLoadingDialog(context);
                 Navigator.push(
                   context,
