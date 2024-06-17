@@ -288,15 +288,6 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
       height: 50,
       child: Row(
         children: [
-          if (isPlate)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Image.asset(
-                'assets/Icons/placa3.png',
-                width: 40,
-                height: 40,
-              ),
-            ),
           Expanded(
             child: TextField(
               controller: controller,
@@ -329,7 +320,7 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: myColor,
+          backgroundColor: Color(0xFF4285f4),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
