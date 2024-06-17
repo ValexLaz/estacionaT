@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/models/Price.dart';
+import 'package:map_flutter/screens_owners/map_next.dart';
 import 'package:map_flutter/services/api_type_price_service.dart'; // Importa correctamente el servicio
 import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
+import 'package:map_flutter/screens_owners/price_screen.dart';
 
 class ParkingPricesScreen extends StatefulWidget {
   final String parkingId;
@@ -92,6 +94,18 @@ class _ParkingPricesScreenState extends State<ParkingPricesScreen> {
             );
           }
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: ()=>{
+ Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PriceFormScreen(),
+                        ),
+                      )
+        },
+        child: Icon(Icons.add),
+        tooltip: 'Registrar horario',
       ),
     );
   }

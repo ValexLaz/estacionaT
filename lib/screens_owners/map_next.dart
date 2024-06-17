@@ -9,16 +9,16 @@ import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
 
-class PriceFormScreen extends StatefulWidget {
+class PriceParkingFormScreen extends StatefulWidget {
   final int parkingId;
 
-  PriceFormScreen({Key? key, required this.parkingId}) : super(key: key);
+  PriceParkingFormScreen({Key? key, required this.parkingId}) : super(key: key);
 
   @override
-  _PriceFormScreenState createState() => _PriceFormScreenState();
+  _PriceParkingFormScreenState createState() => _PriceParkingFormScreenState();
 }
 
-class _PriceFormScreenState extends State<PriceFormScreen> {
+class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _isPricePerHourCtrl = TextEditingController();
   TextEditingController _isPriceReservationCtrl = TextEditingController();

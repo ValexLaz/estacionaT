@@ -16,7 +16,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
       FirebaseDatabase.instance.ref().child("parkingtime");
   late DatabaseReference reservationRef;
   Map<String, dynamic> reservationData = {};
-  late Timer _timer;
+  Timer _timer = Timer.periodic(Duration(seconds: 1), (timer) {});
   Duration _duration = Duration(hours: 2);
   double _progress = 1.0;
   Color textColor = Colors.black;
