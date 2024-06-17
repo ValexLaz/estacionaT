@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     myColor = Theme.of(context).colorScheme.primary;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(0xFF1b4ee4),
+      backgroundColor: const Color(0xFF4285F3),
       body: Column(
         children: [
           _buildTop(),
