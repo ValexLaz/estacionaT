@@ -364,7 +364,7 @@ class _MapScreenState extends State<MapScreen> {
                     const SizedBox(width: 10),
                     const Icon(Icons.access_time),
                     const Text(
-                      '9:00 - 21:00',
+                      '9am - 10pm',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
