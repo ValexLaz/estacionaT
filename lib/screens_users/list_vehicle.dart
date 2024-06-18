@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
-import 'package:map_flutter/screens_users/vehicle_details_screen.dart';
 import 'package:map_flutter/screens_users/vehicle_registration.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
+import 'package:map_flutter/screens_users/vehicle_details_screen.dart';
 
 class ListVehicle extends StatefulWidget {
   const ListVehicle({super.key});
@@ -52,18 +53,44 @@ class _ListVehicleState extends State<ListVehicle> {
   Future<void> deleteVehicle(String vehicleId) async {
     try {
       await apiVehicle.deleteVehicleByID(vehicleId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vehículo eliminado exitosamente')),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmationDialog(
+            title: 'Éxito',
+            message: 'Vehículo eliminado exitosamente',
+            onConfirm: () {
+              setState(() {
+                vehicles.removeWhere((vehicle) => vehicle['id'].toString() == vehicleId);
+              });
+            },
+          );
+        },
       );
-      setState(() {
-        vehicles
-            .removeWhere((vehicle) => vehicle['id'].toString() == vehicleId);
-      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar el vehículo: $e')),
       );
     }
+  }
+
+  Route _createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeInOut;
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+
+        return SlideTransition(
+          position: offsetAnimation,
+          child: child,
+        );
+      },
+    );
   }
 
   Widget getVehicleIcon(int type) {
@@ -228,11 +255,25 @@ class _ListVehicleState extends State<ListVehicle> {
                                                 ),
                                               ),
                                               SizedBox(height: 4),
-                                              Text(
-                                                "Placa: ${vehicle['registration_plate']}",
-                                                style: TextStyle(
-                                                    color: Colors.black87),
-                                              ), 
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 4, horizontal: 8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  border: Border.all(
+                                                      color: Colors.blue,
+                                                      width: 2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  "${vehicle['registration_plate']}",
+                                                  style: TextStyle(
+                                                    color: Colors.blue,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -259,9 +300,7 @@ class _ListVehicleState extends State<ListVehicle> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => VehicleRegistrationPage(),
-                        ),
+                        _createRoute(VehicleRegistrationPage()),
                       ).then((_) {
                         fetchData(
                           Provider.of<TokenProvider>(context, listen: false)

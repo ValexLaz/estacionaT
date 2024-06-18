@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_flutter/screens_users/token_provider.dart';
@@ -22,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   FocusNode _emailFocusNode = FocusNode();
   FocusNode _phoneFocusNode = FocusNode();
   bool _isEditing = false;
-  bool _isCancelVisible = false; // Nueva variable de estado
+
   @override
   void initState() {
     super.initState();
@@ -112,10 +111,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icons.phone, _phoneFocusNode,
                   enabled: _isEditing),
               const SizedBox(height: 40),
-              _isEditing ? _buildSaveButton() : _buildEditButton(),
-
-              if (_isCancelVisible)
-                _buildCancelButton(), // Mostrar solo cuando se está editando
+              Center(
+                child: Column(
+                  children: [
+                    _isEditing ? _buildSaveButton() : _buildEditButton(),
+                    if (_isEditing) _buildCancelButton(),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -124,21 +127,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildCancelButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _isEditing = false;
-          _isCancelVisible = false;
-          _loadUserData(); // Cargar de nuevo los datos originales al cancelar
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red,
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16),
+      child: FractionallySizedBox(
+        widthFactor: 0.8,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            setState(() {
+              _isEditing = false;
+              _loadUserData(); // Cargar de nuevo los datos originales al cancelar
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          icon: Icon(Icons.cancel, color: Colors.white),
+          label: Text(
+            'Cancelar',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
-      child: Text('Cancelar', style: TextStyle(color: Colors.white)),
     );
   }
 
@@ -157,38 +174,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildEditButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _isEditing = true;
-          _isCancelVisible = true; // Mostrar el botón de Cancelar
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16),
+      child: FractionallySizedBox(
+        widthFactor: 0.8,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            setState(() {
+              _isEditing = true;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF4285f4),
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          icon: Icon(Icons.edit, color: Colors.white),
+          label: Text(
+            'Editar Perfil',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
-      child: Text('Editar Perfil', style: TextStyle(color: Colors.white)),
     );
   }
 
   Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _updateProfile(context);
-        setState(() {
-          _isCancelVisible = false;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16),
+      child: FractionallySizedBox(
+        widthFactor: 0.8,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            _updateProfile(context);
+            setState(() {});
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF4285f4),
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          icon: Icon(Icons.save, color: Colors.white),
+          label: Text(
+            'Guardar Cambios',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
-      child: Text('Guardar Cambios', style: TextStyle(color: Colors.white)),
     );
   }
 

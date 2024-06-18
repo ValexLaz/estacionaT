@@ -9,6 +9,7 @@ class EditProfileScreen extends StatefulWidget {
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
+
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late Color myColor;
   late Size mediaSize;
@@ -74,7 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    myColor = Theme.of(context).primaryColor;
+    myColor = Colors.blue;
     mediaSize = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -104,7 +105,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               _buildInputField(_phoneController, "Número de Teléfono",
                   Icons.phone, _phoneFocusNode),
               const SizedBox(height: 40),
-              _buildSaveButton(),
+              Row(
+                children: [
+                  Expanded(child: _buildSaveButton()),
+                  SizedBox(width: 16),
+                  Expanded(child: _buildCancelButton()),
+                ],
+              ),
             ],
           ),
         ),
@@ -125,32 +132,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _updateProfile(context);
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF1b4ee4),
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          _updateProfile(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF4285f4),
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 100),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        icon: Icon(Icons.save, color: Colors.white),
+        label: Text(
+          'Guardar Cambios',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      child: Text('Guardar Cambios', style: TextStyle(color: Colors.white)),
     );
   }
 
   Widget _buildCancelButton() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey,
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(60),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey,
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 100),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        icon: Icon(Icons.cancel, color: Colors.white),
+        label: Text(
+          'Cancelar',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      child: Text('Cancelar', style: TextStyle(color: Colors.white)),
     );
   }
 
