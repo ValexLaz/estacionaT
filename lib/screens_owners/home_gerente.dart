@@ -279,7 +279,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           child: ListTile(
             leading: getVehicleIcon(entry['vehicle']['type_vehicle']),
             title: Text(
-              "Vehículo ${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
+              "${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
