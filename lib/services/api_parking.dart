@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_service.dart';
 import 'package:provider/provider.dart';
@@ -192,6 +193,25 @@ Future<List<Map<String, dynamic>>> getVehicleEntryById(String parkingId) async {
       throw Exception('Error al crear el horario de apertura ');
     }
   }
+
+
+
+  Future<Map<String,dynamic>> getByID(String id) async {
+  try {
+    final response = await http.get(Uri.parse('$baseUrl$id/'));
+    print(response.body);
+    if (response.statusCode == 200) {
+            final Map<String, dynamic> responseData = json.decode(response.body);
+            return responseData;
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    // Manejar el error aquí
+    print('Error al obtener datos de la API: $e');
+    rethrow;
+  }
+}
 }
 
 class ApiUser extends ApiService {
@@ -214,7 +234,6 @@ class ApiVehicle extends ApiService {
     if (response.statusCode == 200) {
       List<Map<String, dynamic>> allVehicles =
           List<Map<String, dynamic>>.from(json.decode(response.body));
-      //filtro para vehiculos del propietario, no del parqueo
       List<Map<String, dynamic>> ownParkingFalseVehicles = allVehicles
           .where((vehicle) => vehicle['is_ownparking'] == false)
           .toList();

@@ -77,7 +77,7 @@ class QRCodeService {
   }
 
   Future<String> getNextPaymentNumber() async {
-    return "Grupo5-16";
+    return "Grupo5-17";
   }
 
   Future<String> createOrder(User user, List<CartItem> cartItems) async {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
@@ -15,6 +16,10 @@ import 'package:map_flutter/services/api_reservationVehicleEntry.dart';
 import 'package:map_flutter/services/payment/QrGenerator.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:typed_data';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PaymentDetails extends StatefulWidget {
   final Reservation reservation;
@@ -91,14 +96,20 @@ class _PaymentDetailsState extends State<PaymentDetails> {
             title: "Qr Simple",
             icon: Icons.qr_code_scanner,
             onTap: () async {
-              LoadingDialog.showLoadingDialog(context,loadingText: "Generando Qr ...");
+              LoadingDialog.showLoadingDialog(context,
+                  loadingText: "Generando Qr ...");
               try {
-                String qrBase64 = await QRCodeService(id: widget.reservation.id.toString()).generateQRCode();
+                String qrBase64 =
+                    await QRCodeService(id: widget.reservation.id.toString())
+                        .generateQRCode();
                 LoadingDialog.hideLoadingDialog(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => QRPayment(qrBase64: qrBase64,reservation: widget.reservation,),
+                    builder: (context) => QRPayment(
+                      qrBase64: qrBase64,
+                      reservation: widget.reservation,
+                    ),
                   ),
                 );
               } catch (error) {
@@ -113,7 +124,8 @@ class _PaymentDetailsState extends State<PaymentDetails> {
             iconColor: Color.fromARGB(255, 15, 127, 219),
             icon: Icons.credit_card,
             onTap: () async {
-              LoadingDialog.showLoadingDialog(context,loadingText: "cargando ...");
+              LoadingDialog.showLoadingDialog(context,
+                  loadingText: "cargando ...");
 
               Payment? payment =
                   await makePayment(widget.reservation.totalAmount);
@@ -156,7 +168,8 @@ class _PaymentDetailsState extends State<PaymentDetails> {
 }
 
 class CardDebitCredit extends StatelessWidget {
-  const CardDebitCredit({super.key, required this.payment, required this.reservation});
+  const CardDebitCredit(
+      {super.key, required this.payment, required this.reservation});
   final Payment payment;
   final Reservation reservation;
   @override
@@ -201,7 +214,6 @@ class CardDebitCredit extends StatelessWidget {
               }
             }),
       ),
-      
       body: SingleChildScrollView(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: 1000),
@@ -219,39 +231,145 @@ class CardDebitCredit extends StatelessWidget {
 class QRPayment extends StatelessWidget {
   final String qrBase64;
   final Reservation reservation;
-  const QRPayment({super.key, required this.qrBase64,required this.reservation});
+  const QRPayment(
+      {super.key, required this.qrBase64, required this.reservation});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-           appBar: AppBar(
-        title: Text('Payment'),
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () async {
-              
-                  reservation.state = ReservationState.pending;
-                  ApiReservationVehicleEntry().create(ReservationVehicleEntry(
-                      reservationData: reservation,
-                      vehicleEntryData: VehicleEntry(
-                        user: Provider.of<TokenProvider>(context, listen: false)
-                            .userId!,
-                        vehicle: 91,
-                        parking: ParkingManager.instance.parking!.id!,
-                      )));
+        appBar: AppBar(
+          title: Text('Payment'),
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () async {
+                reservation.state = ReservationState.pending;
+                ApiReservationVehicleEntry().create(ReservationVehicleEntry(
+                    reservationData: reservation,
+                    vehicleEntryData: VehicleEntry(
+                      user: Provider.of<TokenProvider>(context, listen: false)
+                          .userId!,
+                      vehicle: 91,
+                      parking: ParkingManager.instance.parking!.id!,
+                    )));
 
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NavigationBarScreen()));
-            }),
-      ),
-      
-      body: SizedBox(
-          height: 300,
-          child: Center(
-            child: Image.memory(base64Decode(qrBase64)),
-          )),
-    );
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NavigationBarScreen()));
+              }),
+        ),
+        body: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Center(
+                  child: Image.memory(base64Decode(qrBase64)),
+                ),
+              ),
+              SizedBox(height: 20),
+              Container(
+                  margin: EdgeInsets.only(bottom: 5),
+                  child: ButtonTheme(
+                    minWidth: 200,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _downloadQRImage(context),
+                      icon: Icon(Icons.download),
+                      label: Text('Descargar QR'),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.blue), // Color de fondo del botón
+                        foregroundColor: MaterialStateProperty.all<Color>(
+                            Colors.white), // Color del texto y el icono
+                        elevation: MaterialStateProperty.all<double>(
+                            3), // Elevación del botón
+                        shape: MaterialStateProperty.all<OutlinedBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(10), // Bordes redondeados
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  // Espacio entre la imagen y el botón
+                  ),
+              Container(
+                  margin: EdgeInsets.only(bottom: 60),
+                  child: ButtonTheme(
+                    minWidth: 200,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        reservation.state = ReservationState.pending;
+                        ApiReservationVehicleEntry()
+                            .create(ReservationVehicleEntry(
+                                reservationData: reservation,
+                                vehicleEntryData: VehicleEntry(
+                                  user: Provider.of<TokenProvider>(context,
+                                          listen: false)
+                                      .userId!,
+                                  vehicle: 91,
+                                  parking: ParkingManager.instance.parking!.id!,
+                                )));
+
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NavigationBarScreen()));
+                      },
+                      icon: Icon(Icons.monetization_on),
+                      label: Text('Guardar y pagar mas tarde'),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.blue), // Color de fondo del botón
+                        foregroundColor: MaterialStateProperty.all<Color>(
+                            Colors.white), // Color del texto y el icono
+                        elevation: MaterialStateProperty.all<double>(
+                            3), // Elevación del botón
+                        shape: MaterialStateProperty.all<OutlinedBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(10), // Bordes redondeados
+                          ),
+                        ),
+                      ),
+                    ),
+                  ) //],
+                  ),
+            ]));
+  }
+
+  Future<void> _downloadQRImage(BuildContext context) async {
+    final Uint8List bytes = base64Decode(qrBase64);
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+      try {
+        final result = await ImageGallerySaver.saveImage(
+          bytes,
+          name: 'qr_code_${DateTime.now().millisecondsSinceEpoch}',
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Imagen guardada en la galería'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        print('Error al guardar la imagen: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar la imagen'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Permiso de almacenamiento denegado'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
