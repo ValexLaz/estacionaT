@@ -5,6 +5,8 @@ import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
 import 'package:map_flutter/services/car_api.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
@@ -15,7 +17,7 @@ class VehicleRegistrationPage extends StatefulWidget {
 }
 
 class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
-  late Color myColor = const Color(0xFF1b4ee4);
+  late Color myColor = const Color(0xFF4285f4);
   late Size mediaSize;
   final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
@@ -43,7 +45,7 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         _typeVehicles = typeVehicles;
       });
     } catch (e) {
-      _showSnackBar('Error al cargar los tipos de vehículos');
+      _showErrorDialog('Error al cargar los tipos de vehículos: $e');
     }
   }
 
@@ -59,7 +61,7 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         _searchResults = cars;
       });
     } catch (e) {
-      _showSnackBar('Error al buscar vehículos');
+      _showErrorDialog('Error al buscar vehículos: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -271,16 +273,56 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
         modelController.text.isEmpty ||
         plateController.text.isEmpty ||
         _selectedTypeVehicle == null) {
-      _showSnackBar('Por favor complete todos los campos antes de continuar.');
+      _showErrorDialog('Por favor, complete todos los campos antes de continuar.');
       return false;
     }
+
+    if (!_validatePlate(plateController.text)) {
+      _showPlateErrorDialog();
+      return false;
+    }
+
     return true;
   }
 
-  void _showSnackBar(String message) {
-    final snackBar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  bool _validatePlate(String plate) {
+    final plateRegExp = RegExp(r'^[0-9]{3}[A-Z]{3,4}$');
+    return plateRegExp.hasMatch(plate);
   }
+
+  void _showPlateErrorDialog() {
+    _showErrorDialog(
+      'Por favor, introduzca un formato de placa correcto. Ejemplo: "321ABCD"',
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ErrorMessageDialog(
+          title: 'Error',
+          message: message,
+        );
+      },
+    );
+  }
+
+ void _showConfirmationDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return ConfirmationDialog(
+        title: '¡Registro Exitoso!',
+        message: 'El vehículo ha sido registrado exitosamente.',
+        onConfirm: () {
+          Navigator.of(context).pop(); // Volver atrás a la lista de vehículos
+        },
+      );
+    },
+  );
+}
+
 
   Widget _buildInputField(String label, TextEditingController controller,
       {bool isPlate = false}) {
@@ -299,14 +341,18 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
               ),
               onChanged: (text) {
                 controller.value = controller.value.copyWith(
-                  text: capitalizeFirstLetter(text),
+                  text: isPlate ? text.toUpperCase() : capitalizeFirstLetter(text),
                   selection: TextSelection.fromPosition(
                     TextPosition(offset: text.length),
                   ),
                 );
               },
               onEditingComplete: () {
-                controller.text = capitalizeFirstLetter(controller.text);
+                if (isPlate) {
+                  controller.text = controller.text.toUpperCase();
+                } else {
+                  controller.text = capitalizeFirstLetter(controller.text);
+                }
               },
             ),
           ),
@@ -342,25 +388,9 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
 
             try {
               await apiVehicle.createRecord(vehicleData);
-              Navigator.pop(context);
+              _showConfirmationDialog(); // Mostrar confirmación de registro exitoso
             } catch (e) {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Error de Registro'),
-                    content: Text('Error al registrar el vehículo: $e'),
-                    actions: [
-                      TextButton(
-                        child: Text('Cerrar'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
+              _showErrorDialog('Error al registrar el vehículo: $e');
               print("Error al registrar el vehículo: $e");
             }
           }

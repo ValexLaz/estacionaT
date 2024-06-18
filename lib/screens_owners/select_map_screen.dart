@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:map_flutter/screens_owners/map_next.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
 
 const String MAPBOX_ACCESS_TOKEN =
     'pk.eyJ1Ijoia2VuZGFsNjk2IiwiYSI6ImNsdnJvZ3o3cjBlbWQyanBqcGh1b3ZhbTcifQ.d5h3QddVskl61Rr8OGmnQQ';
@@ -23,6 +24,7 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
   final MapController _mapController = MapController();
   LatLng? _centerPosition; // Now it can be null
   TextEditingController _streetController = TextEditingController();
+  bool _isLoading = false; // Variable para controlar el estado de carga
 
   @override
   void initState() {
@@ -51,9 +53,41 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
     }
   }
 
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Guardando ubicación...'),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> saveLocation() async {
+    if (_streetController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ErrorMessageDialog(
+            title: "Campo vacío",
+            message: "Por favor, ingresa el nombre de la calle.",
+          );
+        },
+      );
+      return;
+    }
+
     if (_centerPosition != null) {
       // Check if _centerPosition is not null
+      _showLoadingDialog(); // Show the loading dialog
+
       try {
         final response = await http.post(
           Uri.parse(
@@ -67,9 +101,10 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
             'parking': widget.parkingId,
           }),
         );
+
+        Navigator.of(context).pop(); // Close the loading dialog
+
         if (response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Parqueo registrado exitosamente')));
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -77,9 +112,28 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
                       PriceParkingFormScreen(parkingId: widget.parkingId)));
         } else {
           print('Error al guardar la ubicación: ${response.body}');
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return ErrorMessageDialog(
+                title: "Error",
+                message: "Error al guardar la ubicación: ${response.body}",
+              );
+            },
+          );
         }
       } catch (e) {
+        Navigator.of(context).pop(); // Close the loading dialog
         print('Error al guardar la ubicación: $e');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return ErrorMessageDialog(
+              title: "Error",
+              message: "Error al guardar la ubicación: $e",
+            );
+          },
+        );
       }
     }
   }
@@ -89,6 +143,7 @@ class _SelectMapScreenState extends State<SelectMapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Selecciona la ubicación de tu parqueo"),
+        automaticallyImplyLeading: false, // Remove the back arrow
       ),
       body: Column(
         children: [

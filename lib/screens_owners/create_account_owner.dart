@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +8,8 @@ import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
 
 class SignUpParkingPage extends StatefulWidget {
   const SignUpParkingPage({Key? key}) : super(key: key);
@@ -69,9 +70,9 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
         _imageUrl = urlDownload;
       });
 
-      _showSnackBar('Imagen subida con éxito');
+      _showConfirmationDialog('Éxito', 'Imagen subida con éxito');
     } catch (e) {
-      _showSnackBar('Error al subir imagen: $e');
+      _showErrorDialog('Error', 'Error al subir imagen: $e');
     }
   }
 
@@ -231,6 +232,8 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                     child: GestureDetector(
                       onTap: () async {
                         if (_validateInputs()) {
+                          _showLoadingDialog();
+
                           final tokenProvider = Provider.of<TokenProvider>(
                               context,
                               listen: false);
@@ -252,7 +255,6 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                           try {
                             final parkingId =
                                 await apiParking.createRecord(parkingData);
-                            print("Parqueo registrado con ID: $parkingId");
                             final ApiOpeningHours apiOpeningHours =
                                 ApiOpeningHours();
 
@@ -269,6 +271,7 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                               }
                             }
 
+                            Navigator.pop(context); // Close loading dialog
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -277,9 +280,9 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
                               ),
                             );
                           } catch (e) {
-                            print("Error al registrar el parqueo: $e");
-                            _showSnackBar(
-                                'Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
+                            Navigator.pop(context); // Close loading dialog
+                            _showErrorDialog(
+                                'Error', 'Error al registrar el parqueo. Por favor, inténtelo de nuevo.');
                           }
                         }
                       },
@@ -316,7 +319,7 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
   }
 
   bool _validateInputs() {
-    bool emailValid = RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+    bool emailValid = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
         .hasMatch(emailController.text);
 
     if (parkingNameController.text.isEmpty ||
@@ -327,25 +330,61 @@ class _SignUpParkingPageState extends State<SignUpParkingPage> {
         _imageUrl.isEmpty ||
         descriptionController.text.isEmpty ||
         !_selectedDays.contains(true)) {
-      _showSnackBar(
-          'Por favor, complete todos los campos correctamente antes de continuar.');
+      _showErrorDialog(
+          'Error', 'Por favor, complete todos los campos correctamente antes de continuar.');
       return false;
     }
     if (int.tryParse(capacityController.text) == null) {
-      _showSnackBar('Ingrese un número válido en el campo de capacidad.');
+      _showErrorDialog('Error', 'Ingrese un número válido en el campo de capacidad.');
       return false;
     }
     if (ownerPhoneController.text.length != 8 ||
         int.tryParse(ownerPhoneController.text) == null) {
-      _showSnackBar('Ingrese un número de teléfono válido de 8 dígitos.');
+      _showErrorDialog('Error', 'Ingrese un número de teléfono válido de 8 dígitos.');
+      return false;
+    }
+    if (!emailValid) {
+      _showErrorDialog('Error', 'Ingrese un correo electrónico válido.');
       return false;
     }
     return true;
   }
 
-  void _showSnackBar(String message) {
-    final snackBar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  void _showConfirmationDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => ConfirmationDialog(
+        title: title,
+        message: message,
+      ),
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => ErrorMessageDialog(
+        title: title,
+        message: message,
+      ),
+    );
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Verificando datos...'),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildImagePickerButton() {
