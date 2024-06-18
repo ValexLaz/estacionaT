@@ -185,7 +185,7 @@ class CardDebitCredit extends StatelessWidget {
                       vehicleEntryData: VehicleEntry(
                         user: Provider.of<TokenProvider>(context, listen: false)
                             .userId!,
-                        vehicle: 71,
+                        vehicle: 91,
                         parking: ParkingManager.instance.parking!.id!,
                       )));
 
@@ -236,7 +236,7 @@ class QRPayment extends StatelessWidget {
                       vehicleEntryData: VehicleEntry(
                         user: Provider.of<TokenProvider>(context, listen: false)
                             .userId!,
-                        vehicle: 71,
+                        vehicle: 91,
                         parking: ParkingManager.instance.parking!.id!,
                       )));
 
