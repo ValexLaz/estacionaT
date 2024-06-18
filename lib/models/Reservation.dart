@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:intl/intl.dart';
+
+import 'package:map_flutter/models/VehicleEntry.dart';
 
 class Reservation {
   final int? id;
@@ -10,7 +13,7 @@ class Reservation {
   final String reservationDate;
   final int? userId;
   ReservationState _state;
-
+  int vehicleEntry;
   Reservation({
     this.id,
     required this.startTime,
@@ -21,6 +24,7 @@ class Reservation {
     required this.reservationDate,
     this.userId,
     required ReservationState state,
+    this.vehicleEntry = 0,
   }) : _state = state;
 
   ReservationState get state => _state;
@@ -35,10 +39,11 @@ class Reservation {
       totalAmount: json['total_amount'].toDouble(),
       priceId: json['price'],
       extraTime: json['extra_time'],
+      vehicleEntry : json['vehicle_entry'],
       reservationDate: json['reservation_date'],
       userId: json['user'],
            state: ReservationState.values.byName((json['state'] ?? '').toString().toLowerCase()),
-
+      
 
     );
   }
@@ -55,6 +60,14 @@ class Reservation {
       'user': userId,
       if (extraTime != null) 'extra_time': extraTime,
     };
+  }
+
+  double getTotalHours() {
+    final format = DateFormat('HH:mm:ss');
+    final start = format.parse(startTime);
+    final end = format.parse(endTime);
+    final difference = end.difference(start);
+    return difference.inHours + difference.inMinutes / 60.0;
   }
 
   static List<Reservation> parseList(String responseBody) {

@@ -76,4 +76,21 @@ Future<List<T>> getAllByParam(String param) async {
     rethrow;
   }
 }
+
+Future<T> getByID(String id) async {
+  try {
+    final response = await http.get(Uri.parse('$completeUrl$id/'));
+    print(response.body);
+    if (response.statusCode == 200) {
+      return fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load data from API');
+    }
+  } catch (e) {
+    // Manejar el error aquí
+    print('Error al obtener datos de la API: $e');
+    rethrow;
+  }
+}
+
 }
