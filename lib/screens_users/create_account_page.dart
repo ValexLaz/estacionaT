@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_screen.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -113,9 +115,43 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  bool isEmailValid(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool isPhoneNumberValid(String phone) {
+    return phone.length == 8 && phone.startsWith(RegExp(r'^[267]'));
+  }
+
   bool isPasswordValid(String password) {
     final passwordRegex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
     return passwordRegex.hasMatch(password);
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ErrorMessageDialog(
+          title: title,
+          message: message,
+        );
+      },
+    );
+  }
+
+  void _showConfirmationDialog(String title, String message, VoidCallback? onConfirm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          title: title,
+          message: message,
+          onConfirm: onConfirm,
+        );
+      },
+    );
   }
 
   Widget _buildSignUpButton() {
@@ -131,48 +167,37 @@ class _SignUpPageState extends State<SignUpPage> {
           String confirmPassword = confirmPasswordController.text.trim();
           String phone = phoneController.text.trim();
 
+          // Validación de campos vacíos
+          if (username.isEmpty || last_name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty || phone.isEmpty) {
+            _showErrorDialog('Campos Vacíos', 'Por favor, llena todos los campos.');
+            return;
+          }
+
+          // Validación de correo electrónico
+          if (!isEmailValid(email)) {
+            _showErrorDialog('Correo Electrónico Inválido', 'Por favor, introduce un correo electrónico válido.');
+            return;
+          }
+
+          // Validación de número telefónico
+          if (!isPhoneNumberValid(phone)) {
+            _showErrorDialog('Número Telefónico Inválido', 'El número telefónico debe tener 8 dígitos y comenzar con 2, 6 o 7.');
+            return;
+          }
+
+          // Validación de contraseña
           if (!isPasswordValid(password)) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Contraseña inválida'),
-                  content: Text('La contraseña debe tener al menos 8 caracteres y estar compuesta por números y letras.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
-                );
-              },
-            );
+            _showErrorDialog('Contraseña Inválida', 'La contraseña debe tener al menos 8 caracteres y estar compuesta por números y letras.');
             return;
           }
 
+          // Validación de confirmación de contraseña
           if (password != confirmPassword) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Error de contraseña'),
-                  content: Text('Las contraseñas no coinciden.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
-                );
-              },
-            );
+            _showErrorDialog('Error de Contraseña', 'Las contraseñas no coinciden.');
             return;
           }
 
+          // Mostrar loader
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -212,45 +237,18 @@ class _SignUpPageState extends State<SignUpPage> {
 
           // Verificar el código de respuesta
           if (response.statusCode == 201) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Registro exitoso'),
-                  content: Text('Gracias por registrarte en estacionaT, ahora puedes iniciar sesión.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
+            _showConfirmationDialog(
+              'Registro exitoso',
+              'Gracias por registrarte en estacionaT, ahora puedes iniciar sesión.',
+              () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               },
             );
           } else {
-            // Si la solicitud falla, puedes mostrar
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Error de registro'),
-                  content: Text('Hubo un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Cerrar'),
-                    ),
-                  ],
-                );
-              },
-            );
+            _showErrorDialog('Error de Registro', 'Hubo un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.');
           }
         },
         style: ElevatedButton.styleFrom(

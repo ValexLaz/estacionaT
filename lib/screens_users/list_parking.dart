@@ -6,6 +6,8 @@ import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/screens_users/navigation_bar_screen.dart ';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class ListParkings extends StatefulWidget {
   const ListParkings({Key? key}) : super(key: key);
@@ -53,12 +55,20 @@ class _ListParkingsState extends State<ListParkings> {
   Future<void> deleteParking(String parkingId) async {
     try {
       await apiParking.deleteParkingById(parkingId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Parqueo eliminado exitosamente')),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmationDialog(
+            title: 'Éxito',
+            message: 'Parqueo eliminado exitosamente',
+            onConfirm: () {
+              setState(() {
+                parqueos.removeWhere((parking) => parking.id.toString() == parkingId);
+              });
+            },
+          );
+        },
       );
-      setState(() {
-        parqueos.removeWhere((parking) => parking.id.toString() == parkingId);
-      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar el parqueo: $e')),
@@ -75,7 +85,10 @@ class _ListParkingsState extends State<ListParkings> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => NavigationBarScreen(initialIndex: 3)),
+            );
           },
         ),
       ),
@@ -131,7 +144,6 @@ class _ListParkingsState extends State<ListParkings> {
                                             left: 8.0,
                                             top: 8.0,
                                             bottom: 8.0), // Ajusta los márgenes
-
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
@@ -225,7 +237,7 @@ class _ListParkingsState extends State<ListParkings> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.delete_forever,
+                                        icon: Icon(Icons.delete,
                                             color: Colors.red),
                                         onPressed: () async {
                                           await deleteParking(

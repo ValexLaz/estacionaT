@@ -182,6 +182,12 @@ class _ListVehicleState extends State<ListVehicle> {
         title: Text('Mis Vehículos', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
       body: isLoading
           ? Center(
@@ -279,7 +285,7 @@ class _ListVehicleState extends State<ListVehicle> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.delete_forever,
+                                        icon: Icon(Icons.delete,
                                             color: Colors.red),
                                         onPressed: () async {
                                           await deleteVehicle(

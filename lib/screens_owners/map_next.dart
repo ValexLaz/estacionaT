@@ -8,6 +8,8 @@ import 'package:map_flutter/models/TypeVehicle.dart';
 import 'package:map_flutter/screens_users/list_parking.dart';
 import 'package:map_flutter/services/api_price.dart';
 import 'package:map_flutter/services/api_typeVehicle.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class PriceParkingFormScreen extends StatefulWidget {
   final int parkingId;
@@ -32,9 +34,10 @@ class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
   TimeOfDay closeTime = TimeOfDay(hour: 12, minute: 0);
   ValueNotifier<bool> showHourlyFields = ValueNotifier(false);
   ValueNotifier<bool> showTimeRestrictions = ValueNotifier(false);
-
   TypeVehicle? _selectedTypeVehicle;
   List<TypeVehicle> _typeVehicles = [];
+  bool _isLoading = false;
+
   @override
   initState() {
     super.initState();
@@ -62,6 +65,10 @@ class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
       body: Stack(
         children: [
           Positioned.fill(top: 80, child: _buildFormBackground()),
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -97,11 +104,13 @@ class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () async {
+                        setState(() {
+                          _isLoading = true;
+                        });
                         await _registerPrice();
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ListParkings()));
+                        setState(() {
+                          _isLoading = false;
+                        });
                       },
                       child: Container(
                         height: 50,
@@ -156,7 +165,7 @@ class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Agrega los precios de tu estacionamiento",
+          "Agrega un precio inicial a tu estacionamiento",
           style: TextStyle(
             color: Colors.black,
             fontSize: 32,
@@ -337,30 +346,28 @@ class _PriceParkingFormScreenState extends State<PriceParkingFormScreen> {
         }
       }
       await ApiPrice().create(price);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '¡Precio Guardado Exitosamente!',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(right: 16.0),
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmationDialog(
+            title: '¡Registro exitoso!',
+            message: 'Tu parqueo ha sido creado correctamente.',
+            onConfirm: () {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => ListParkings()));
+            },
+          );
+        },
       );
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ListParkings()));
     } on Exception catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            '¡Precio No Guardado!',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(right: 16.0),
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ErrorMessageDialog(
+            title: '¡Error!',
+            message: 'No se pudo guardar el precio. Inténtalo nuevamente.',
+          );
+        },
       );
       print(e.toString());
     }

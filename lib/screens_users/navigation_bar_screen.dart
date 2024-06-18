@@ -5,14 +5,23 @@ import 'package:map_flutter/screens_users/reservationDetails/reservationTabBar.d
 
 import 'map_screen.dart';
 import 'reservationDetails/reserva.dart';
-
 class NavigationBarScreen extends StatefulWidget {
+  final int initialIndex;
+
+  NavigationBarScreen({this.initialIndex = 0});
+
   @override
   _NavigationBarScreenState createState() => _NavigationBarScreenState();
 }
 
 class _NavigationBarScreenState extends State<NavigationBarScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> _children = [
     MapScreen(),

@@ -7,7 +7,6 @@ import 'package:map_flutter/services/car_api.dart';
 import 'package:provider/provider.dart';
 import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
 import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
-import 'package:map_flutter/screens_users/list_vehicle.dart';
 
 class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);

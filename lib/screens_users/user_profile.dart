@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/error_message_dialog.dart';
+import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -21,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   FocusNode _emailFocusNode = FocusNode();
   FocusNode _phoneFocusNode = FocusNode();
   bool _isEditing = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -30,15 +33,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     final userId = Provider.of<TokenProvider>(context, listen: false).userId;
-    final url = Uri.parse(
-        'https://estacionatbackend.onrender.com/api/v2/user/users/$userId/');
+    final url = Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/users/$userId/');
 
     try {
       final response = await http.get(
         url,
         headers: {
-          'Authorization':
-              'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
+          'Authorization': 'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
         },
       );
 
@@ -58,17 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Hubo un error al cargar los datos del usuario.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cerrar'),
-              ),
-            ],
+          return ErrorMessageDialog(
+            title: 'Error',
+            message: 'Hubo un error al cargar los datos del usuario.',
           );
         },
       );
@@ -89,40 +82,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         backgroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInputField(_usernameController, "Nombre de Usuario",
-                  Icons.person, _usernameFocusNode,
-                  enabled: _isEditing),
-              const SizedBox(height: 20),
-              _buildInputField(_lastNameController, "Apellido", Icons.person,
-                  _lastNameFocusNode,
-                  enabled: _isEditing),
-              const SizedBox(height: 20),
-              _buildInputField(_emailController, "Correo Electrónico",
-                  Icons.email, _emailFocusNode,
-                  enabled: _isEditing),
-              const SizedBox(height: 20),
-              _buildInputField(_phoneController, "Número de Teléfono",
-                  Icons.phone, _phoneFocusNode,
-                  enabled: _isEditing),
-              const SizedBox(height: 40),
-              Center(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _isEditing ? _buildSaveButton() : _buildEditButton(),
-                    if (_isEditing) _buildCancelButton(),
+                    _buildInputField(_usernameController, "Nombre de Usuario",
+                        Icons.person, _usernameFocusNode,
+                        enabled: _isEditing),
+                    const SizedBox(height: 20),
+                    _buildInputField(_lastNameController, "Apellido", Icons.person,
+                        _lastNameFocusNode,
+                        enabled: _isEditing),
+                    const SizedBox(height: 20),
+                    _buildInputField(_emailController, "Correo Electrónico",
+                        Icons.email, _emailFocusNode,
+                        enabled: _isEditing),
+                    const SizedBox(height: 20),
+                    _buildInputField(_phoneController, "Número de Teléfono",
+                        Icons.phone, _phoneFocusNode,
+                        enabled: _isEditing),
+                    const SizedBox(height: 40),
+                    Center(
+                      child: Column(
+                        children: [
+                          _isEditing ? _buildSaveButton() : _buildEditButton(),
+                          if (_isEditing) _buildCancelButton(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -213,7 +208,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ElevatedButton.icon(
           onPressed: () {
             _updateProfile(context);
-            setState(() {});
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Color(0xFF4285f4),
@@ -237,9 +231,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _updateProfile(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final userId = Provider.of<TokenProvider>(context, listen: false).userId;
-    final url = Uri.parse(
-        'https://estacionatbackend.onrender.com/api/v2/user/users/$userId/');
+    final url = Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/users/$userId/');
 
     final requestBody = {
       'username': _usernameController.text,
@@ -251,43 +248,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final response = await http.put(
       url,
       headers: <String, String>{
-        'Authorization':
-            'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
+        'Authorization': 'Token ${Provider.of<TokenProvider>(context, listen: false).token}',
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(requestBody),
     );
 
+    setState(() {
+      _isLoading = false;
+    });
+
     if (response.statusCode == 200) {
-      // Datos actualizados exitosamente
       setState(() {
         _isEditing = false;
       });
-      // Muestra un SnackBar con el mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Datos actualizados exitosamente.'),
-          backgroundColor: Colors.green,
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmationDialog(
+            title: 'Éxito',
+            message: 'Datos actualizados exitosamente.',
+            onConfirm: () {
+              Navigator.of(context).pop();
+            },
+          );
+        },
       );
     } else {
-      // Manejar errores
       print('Error en la solicitud: ${response.statusCode}');
       print('Mensaje de error: ${response.body}');
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Hubo un error al actualizar los datos del usuario.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cerrar'),
-              ),
-            ],
+          return ErrorMessageDialog(
+            title: 'Error',
+            message: 'Hubo un error al actualizar los datos del usuario.',
           );
         },
       );
