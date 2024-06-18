@@ -49,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-          canvasColor: Color(0xFF1b4ee4),
+          canvasColor: Color(0xFF4285f4),
           primaryColor:
               Colors.white, // Color blanco para el elemento seleccionado
         ),

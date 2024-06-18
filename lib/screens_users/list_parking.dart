@@ -29,18 +29,21 @@ class _ListParkingsState extends State<ListParkings> {
   }
 
   Future<void> fetchData(String? token) async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
     try {
       List<Map<String, dynamic>> data =
           await apiParking.getParkingsByUserId(token!);
+      if (!mounted) return;
       setState(() {
         parqueos = data.map((item) => Parking.fromJson(item)).toList();
         isLoading = false;
       });
     } catch (e) {
       print('Error al obtener datos de parqueos: $e');
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });

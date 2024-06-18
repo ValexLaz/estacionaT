@@ -23,7 +23,7 @@ class VehicleEntryPage extends StatefulWidget {
 }
 
 class _VehicleEntryPageState extends State<VehicleEntryPage> {
-  late Color primaryColor = const Color(0xFF1b4ee4);
+  late Color primaryColor = Color(0xFF4285f4);
   late Size mediaSize;
   final ApiVehicle apiVehicle = ApiVehicle();
   TextEditingController brandController = TextEditingController();
@@ -299,14 +299,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       child: Row(
         children: [
           if (isPlate)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Image.asset(
-                'assets/Icons/placa3.png',
-                width: 40,
-                height: 40,
-              ),
-            ),
+            
           Expanded(
             child: TextField(
               controller: controller,
@@ -337,10 +330,6 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   Widget _buildPhoneInputField(TextEditingController controller) {
     return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Icon(Icons.phone, color: primaryColor, size: 30),
-        ),
         Expanded(
           child: TextField(
             controller: controller,
