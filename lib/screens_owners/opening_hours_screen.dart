@@ -109,38 +109,39 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
             return Center(child: Text('No se encontraron horarios.'));
           } else {
             List<OpeningHours> openingHours = snapshot.data!;
-            return ListView.builder(
-              itemCount: openingHours.length,
-              itemBuilder: (context, index) {
-                OpeningHours hour = openingHours[index];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(hour.day ?? ''),
-                        SizedBox(height: 8),
-                        Text('Horario: ${hour.open_time} - ${hour.close_time}'),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () => _navigateToEditScreen(hour),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => _deleteOpeningHour(hour.id!),
-                            ),
-                          ],
-                        ),
-                      ],
+            return RefreshIndicator(
+              onRefresh: _refreshOpeningHours,
+              child: ListView.builder(
+                itemCount: openingHours.length,
+                itemBuilder: (context, index) {
+                  OpeningHours hour = openingHours[index];
+                  String openTime = formatTime(hour.open_time);
+                  String closeTime = formatTime(hour.close_time);
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      title: Text(
+                        hour.day ?? '',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text('Horario: $openTime - $closeTime'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _navigateToEditScreen(hour),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteOpeningHour(hour.id!),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           }
         },
@@ -151,6 +152,15 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
         tooltip: 'Registrar horario',
       ),
     );
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return '';
+    final timeParts = time.split(':');
+    if (timeParts.length >= 2) {
+      return '${timeParts[0]}:${timeParts[1]}';
+    }
+    return time;
   }
 }
 
@@ -173,9 +183,9 @@ class _EditOpeningHourScreenState extends State<EditOpeningHourScreen> {
     super.initState();
     _dayController = TextEditingController(text: widget.openingHour.day);
     _openTimeController =
-        TextEditingController(text: widget.openingHour.open_time);
+        TextEditingController(text: formatTime(widget.openingHour.open_time));
     _closeTimeController =
-        TextEditingController(text: widget.openingHour.close_time);
+        TextEditingController(text: formatTime(widget.openingHour.close_time));
   }
 
   @override
@@ -226,10 +236,12 @@ class _EditOpeningHourScreenState extends State<EditOpeningHourScreen> {
             TextField(
               controller: _openTimeController,
               decoration: InputDecoration(labelText: 'Hora de Apertura'),
+              keyboardType: TextInputType.datetime,
             ),
             TextField(
               controller: _closeTimeController,
               decoration: InputDecoration(labelText: 'Hora de Cierre'),
+              keyboardType: TextInputType.datetime,
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -312,10 +324,12 @@ class _CreateOpeningHourScreenState extends State<CreateOpeningHourScreen> {
             TextField(
               controller: _openTimeController,
               decoration: InputDecoration(labelText: 'Hora de Apertura'),
+              keyboardType: TextInputType.datetime,
             ),
             TextField(
               controller: _closeTimeController,
               decoration: InputDecoration(labelText: 'Hora de Cierre'),
+              keyboardType: TextInputType.datetime,
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -327,4 +341,13 @@ class _CreateOpeningHourScreenState extends State<CreateOpeningHourScreen> {
       ),
     );
   }
+}
+
+String formatTime(String? time) {
+  if (time == null || time.isEmpty) return '';
+  final timeParts = time.split(':');
+  if (timeParts.length >= 2) {
+    return '${timeParts[0]}:${timeParts[1]}';
+  }
+  return time;
 }

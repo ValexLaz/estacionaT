@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
 import 'package:map_flutter/common/widgets/cards/PriceCard.dart';
@@ -153,46 +152,6 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
     }
   }
 
-  Future<void> openMapWithDestination() async {
-    final double? latitude = parkingDetails['latitude'] != null
-        ? double.tryParse(parkingDetails['latitude'].toString())
-        : null;
-    final double? longitude = parkingDetails['longitude'] != null
-        ? double.tryParse(parkingDetails['longitude'].toString())
-        : null;
-
-    if (latitude != null && longitude != null) {
-      // Utilizando el esquema de URL específico para abrir la aplicación de Google Maps
-      final Uri googleMapUrl =
-          Uri.parse("google.navigation:q=$latitude,$longitude&mode=d");
-
-      if (await canLaunchUrl(googleMapUrl)) {
-        await launchUrl(googleMapUrl);
-      } else {
-        // Si Google Maps no está disponible, intenta abrir en el navegador
-        final Uri fallbackUrl = Uri.parse(
-            "https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude&travelmode=driving");
-        if (await canLaunchUrl(fallbackUrl)) {
-          await launchUrl(fallbackUrl);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('No se pudo abrir Google Maps.'),
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se encontraron datos de ubicación válidos.'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -201,64 +160,69 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
         appBar: AppBar(
           title: Text('Detalles del Parqueo'),
         ),
-        body: Column(
-          children: [
-            CarouselSlider(
-              options: CarouselOptions(
-                autoPlay: true,
-                aspectRatio: 2.0,
-                enlargeCenterPage: true,
-              ),
-              items: [
-                'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
-                'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
-                'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
-                'https://www.prensalibre.com/wp-content/uploads/2019/01/033aaf7c-54ac-4004-bdf2-8106856fa992.jpg?quality=52',
-              ].map((i) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return Container(
-                      width: MediaQuery.of(context).size.width,
-                      margin: EdgeInsets.symmetric(horizontal: 2.0),
-                      child: Image.network(i, fit: BoxFit.cover),
-                    );
-                  },
-                );
-              }).toList(),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-                  bottom: 20,
-                  top: 5), // Ajusta el valor del margen según tus necesidades
-              child: Material(
-                color: Colors.blue,
-                child: TabBar(
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white60,
-
-                  // Color del indicador si deseas agregar
-
-                  tabs: [
-                    Tab(text: "Horarios"),
-                    Tab(text: "Precios"),
-                    Tab(text: "Contacto y Más"),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
+        body: isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : Column(
                 children: [
-                  buildScheduleTab(),
-                  buildPricesTab(),
-                  buildContactAndMoreTab(),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 200,
+                    margin: EdgeInsets.symmetric(horizontal: 2.0),
+                    child: buildParkingImage(),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        bottom: 20,
+                        top: 5), // Ajusta el valor del margen según tus necesidades
+                    child: Material(
+                      color: Colors.blue,
+                      child: TabBar(
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.white60,
+
+                        // Color del indicador si deseas agregar
+
+                        tabs: [
+                          Tab(text: "Horarios"),
+                          Tab(text: "Precios"),
+                          Tab(text: "Contacto y Más"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        buildScheduleTab(),
+                        buildPricesTab(),
+                        buildContactAndMoreTab(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
+  }
+
+  Widget buildParkingImage() {
+    return (parkingDetails['url_image'] != null && parkingDetails['url_image'].isNotEmpty)
+        ? Image.network(
+            parkingDetails['url_image'],
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Image.asset(
+                'assets/images/Logo.png',
+                fit: BoxFit.cover,
+              );
+            },
+          )
+        : Image.asset(
+            'assets/images/Logo.png',
+            fit: BoxFit.cover,
+          );
   }
 
   Widget buildScheduleTab() {
@@ -277,6 +241,8 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
             itemCount: openingHours.length,
             itemBuilder: (context, index) {
               OpeningHours hour = openingHours[index];
+              String openTime = formatTime(hour.open_time);
+              String closeTime = formatTime(hour.close_time);
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
@@ -285,7 +251,7 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
                     hour.day ?? '',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('${hour.open_time} - ${hour.close_time}'),
+                  subtitle: Text('$openTime - $closeTime'),
                 ),
               );
             },
@@ -293,6 +259,15 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
         }
       },
     );
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return '';
+    final timeParts = time.split(':');
+    if (timeParts.length >= 2) {
+      return '${timeParts[0]}:${timeParts[1]}';
+    }
+    return time;
   }
 
   Widget buildPricesTab() {
@@ -333,31 +308,27 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (parkingDetails['phone'] != null)
+          if (parkingDetails['name'] != null)
             ListTile(
-              leading: Icon(Icons.phone),
-              title: Text('Teléfono:'),
-              subtitle: Text(parkingDetails['phone']),
-              onTap: () => launchPhoneDialer(parkingDetails['phone']),
+              title: Text('Nombre del parqueo:'),
+              subtitle: Text(parkingDetails['name']),
+            ),
+          if (parkingDetails['description'] != null)
+            ListTile(
+              title: Text('Descripción:'),
+              subtitle: Text(parkingDetails['description']),
+            ),
+          if (parkingDetails['available_spaces'] != null)
+            ListTile(
+              title: Text('Espacios disponibles:'),
+              subtitle: Text(parkingDetails['available_spaces'].toString()),
             ),
           if (parkingDetails['whatsapp'] != null)
             ListTile(
-              //leading: Icon(Icons.whatsapp),
               title: Text('WhatsApp:'),
               subtitle: Text(parkingDetails['whatsapp']),
               onTap: () => launchWhatsApp(parkingDetails['whatsapp']),
             ),
-          if (parkingDetails['address'] != null)
-            ListTile(
-              leading: Icon(Icons.location_on),
-              title: Text('Dirección:'),
-              subtitle: Text(parkingDetails['address']),
-            ),
-          ListTile(
-            leading: Icon(Icons.map),
-            title: Text('Abrir en Google Maps'),
-            onTap: openMapWithDestination,
-          ),
         ],
       ),
     );
