@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:map_flutter/models/Parking.dart';
 import 'package:map_flutter/models/Reservation.dart';
+import 'package:map_flutter/models/VehicleEntry.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
+import 'package:map_flutter/services/api_parking.dart';
 import 'package:map_flutter/services/api_reservations.dart';
+import 'package:map_flutter/services/api_vehicleEntry.dart';
 import 'package:provider/provider.dart';
 
 class ReservaScreen extends StatefulWidget {
@@ -29,6 +33,11 @@ class _ReservaScreenState extends State<ReservaScreen> {
     return '$hours:$minutes:$seconds';
   }
 
+  late Reservation reservation;
+  late VehicleEntry vehicleEntry;
+  late Map<String,dynamic> vehicle;
+  late Future<Parking> parking;
+  
   void startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
@@ -46,10 +55,19 @@ class _ReservaScreenState extends State<ReservaScreen> {
     reservationRef = dbRef.child(
         Provider.of<TokenProvider>(context, listen: false).userId.toString());
 
-    reservationRef.onValue.listen((event) {
+    reservationRef.onValue.listen((event) async {
       reservationData = Map<String, dynamic>.from(event.snapshot.value as Map);
-      final newDuration = parseDurationFromString(reservationData['remaining_time'] ?? "0:00:00");
-      Future<List<Reservation>> reservationID = ApiReservation().getAllByParam('${reservationData['reservation']}/');
+      final newDuration = parseDurationFromString(
+          reservationData['remaining_time'] ?? "0:00:00");
+
+      reservation =
+          await ApiReservation().getByID(reservationData['reservation']);
+      vehicleEntry = await ApiVehicleEntry().getByID(reservation.vehicleEntry.toString());
+      vehicle = await ApiVehicle().getVehicleDetailsById(vehicleEntry.vehicle.toString());
+      parking = ApiParking().getByID(vehicleEntry.parking.toString())
+          as Future<Parking>;
+      
+
       setState(() {
         reservationData =
             Map<String, dynamic>.from(event.snapshot.value as Map);
@@ -65,7 +83,7 @@ class _ReservaScreenState extends State<ReservaScreen> {
       });
       _timer.cancel();
       startTimer();
-      });
+    });
   }
 
   Duration parseDurationFromString(String durationString) {
@@ -78,153 +96,165 @@ class _ReservaScreenState extends State<ReservaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle detailsTextStyle = TextStyle(
-      fontSize: 18,
-      color: Colors.black,
-    );
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     return Scaffold(
         body: reservationData.isEmpty || _duration.inSeconds <= 0
             ? Center(child: Text("Aun no tienes reservas en curso"))
-            : Container(
-                color: Colors.white,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Reserva',
-                              style: TextStyle(
-                                  fontSize: 24.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black)),
-                          Divider(color: lightGray)
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+            : buildDetailsReservation());
+  }
+
+  Widget buildDetailsReservation() {
+    return FutureBuilder<Parking>(
+      future: parking,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData) {
+          return Text('No se encontró la reservación');
+        } else {
+          TextStyle detailsTextStyle = TextStyle(
+            fontSize: 18,
+            color: Colors.black,
+          );
+          Parking parking = snapshot.data!;
+          return Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Reserva',
+                          style: TextStyle(
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
+                      Divider(color: lightGray)
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(height: 20),
+                              Stack(
+                                alignment: Alignment.center,
                                 children: [
-                                  SizedBox(height: 20),
-                                  Stack(
-                                    alignment: Alignment.center,
+                                  SizedBox(
+                                    width: 180, // Increased size of the circle
+                                    height: 180,
+                                    child: CircularProgressIndicator(
+                                      value: _progress,
+                                      backgroundColor: Colors.grey.shade300,
+                                      color: Color(
+                                          0xFF1b4ee4), // Color of the progress bar
+                                      strokeWidth: 12, // Increased thickness
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      SizedBox(
-                                        width:
-                                            180, // Increased size of the circle
-                                        height: 180,
-                                        child: CircularProgressIndicator(
-                                          value: _progress,
-                                          backgroundColor: Colors.grey.shade300,
+                                      Text(
+                                        formatDuration(_duration),
+                                        style: const TextStyle(
+                                          fontSize: 20, // Increased font size
+                                          fontWeight: FontWeight.bold,
                                           color: Color(
-                                              0xFF1b4ee4), // Color of the progress bar
-                                          strokeWidth:
-                                              12, // Increased thickness
+                                              0xFF1b4ee4), // Matching the progress bar color
                                         ),
                                       ),
-                                      Column(
+                                      const SizedBox(height: 4),
+                                      Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
-                                            formatDuration(_duration),
-                                            style: const TextStyle(
-                                              fontSize:
-                                                  20, // Increased font size
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(
-                                                  0xFF1b4ee4), // Matching the progress bar color
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text('Hr',
-                                                  style: TextStyle(
-                                                      color: Colors.black)),
-                                              SizedBox(width: 12),
-                                              Text('Min',
-                                                  style: TextStyle(
-                                                      color: Colors.black)),
-                                              SizedBox(width: 12),
-                                              Text('Sec',
-                                                  style: TextStyle(
-                                                      color: Colors.black)),
-                                            ],
-                                          ),
+                                          Text('Hr',
+                                              style: TextStyle(
+                                                  color: Colors.black)),
+                                          SizedBox(width: 12),
+                                          Text('Min',
+                                              style: TextStyle(
+                                                  color: Colors.black)),
+                                          SizedBox(width: 12),
+                                          Text('Sec',
+                                              style: TextStyle(
+                                                  color: Colors.black)),
                                         ],
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 30),
                                 ],
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Parqueo Zona Norte',
-                                      style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold)),
-                                  Divider(color: Colors.grey),
-                                  ListTile(
-                                    title: Text('Direccion',
-                                        style: detailsTextStyle),
-                                    trailing: Text('Av. Banzer 2do. Anillo',
-                                        style: detailsTextStyle),
-                                  ),
-                                  ListTile(
-                                    title: Text('Mi Vehiculo',
-                                        style: detailsTextStyle),
-                                    trailing: Text('Suzuki Ertiga',
-                                        style: detailsTextStyle),
-                                  ),
-                                  ListTile(
-                                    title:
-                                        Text('Placa', style: detailsTextStyle),
-                                    trailing: Text('1234-ABC',
-                                        style: detailsTextStyle),
-                                  ),
-                                  ListTile(
-                                    title:
-                                        Text('Hora', style: detailsTextStyle),
-                                    trailing: Text('15:00 PM - 17:00 PM',
-                                        style: detailsTextStyle),
-                                  ),
-                                  ListTile(
-                                    title: Text('Duracion',
-                                        style: detailsTextStyle),
-                                    trailing: Text('2 horas',
-                                        style: detailsTextStyle),
-                                  ),
-                                  ListTile(
-                                    title:
-                                        Text('Total', style: detailsTextStyle),
-                                    trailing:
-                                        Text('20 Bs', style: detailsTextStyle),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                              SizedBox(height: 30),
+                            ],
+                          ),
                         ),
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(parking.name!,
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold)),
+                              Divider(color: Colors.grey),
+                              ListTile(
+                                title:
+                                    Text('Direccion', style: detailsTextStyle),
+                                trailing: Text('Av. Banzer 2do. Anillo',
+                                    style: detailsTextStyle),
+                              ),
+                              ListTile(
+                                title: Text('Mi Vehiculo',
+                                    style: detailsTextStyle),
+                                trailing: Text(vehicle['brand'],
+                                    style: detailsTextStyle),
+                              ),
+                              ListTile(
+                                title: Text('Placa', style: detailsTextStyle),
+                                trailing:
+                                    Text(vehicle['registration_plate'], style: detailsTextStyle),
+                              ),
+                              ListTile(
+                                title: Text('Hora', style: detailsTextStyle),
+                                trailing: Text(
+                                    '${reservation.startTime} - ${reservation.endTime}',
+                                    style: detailsTextStyle),
+                              ),
+                              ListTile(
+                                title: Text('Horas Totales', style: detailsTextStyle),
+                                trailing: Text('${reservation.getTotalHours()} ',
+                                    style: detailsTextStyle),
+                              ),
+                              ListTile(
+                                title: Text('Total', style: detailsTextStyle),
+                                trailing: Text('${reservation.totalAmount} Bs',
+                                    style: detailsTextStyle),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ));
+              ],
+            ),
+          );
+        }
+      },
+    );
   }
 
   @override

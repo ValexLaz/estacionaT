@@ -292,8 +292,3 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: SignUpPage(),
-  ));
-}
