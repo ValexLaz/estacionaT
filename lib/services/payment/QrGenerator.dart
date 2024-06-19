@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:map_flutter/models/user.dart';  
+import 'package:map_flutter/models/user.dart';
 
 class QRCodeService {
   final String id;
@@ -93,4 +93,3 @@ class CartItem {
     required this.qty,
   });
 }
- 

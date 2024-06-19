@@ -5,11 +5,11 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      colorScheme: ColorScheme(
+      colorScheme: const ColorScheme(
         primary: Color.fromARGB(255, 66, 133, 244),
         primaryContainer: Color.fromARGB(255, 35, 102, 210),
-        secondary: Color.fromARGB(255, 27, 141, 228),
-        secondaryContainer: Color(0xFF018786),
+        secondary: Color.fromARGB(200, 27, 141, 228),
+        secondaryContainer:  Color.fromRGBO(122, 173, 255, 1),
         surface: Color(0xFFFFFFFF),
         background: Color(0xFFF5F5F5),
         error: Color(0xFFB00020),

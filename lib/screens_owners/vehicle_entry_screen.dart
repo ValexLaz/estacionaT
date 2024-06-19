@@ -32,6 +32,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController _priceController = TextEditingController();
+  TextEditingController _priceRealController = TextEditingController();
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   late ScrollController _scrollController;
@@ -299,7 +300,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       child: Row(
         children: [
           if (isPlate)
-            
+
           Expanded(
             child: TextField(
               controller: controller,
@@ -398,6 +399,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
           _selectedPrice = value;
         });
         _priceController.text = value?.id.toString() ?? '';
+        _priceRealController.text = value?.price.toString() ?? '';
       },
       validator: (value) {
         if (value == null) {
@@ -478,7 +480,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
                   "endtime": endTime != null
                       ? "${DateTime.now().toString().split(' ')[0]} ${endTime!.hour}:${endTime!.minute}:00"
                       : '',
-                  "totalamount": 50.0,
+                  "totalamount": double.parse(_priceRealController.text),
                   "price": int.parse(_priceController.text)
                 }
               ]

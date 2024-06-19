@@ -12,12 +12,6 @@ class FirebaseApi {
   @pragma('vm:entry-point')
   Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
-    //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    //await setupFlutterNotifications();
-    //showFlutterNotification(message);
-    print('title ${message.data}');
-    print('title ${message.notification?.title}');
-
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (notification != null && android != null && !kIsWeb) {
