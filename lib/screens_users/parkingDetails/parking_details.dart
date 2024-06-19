@@ -174,16 +174,18 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
                   ),
                   Container(
                     margin: EdgeInsets.only(
-                        bottom: 20,
+                        bottom: 10,
                         top: 5), // Ajusta el valor del margen según tus necesidades
                     child: Material(
                       color: Colors.blue,
                       child: TabBar(
-                        labelColor: Colors.white,
+                        labelColor: Colors.blue,
                         unselectedLabelColor: Colors.white60,
+                        indicator: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(2),
 
-                        // Color del indicador si deseas agregar
-
+                        ),
                         tabs: [
                           Tab(text: "Horarios"),
                           Tab(text: "Precios"),
