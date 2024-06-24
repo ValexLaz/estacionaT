@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_openinghours.dart';
 import 'package:map_flutter/models/OpeningHours.dart';
-import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 
@@ -120,6 +119,7 @@ class _OpeningHoursScreenState extends State<OpeningHoursScreen> {
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
+                      leading: Icon(Icons.access_time, color: Colors.blue),
                       title: Text(
                         hour.day ?? '',
                         style: TextStyle(fontWeight: FontWeight.bold),
@@ -229,29 +229,52 @@ class _EditOpeningHourScreenState extends State<EditOpeningHourScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _dayController,
-              decoration: InputDecoration(labelText: 'Día'),
-            ),
-            TextField(
-              controller: _openTimeController,
-              decoration: InputDecoration(labelText: 'Hora de Apertura'),
-              keyboardType: TextInputType.datetime,
-            ),
-            TextField(
-              controller: _closeTimeController,
-              decoration: InputDecoration(labelText: 'Hora de Cierre'),
-              keyboardType: TextInputType.datetime,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _updateOpeningHour,
-              child: Text('Actualizar Horario'),
+            _buildInputField(_dayController, "Día", Icons.calendar_today),
+            const SizedBox(height: 20),
+            _buildInputField(_openTimeController, "Hora de Apertura", Icons.access_time),
+            const SizedBox(height: 20),
+            _buildInputField(_closeTimeController, "Hora de Cierre", Icons.access_time),
+            const SizedBox(height: 40),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _updateOpeningHour,
+                icon: Icon(Icons.save),
+                label: Text('Actualizar Horario'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildInputField(TextEditingController controller, String labelText, IconData icon) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return '';
+    final timeParts = time.split(':');
+    if (timeParts.length >= 2) {
+      return '${timeParts[0]}:${timeParts[1]}';
+    }
+    return time;
   }
 }
 
@@ -317,29 +340,52 @@ class _CreateOpeningHourScreenState extends State<CreateOpeningHourScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _dayController,
-              decoration: InputDecoration(labelText: 'Día'),
-            ),
-            TextField(
-              controller: _openTimeController,
-              decoration: InputDecoration(labelText: 'Hora de Apertura'),
-              keyboardType: TextInputType.datetime,
-            ),
-            TextField(
-              controller: _closeTimeController,
-              decoration: InputDecoration(labelText: 'Hora de Cierre'),
-              keyboardType: TextInputType.datetime,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _registerOpeningHour,
-              child: Text('Registrar Horario'),
+            _buildInputField(_dayController, "Día", Icons.calendar_today),
+            const SizedBox(height: 20),
+            _buildInputField(_openTimeController, "Hora de Apertura", Icons.access_time),
+            const SizedBox(height: 20),
+            _buildInputField(_closeTimeController, "Hora de Cierre", Icons.access_time),
+            const SizedBox(height: 40),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _registerOpeningHour,
+                icon: Icon(Icons.add),
+                label: Text('Registrar Horario'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildInputField(TextEditingController controller, String labelText, IconData icon) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return '';
+    final timeParts = time.split(':');
+    if (timeParts.length >= 2) {
+      return '${timeParts[0]}:${timeParts[1]}';
+    }
+    return time;
   }
 }
 

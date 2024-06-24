@@ -88,7 +88,7 @@ class CuentaScreen extends StatelessWidget {
                   },
                 ),
                 Divider(color: lightGray),
-                _buildListTile(
+                _buildLogoutTile(
                   title: 'Cerrar sesión',
                   icon: Icons.exit_to_app,
                   textColor: Colors.red,
@@ -172,6 +172,19 @@ class CuentaScreen extends StatelessWidget {
       leading: Icon(icon, color: textColor),
       title: Text(title, style: TextStyle(color: textColor)),
       trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildLogoutTile({
+    required String title,
+    required IconData icon,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: textColor),
+      title: Text(title, style: TextStyle(color: textColor)),
       onTap: onTap,
     );
   }

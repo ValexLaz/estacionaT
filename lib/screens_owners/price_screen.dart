@@ -18,7 +18,6 @@ class PriceFormScreen extends StatefulWidget {
 class _PriceFormScreenState extends State<PriceFormScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _isPricePerHourCtrl = TextEditingController();
-
   TextEditingController _isPriceReservationCtrl = TextEditingController();
   TextEditingController _isPriceParkingCtrl = TextEditingController();
   TextEditingController _typeVehicleIDCtrl = TextEditingController();
@@ -33,6 +32,7 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
 
   TypeVehicle? _selectedTypeVehicle;
   List<TypeVehicle> _typeVehicles = [];
+  
   @override
   initState() {
     super.initState();
@@ -56,10 +56,11 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
     primaryColor = Theme.of(context).primaryColor;
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
+        title: Text("Añadir Precio"),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -74,21 +75,10 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
   }
 
   Widget _buildBottom() {
-    return SizedBox(
-      width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: SingleChildScrollView(
-            child: _buildForm(),
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: SingleChildScrollView(
+        child: _buildForm(),
       ),
     );
   }
@@ -97,14 +87,6 @@ class _PriceFormScreenState extends State<PriceFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Agregar un nuevo precio",
-          style: TextStyle(
-            color: primaryColor,
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
         InputForm(
           name: "Precio",
           inputWidget: TextFormField(

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-
 import 'package:map_flutter/common/managers/ReservationManager.dart';
 import 'package:map_flutter/common/widgets/time_picker.dart';
 import 'package:map_flutter/models/Payment.dart';
@@ -16,6 +15,7 @@ class ReservationFormScreen extends StatefulWidget {
   final Price price;
 
   const ReservationFormScreen({super.key, required this.price});
+
   @override
   _ReservationFormScreenState createState() => _ReservationFormScreenState();
 }
@@ -23,12 +23,9 @@ class ReservationFormScreen extends StatefulWidget {
 class _ReservationFormScreenState extends State<ReservationFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  DateTime selectedDate =
-      DateTime.now().add(Duration(days: 1)); // Inicia desde mañana
-  TimeOfDay selectedStartTime =
-      TimeOfDay(hour: 8, minute: 0); // Hora de inicio predeterminada
-  TimeOfDay selectedEndTime =
-      TimeOfDay(hour: 18, minute: 0); // Hora de fin predeterminada
+  DateTime selectedDate = DateTime.now().add(Duration(days: 1)); // Inicia desde mañana
+  TimeOfDay selectedStartTime = TimeOfDay(hour: 8, minute: 0); // Hora de inicio predeterminada
+  TimeOfDay selectedEndTime = TimeOfDay(hour: 18, minute: 0); // Hora de fin predeterminada
 
   final _totalAmountController = TextEditingController();
 
@@ -59,36 +56,39 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
       double totalAmount;
 
       if (widget.price.isPriceHour) {
-        final int startMinutes =
-            selectedStartTime.hour * 60 + selectedStartTime.minute;
-        final int endMinutes =
-            selectedEndTime.hour * 60 + selectedEndTime.minute;
+        final int startMinutes = selectedStartTime.hour * 60 + selectedStartTime.minute;
+        final int endMinutes = selectedEndTime.hour * 60 + selectedEndTime.minute;
         final double hours = (endMinutes - startMinutes) / 60;
         totalAmount = widget.price.price * hours;
       } else {
         totalAmount = widget.price.price;
       }
+
       var newReservation = Reservation(
         startTime: selectedStartTime.format(context),
         endTime: selectedEndTime.format(context),
         totalAmount: totalAmount,
         priceId: widget.price.id!,
-        reservationDate:
-            '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}',
+        reservationDate: '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}',
         userId: userId,
-        state: ReservationState.pending
+        state: ReservationState.pending,
       );
-      ReservationManager().setReservation(newReservation);
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PaymentDetails(reservation: newReservation))); 
-      }
-  }
 
+      ReservationManager().setReservation(newReservation);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentDetails(reservation: newReservation),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Registrar Reservación'),
@@ -103,30 +103,48 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
               CustomTimePicker(
                 startTime: TimeOfDay(hour: 8, minute: 0),
                 endTime: TimeOfDay(hour: 22, minute: 0),
-                onTimeSelected: (time) =>
-                    setState(() => selectedStartTime = time),
+                onTimeSelected: (time) => setState(() => selectedStartTime = time),
               ),
-              Divider(color: Colors.grey,),
-               Text("Hora Final"),
+              Divider(color: Colors.grey),
+              Text("Hora Final"),
               CustomTimePicker(
                 startTime: TimeOfDay(hour: 8, minute: 0),
                 endTime: TimeOfDay(hour: 22, minute: 0),
-                onTimeSelected: (time) =>
-                    setState(() => selectedEndTime = time),
+                onTimeSelected: (time) => setState(() => selectedEndTime = time),
               ),
-               Divider(color: Colors.grey,),  
+              Divider(color: Colors.grey),
               ListTile(
-                title: Text('Fecha de reservación: ${selectedDate.toLocal()}'
-                    .split(' ')[0]),
+                title: Text('Fecha de reservación: ${selectedDate.toLocal()}'.split(' ')[0]),
                 trailing: Icon(Icons.calendar_today),
                 onTap: () {
                   _selectDate(context);
                 },
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text('Registrar Reservación'),
+              Container(
+                width: screenWidth * 0.8, // Adjust the width according to the screen size
+                margin: EdgeInsets.symmetric(vertical: 16, horizontal: screenWidth * 0.1),
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF4285f4),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Registrar Reservación',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

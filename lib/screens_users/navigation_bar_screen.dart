@@ -44,7 +44,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       body: _children[_currentIndex],
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-          canvasColor: Color(0xFF1b4ee4),
+          canvasColor: Color(0xFF4285f4),
           primaryColor: primaryColor,
           textTheme: Theme.of(context).textTheme.copyWith(
                 caption: TextStyle(color: Colors.white.withOpacity(0.7)),
