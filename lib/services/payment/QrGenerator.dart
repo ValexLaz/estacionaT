@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
-import 'package:map_flutter/models/user.dart';  
+import 'package:map_flutter/models/user.dart';
 
 class QRCodeService {
   final String id;
@@ -94,7 +94,6 @@ class QRCodeService {
 class CartItem {
   final String product_name;
   final int qty;
-
   CartItem({
     required this.product_name,
     required this.qty,
