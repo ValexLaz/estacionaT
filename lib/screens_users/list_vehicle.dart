@@ -286,7 +286,7 @@ class _ListVehicleState extends State<ListVehicle> {
                                       ),
                                       IconButton(
                                         icon: Icon(Icons.delete,
-                                            color: Colors.red),
+                                            color: Colors.blue),
                                         onPressed: () async {
                                           await deleteVehicle(
                                               vehicle['id'].toString());

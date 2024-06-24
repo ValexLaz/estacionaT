@@ -6,7 +6,7 @@ import 'package:map_flutter/screens_owners/navigation_bar_owner.dart';
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:provider/provider.dart';
-import 'package:map_flutter/screens_users/navigation_bar_screen.dart ';
+import 'package:map_flutter/screens_users/navigation_bar_screen.dart';
 import 'package:map_flutter/common/widgets/notifications_alerts/confirmation_dialog.dart';
 
 class ListParkings extends StatefulWidget {
@@ -18,15 +18,15 @@ class ListParkings extends StatefulWidget {
 
 class _ListParkingsState extends State<ListParkings> {
   final ApiParking apiParking = ApiParking();
-  List<Parking> parqueos = [];
+  List<Map<String, dynamic>> parqueos = [];
+  List<Map<String, dynamic>> addresses = [];
   Color primaryColor = Color(0xFF4285f4);
   bool isLoading = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    String? authToken =
-        Provider.of<TokenProvider>(context, listen: false).token;
+    String? authToken = Provider.of<TokenProvider>(context, listen: false).token;
     fetchData(authToken);
   }
 
@@ -36,11 +36,21 @@ class _ListParkingsState extends State<ListParkings> {
       isLoading = true;
     });
     try {
-      List<Map<String, dynamic>> data =
-          await apiParking.getParkingsByUserId(token!);
+      List<Map<String, dynamic>> data = await apiParking.getParkingsByUserId(token!);
+      List<Map<String, dynamic>> addressData = await apiParking.getAllParkingAddresses();
+
+      data = data.map((parking) {
+        var address = addressData.firstWhere(
+            (addr) => addr['parking'] == parking['id'], orElse: () => {});
+        parking['street'] = address['street']?.isNotEmpty == true
+            ? address['street']
+            : 'Ubicación no disponible';
+        return parking;
+      }).toList();
+
       if (!mounted) return;
       setState(() {
-        parqueos = data.map((item) => Parking.fromJson(item)).toList();
+        parqueos = data;
         isLoading = false;
       });
     } catch (e) {
@@ -63,7 +73,7 @@ class _ListParkingsState extends State<ListParkings> {
             message: 'Parqueo eliminado exitosamente',
             onConfirm: () {
               setState(() {
-                parqueos.removeWhere((parking) => parking.id.toString() == parkingId);
+                parqueos.removeWhere((parking) => parking['id'].toString() == parkingId);
               });
             },
           );
@@ -74,6 +84,13 @@ class _ListParkingsState extends State<ListParkings> {
         SnackBar(content: Text('Error al eliminar el parqueo: $e')),
       );
     }
+  }
+
+  double calculateOccupancy(Map<String, dynamic> parking) {
+    int capacity = parking['capacity'] ?? 0;
+    int available = parking['spaces_available'] ?? 0;
+    if (capacity == 0) return 0.0;
+    return (capacity - available) / capacity;
   }
 
   @override
@@ -122,12 +139,12 @@ class _ListParkingsState extends State<ListParkings> {
                               return InkWell(
                                 onTap: () {
                                   ParkingManager.instance.setParking(Parking(
-                                      id: parqueo.id, name: parqueo.name));
+                                      id: parqueo['id'], name: parqueo['name']));
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => MainScreen(
-                                            parkingId: parqueo.id.toString())),
+                                            parkingId: parqueo['id'].toString())),
                                   );
                                 },
                                 child: Card(
@@ -147,10 +164,10 @@ class _ListParkingsState extends State<ListParkings> {
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
-                                          child: parqueo.urlImage != null &&
-                                                  parqueo.urlImage!.isNotEmpty
+                                          child: parqueo['url_image'] != null &&
+                                                  parqueo['url_image'].isNotEmpty
                                               ? Image.network(
-                                                  parqueo.urlImage!,
+                                                  parqueo['url_image'],
                                                   width: 100,
                                                   height: 100,
                                                   fit: BoxFit.cover,
@@ -180,7 +197,7 @@ class _ListParkingsState extends State<ListParkings> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                parqueo.name ?? '',
+                                                parqueo['name'] ?? '',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.black,
@@ -188,48 +205,28 @@ class _ListParkingsState extends State<ListParkings> {
                                                 ),
                                               ),
                                               SizedBox(height: 4),
-                                              RichText(
-                                                text: TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text: 'Capacidad total: ',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black87,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text:
-                                                          '${parqueo.capacity}',
-                                                      style: TextStyle(
-                                                        color: Colors.black87,
-                                                      ),
-                                                    ),
-                                                  ],
+                                              Text(
+                                                parqueo['street'] ?? '',
+                                                style: TextStyle(
+                                                  color: Colors.black54,
+                                                  fontSize: 14,
                                                 ),
                                               ),
                                               SizedBox(height: 4),
-                                              RichText(
-                                                text: TextSpan(
-                                                  children: [
-                                                    TextSpan(
-                                                      text:
-                                                          'Espacios disponibles: ',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black87,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text:
-                                                          '${parqueo.spacesAvailable}',
-                                                      style: TextStyle(
-                                                        color: Colors.black87,
-                                                      ),
-                                                    ),
-                                                  ],
+                                              SizedBox(
+  height: 10, // Ajusta esta altura según tus necesidades
+  child: LinearProgressIndicator(
+    value: calculateOccupancy(parqueo),
+    backgroundColor: Colors.grey[300],
+    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+  ),
+),
+
+                                              SizedBox(height: 4),
+                                              Text(
+                                                '${parqueo['spaces_available']} de ${parqueo['capacity']} espacios disponibles',
+                                                style: TextStyle(
+                                                  color: Colors.black87,
                                                 ),
                                               ),
                                             ],
@@ -238,10 +235,10 @@ class _ListParkingsState extends State<ListParkings> {
                                       ),
                                       IconButton(
                                         icon: Icon(Icons.delete,
-                                            color: Colors.red),
+                                            color: Colors.blue),
                                         onPressed: () async {
                                           await deleteParking(
-                                              parqueo.id.toString());
+                                              parqueo['id'].toString());
                                         },
                                       ),
                                     ],

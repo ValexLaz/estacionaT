@@ -16,13 +16,23 @@ class _ParkingScreenState extends State<ParkingScreen> {
   final ApiParking apiParking = ApiParking();
   Map<String, dynamic> parkingDetails = {};
   List<Map<String, dynamic>> vehicleEntries = [];
+  List<Map<String, dynamic>> filteredVehicleEntries = [];
   bool isLoading = true;
   int vehiclesCount = 0;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    searchController.addListener(_filterVehicles);
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_filterVehicles);
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -52,6 +62,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
 
       setState(() {
         vehicleEntries = vehicleEntriesList;
+        filteredVehicleEntries = vehicleEntriesList;
         vehiclesCount = vehicleEntries.length;
       });
 
@@ -94,6 +105,18 @@ class _ParkingScreenState extends State<ParkingScreen> {
     }
   }
 
+  void _filterVehicles() {
+    String query = searchController.text.toLowerCase();
+    setState(() {
+      filteredVehicleEntries = vehicleEntries.where((entry) {
+        return entry['vehicle']['registration_plate']
+            .toString()
+            .toLowerCase()
+            .contains(query);
+      }).toList();
+    });
+  }
+
   Widget getVehicleIcon(int type) {
     switch (type) {
       case 1:
@@ -101,7 +124,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -113,7 +136,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -126,7 +149,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -138,7 +161,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -154,7 +177,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -166,7 +189,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: Colors.blueAccent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -181,19 +204,23 @@ class _ParkingScreenState extends State<ParkingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Detalles de Parqueo',
-          style: TextStyle(color: Colors.black),
+          parkingDetails['name'] ?? 'Parking Name',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
       ),
+      backgroundColor: Colors.white,
       body: isLoading ? _buildLoadingScreen() : _buildParkingScreen(),
     );
   }
 
   Widget _buildLoadingScreen() {
     return Center(
-      child: CircularProgressIndicator(),
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+      ),
     );
   }
 
@@ -202,33 +229,39 @@ class _ParkingScreenState extends State<ParkingScreen> {
     int occupiedSpaces = parkingDetails['occupiedSpaces'] ?? vehiclesCount;
     int freeSpaces = maxCapacity - occupiedSpaces;
 
-    return Column(
-      children: [
-        _buildCapacityInfo(maxCapacity, occupiedSpaces, freeSpaces),
-        Expanded(child: _buildVehiclesList()),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCapacityInfo(maxCapacity, occupiedSpaces, freeSpaces),
+          SizedBox(height: 20),
+          _buildSearchBar(),
+          SizedBox(height: 20),
+          Text(
+            'Vehículos Registrados',
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          Expanded(child: _buildVehiclesList()),
+        ],
+      ),
     );
   }
 
   Widget _buildCapacityInfo(
       int maxCapacity, int occupiedSpaces, int freeSpaces) {
-    return Container(
-      padding: EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            parkingDetails['name'] ?? 'Parking Name',
-            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'Capacidad Total:',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                ),
+              Text(
+                'Capacidad Total:',
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
               Text(
                 '${parkingDetails['capacity'] ?? 'N/A'}',
@@ -237,11 +270,21 @@ class _ParkingScreenState extends State<ParkingScreen> {
             ],
           ),
           SizedBox(height: 10),
-          LinearProgressIndicator(
-            value: occupiedSpaces / maxCapacity,
-            minHeight: 10,
-            backgroundColor: Colors.grey[300],
-            color: Colors.blue,
+          Container(
+            height: 20,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[300],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: LinearProgressIndicator(
+                value: occupiedSpaces / maxCapacity,
+                minHeight: 20,
+                backgroundColor: Colors.transparent,
+                color: Colors.blueAccent,
+              ),
+            ),
           ),
           SizedBox(height: 10),
           Row(
@@ -249,11 +292,11 @@ class _ParkingScreenState extends State<ParkingScreen> {
             children: [
               Text(
                 "Espacios libres: $freeSpaces",
-                style: TextStyle(color: Colors.green),
+                style: TextStyle(color: Colors.green, fontSize: 16),
               ),
               Text(
                 "Espacios ocupados: $occupiedSpaces",
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.red, fontSize: 16),
               ),
             ],
           ),
@@ -262,20 +305,53 @@ class _ParkingScreenState extends State<ParkingScreen> {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 0.0),
+      child: Container(
+        height: 40,
+        child: TextField(
+          controller: searchController,
+          decoration: InputDecoration(
+            labelText: 'Buscar por placa',
+            labelStyle: TextStyle(color: Colors.grey),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+            prefixIcon: Icon(Icons.search, color: Colors.grey),
+            filled: false,
+          ),
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
   Widget _buildVehiclesList() {
-    if (vehicleEntries.isEmpty) {
+    if (filteredVehicleEntries.isEmpty) {
       return Center(
-        child: Text('No hay vehículos registrados en este parqueo.'),
+        child: Text(
+          'No hay vehículos registrados en este parqueo.',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
       );
     }
 
     return ListView.builder(
-      itemCount: vehicleEntries.length,
+      itemCount: filteredVehicleEntries.length,
       itemBuilder: (context, index) {
-        var entry = vehicleEntries[index];
+        var entry = filteredVehicleEntries[index];
         return Card(
           elevation: 4,
           margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
           child: ListTile(
             leading: getVehicleIcon(entry['vehicle']['type_vehicle']),
             title: Text(

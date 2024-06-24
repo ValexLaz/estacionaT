@@ -1,14 +1,13 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_flutter/screens_users/token_provider.dart';
 import 'package:map_flutter/services/firebase/firebase_api.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/gestures.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'create_account_page.dart';
-import 'forgot_password_screen.dart';
 import 'navigation_bar_screen.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,8 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode passwordFocusNode = FocusNode();
   bool rememberUser = false;
   bool obscurePassword = true;
-  bool _isLoading =
-      false; // Estado para controlar la visualización del indicador de carga
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -47,18 +45,21 @@ class _LoginPageState extends State<LoginPage> {
     mediaSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: const Color(0xFF4285F3),
-      body: Column(
-        children: [
-          _buildTop(),
-          Expanded(child: _buildBottom()),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTop(),
+            const SizedBox(height: 20), // Espacio entre la imagen y el card
+            _buildBottom(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTop() {
     return Container(
-      margin: EdgeInsets.only(top: 35),
+      margin: EdgeInsets.only(top: 1),
       width: mediaSize.width,
       height: mediaSize.height / 5,
       child: Center(
@@ -78,18 +79,18 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildBottom() {
-    return Container(
-      width: mediaSize.width,
-      child: Card(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+    return Expanded(
+      child: Container(
+        width: mediaSize.width,
+        child: Card(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
           child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
             child: _buildForm(),
           ),
         ),
@@ -117,11 +118,11 @@ class _LoginPageState extends State<LoginPage> {
         _buildGreyText("Contraseña"),
         _buildPasswordInputField(),
         const SizedBox(height: 20),
-        _buildRememberForgot(),
+        _buildRememberMe(),
         const SizedBox(height: 20),
         _buildLoginButton(),
         const SizedBox(height: 20),
-        _buildSignUpButton(),
+        Center(child: _buildSignUpText()), // Centrar el texto
       ],
     );
   }
@@ -162,31 +163,18 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildRememberForgot() {
+  Widget _buildRememberMe() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Checkbox(
-              value: rememberUser,
-              onChanged: (value) {
-                setState(() {
-                  rememberUser = value!;
-                });
-              },
-            ),
-            _buildGreyText("Recuérdame"),
-          ],
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-            );
+        Checkbox(
+          value: rememberUser,
+          onChanged: (value) {
+            setState(() {
+              rememberUser = value!;
+            });
           },
-          child: _buildGreyText("Olvidé mi contraseña"),
-        )
+        ),
+        _buildGreyText("Mantener inicio de sesión"),
       ],
     );
   }
@@ -199,12 +187,12 @@ class _LoginPageState extends State<LoginPage> {
           : Text("Iniciar Sesión",
               style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18)), // Increase the font size to 18
+                  fontSize: 18)), // Aumenta el tamaño de la fuente a 18
       style: ElevatedButton.styleFrom(
         backgroundColor: Theme.of(context).primaryColor,
         shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(50),
+        elevation: 0, // Sin sombra
+        minimumSize: Size.fromHeight(55),
       ),
     );
   }
@@ -240,6 +228,11 @@ class _LoginPageState extends State<LoginPage> {
         final userId = responseData['user']['id'];
 
         if (!mounted) return;
+
+        if (rememberUser) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('authToken', authToken);
+        }
 
         Provider.of<TokenProvider>(context, listen: false)
           ..token = authToken
@@ -300,25 +293,28 @@ class _LoginPageState extends State<LoginPage> {
     _showDialog('Error de inicio de sesión', message);
   }
 
-  Widget _buildSignUpButton() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const SignUpPage()),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).primaryColor,
-        shape: StadiumBorder(),
-        elevation: 20,
-        minimumSize: Size.fromHeight(50),
-      ),
-      child: Text(
-        "Crear cuenta",
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 18, // Increase the font size to 18
-        ),
+  Widget _buildSignUpText() {
+    return RichText(
+      textAlign: TextAlign.center, // Centrar el texto
+      text: TextSpan(
+        text: '¿Aun no tienes una cuenta? ',
+        style: TextStyle(color: Colors.black, fontSize: 14), // Tamaño de texto más pequeño
+        children: [
+          TextSpan(
+            text: 'Crea una aquí',
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline, // Subrayar el texto
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                );
+              },
+          ),
+        ],
       ),
     );
   }

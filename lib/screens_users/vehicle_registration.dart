@@ -12,6 +12,7 @@ class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
 
   @override
+  
   _VehicleRegistrationPageState createState() =>
       _VehicleRegistrationPageState();
 }
