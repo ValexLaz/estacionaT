@@ -59,15 +59,15 @@ class _MainScreenState extends State<MainScreen> {
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
-              label: 'Home',
+              label: 'Inicio',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.directions_car),
-              label: 'Register',
+              label: 'Registrar',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.bar_chart),
-              label: 'Reports',
+              label: 'Reportes',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_circle),
