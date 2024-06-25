@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
@@ -54,4 +53,25 @@ class DistanceService {
       }
     }
   }
+
+  static Future<String> calculateEta(LatLng start, LatLng end) async {
+    String url =
+        'https://api.mapbox.com/directions/v5/mapbox/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?steps=true&geometries=geojson&access_token=$MAPBOX_ACCESS_TOKEN';
+
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+      var duration = jsonResponse['routes'][0]['duration'];
+
+      int durationMinutes = (duration / 60).round();
+      return "$durationMinutes min.";
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+      return "No disponible";
+    }
+  }
 }
+
+
+
+

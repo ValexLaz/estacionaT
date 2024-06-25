@@ -12,7 +12,6 @@ class VehicleRegistrationPage extends StatefulWidget {
   const VehicleRegistrationPage({Key? key}) : super(key: key);
 
   @override
-  
   _VehicleRegistrationPageState createState() =>
       _VehicleRegistrationPageState();
 }
@@ -287,13 +286,13 @@ class _VehicleRegistrationPageState extends State<VehicleRegistrationPage> {
   }
 
   bool _validatePlate(String plate) {
-    final plateRegExp = RegExp(r'^[0-9]{3}[A-Z]{3,4}$');
+    final plateRegExp = RegExp(r'^[0-9]{3,4}[A-Z]{3}$');
     return plateRegExp.hasMatch(plate);
   }
 
   void _showPlateErrorDialog() {
     _showErrorDialog(
-      'Por favor, introduzca un formato de placa correcto. Ejemplo: "321ABCD"',
+      'Por favor, introduzca un formato de placa correcto. Ejemplos: "123ABC" o "1234ABC"',
     );
   }
 

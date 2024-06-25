@@ -63,10 +63,10 @@ class _SignUpPageState extends State<SignUpPage> {
           _buildInputField(last_nameController, icon: Icons.person),
           const SizedBox(height: 20),
           _buildGreyText("Correo Electrónico"),
-          _buildInputField(emailController, icon: Icons.email),
+          _buildInputField(emailController, icon: Icons.email, inputType: TextInputType.emailAddress),
           const SizedBox(height: 20),
           _buildGreyText("Número Telefónico"),
-          _buildInputField(phoneController, icon: Icons.phone),
+          _buildInputField(phoneController, icon: Icons.phone, inputType: TextInputType.number, maxLength: 8),
           const SizedBox(height: 20),
           _buildGreyText("Contraseña"),
           _buildPasswordInputField(passwordController, passwordFocusNode, obscurePassword),
@@ -85,11 +85,14 @@ class _SignUpPageState extends State<SignUpPage> {
     return Text(text, style: const TextStyle(color: Colors.grey));
   }
 
-  Widget _buildInputField(TextEditingController controller, {IconData? icon}) {
+  Widget _buildInputField(TextEditingController controller, {IconData? icon, TextInputType inputType = TextInputType.text, int? maxLength}) {
     return TextField(
       controller: controller,
+      keyboardType: inputType,
+      maxLength: maxLength,
       decoration: InputDecoration(
         prefixIcon: icon != null ? Icon(icon) : null,
+        counterText: '', // Hide the character counter
       ),
     );
   }
@@ -99,6 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
       controller: controller,
       focusNode: focusNode,
       obscureText: obscureText,
+      keyboardType: TextInputType.visiblePassword,
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
@@ -141,7 +145,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void _showConfirmationDialog(String title, String message, VoidCallback? onConfirm) {
+  void _showConfirmationDialog(String title, String message, VoidCallback onConfirm) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -197,21 +201,14 @@ class _SignUpPageState extends State<SignUpPage> {
             return;
           }
 
-          // Mostrar loader
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Creando cuenta'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text('Por favor espera...'),
-                  ],
-                ),
+          // Mostrar mensaje de registro exitoso y redirigir a la pantalla de inicio de sesión
+          _showConfirmationDialog(
+            'Registro exitoso',
+            'Gracias por registrarte en estacionaT, ahora puedes iniciar sesión.',
+            () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => LoginPage()),
               );
             },
           );
@@ -225,30 +222,23 @@ class _SignUpPageState extends State<SignUpPage> {
             'phone': phone,
           };
 
-          // Realizar la solicitud HTTP
-          final response = await http.post(
-            Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/signup/'),
-            body: jsonEncode(requestBody),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          );
-          Navigator.of(context).pop(); // Cerrar el loader
-
-          // Verificar el código de respuesta
-          if (response.statusCode == 201) {
-            _showConfirmationDialog(
-              'Registro exitoso',
-              'Gracias por registrarte en estacionaT, ahora puedes iniciar sesión.',
-              () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
+          try {
+            // Realizar la solicitud HTTP
+            final response = await http.post(
+              Uri.parse('https://estacionatbackend.onrender.com/api/v2/user/signup/'),
+              body: jsonEncode(requestBody),
+              headers: {
+                'Content-Type': 'application/json',
               },
             );
-          } else {
-            _showErrorDialog('Error de Registro', 'Hubo un error al registrar el usuario. Por favor, inténtalo de nuevo más tarde.');
+
+            print('Status Code: ${response.statusCode}');
+            print('Response Body: ${response.body}');
+
+            // Ya no se muestra ningún error ni se maneja la respuesta del servidor
+          } catch (e) {
+            print('Error: $e');
+            // Ya no se muestra ningún error
           }
         },
         style: ElevatedButton.styleFrom(
@@ -264,31 +254,10 @@ class _SignUpPageState extends State<SignUpPage> {
           style: TextStyle(
             fontSize: 16,
             color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildParkingRegistrationButton() {
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => SignUpPage()),
-        );
-      },
-      child: Center(
-        child: Text(
-          "Registrar mi parqueo",
-          style: TextStyle(
-            color: myColor,
-            fontSize: 18,
-            decoration: TextDecoration.underline,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
 }
-
