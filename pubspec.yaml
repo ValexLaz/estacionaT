@@ -60,6 +60,10 @@ dependencies:
   syncfusion_flutter_charts: ^19.4.0
  
 
+ 
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+  simple_circular_progress_bar: ^1.0.2
 dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -71,6 +75,17 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon_app.png"
+
+flutter_native_splash:
+  color: "#4285f4"  # Cambia este valor al color de fondo deseado
+  image: assets/Icons/PantallaCarga.png  # Asegúrate de que la imagen esté en la ruta correcta
+  android: true
+  ios: true
+  web: true
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
+import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
 class ParkingScreen extends StatefulWidget {
   final String parkingId;
@@ -20,6 +21,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
   bool isLoading = true;
   int vehiclesCount = 0;
   TextEditingController searchController = TextEditingController();
+  String filterType = "name"; // Default filter type
 
   @override
   void initState() {
@@ -108,95 +110,74 @@ class _ParkingScreenState extends State<ParkingScreen> {
   void _filterVehicles() {
     String query = searchController.text.toLowerCase();
     setState(() {
-      filteredVehicleEntries = vehicleEntries.where((entry) {
-        return entry['vehicle']['registration_plate']
-            .toString()
-            .toLowerCase()
-            .contains(query);
-      }).toList();
+      if (filterType == "name") {
+        filteredVehicleEntries = vehicleEntries.where((entry) {
+          return entry['vehicle']['brand']
+              .toString()
+              .toLowerCase()
+              .contains(query);
+        }).toList();
+      } else if (filterType == "minutes") {
+        filteredVehicleEntries = vehicleEntries.where((entry) {
+          int remainingTime = Random().nextInt(120);
+          return remainingTime.toString().contains(query);
+        }).toList();
+      }
     });
   }
 
   Widget getVehicleIcon(int type) {
-    switch (type) {
-      case 1:
-        return Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Image.asset('assets/Icons/sedan.png', color: Colors.white),
-          ),
-        );
-      case 2:
-        return Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child:
-                Image.asset('assets/Icons/camioneta.png', color: Colors.white),
-          ),
-        );
-      case 3:
-        return Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Image.asset('assets/Icons/jeep.png', color: Colors.white),
-          ),
-        );
-      case 4:
-        return Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(12.0),
-              child:
-                  Image.asset('assets/Icons/vagoneta.png', color: Colors.white),
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: Color(0xFF4285f4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Icon(
+          type == 1
+              ? Icons.directions_car
+              : type == 2
+                  ? Icons.local_shipping
+                  : type == 3
+                      ? Icons.directions_car_filled
+                      : type == 4
+                          ? Icons.airport_shuttle
+                          : type == 5
+                              ? Icons.motorcycle
+                              : Icons.directions_car,
+          color: Colors.white,
+          size: 32,
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _confirmDeleteVehicle(int index) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmar eliminación'),
+          content: Text('¿Está seguro de que desea eliminar este vehículo?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('Cancelar'),
             ),
-          ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Eliminar'),
+            ),
+          ],
         );
-      case 5:
-        return Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Icon(Icons.motorcycle, size: 32, color: Colors.white),
-          ),
-        );
-      default:
-        return Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.blueAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Icon(Icons.directions_car, size: 32, color: Colors.white),
-          ),
-        );
-    }
+      },
+    );
   }
 
   @override
@@ -219,7 +200,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
   Widget _buildLoadingScreen() {
     return Center(
       child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4285f4)),
       ),
     );
   }
@@ -253,50 +234,59 @@ class _ParkingScreenState extends State<ParkingScreen> {
       int maxCapacity, int occupiedSpaces, int freeSpaces) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Capacidad Total:',
-                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                '${parkingDetails['capacity'] ?? 'N/A'}',
-                style: TextStyle(fontSize: 16.0),
-              ),
-            ],
+          SimpleCircularProgressBar(
+            size: 150,
+            progressStrokeWidth: 20,
+            backStrokeWidth: 20,
+            maxValue: maxCapacity.toDouble(),
+            valueNotifier: ValueNotifier(occupiedSpaces.toDouble()),
+            progressColors: [Color(0xFF4285f4)],
+            backColor: Colors.grey[300]!,
+            onGetText: (double value) {
+              return Text(
+                '$freeSpaces/$maxCapacity\nEspacios',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
           ),
-          SizedBox(height: 10),
-          Container(
-            height: 20,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey[300],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: LinearProgressIndicator(
-                value: occupiedSpaces / maxCapacity,
-                minHeight: 20,
-                backgroundColor: Colors.transparent,
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Espacios libres: $freeSpaces",
-                style: TextStyle(color: Colors.green, fontSize: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  "Vehículos con reserva",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
-              Text(
-                "Espacios ocupados: $occupiedSpaces",
-                style: TextStyle(color: Colors.red, fontSize: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  "0",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  "Vehículos sin reserva",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  "0",
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),
@@ -310,23 +300,48 @@ class _ParkingScreenState extends State<ParkingScreen> {
       padding: const EdgeInsets.only(top: 0.0),
       child: Container(
         height: 40,
-        child: TextField(
-          controller: searchController,
-          decoration: InputDecoration(
-            labelText: 'Buscar por placa',
-            labelStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.0),
-              borderSide: BorderSide(color: Colors.grey),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  labelText: 'Buscar por placa',
+                  labelStyle: TextStyle(color: Colors.grey),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  filled: false,
+                ),
+                style: TextStyle(color: Colors.black),
+              ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.0),
-              borderSide: BorderSide(color: Colors.grey),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.filter_list, color: Colors.grey),
+              onSelected: (String result) {
+                setState(() {
+                  filterType = result;
+                  _filterVehicles();
+                });
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'name',
+                  child: Text('Filtrar por nombre'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'minutes',
+                  child: Text('Filtrar por minutos'),
+                ),
+              ],
             ),
-            prefixIcon: Icon(Icons.search, color: Colors.grey),
-            filled: false,
-          ),
-          style: TextStyle(color: Colors.black),
+          ],
         ),
       ),
     );
@@ -346,11 +361,18 @@ class _ParkingScreenState extends State<ParkingScreen> {
       itemCount: filteredVehicleEntries.length,
       itemBuilder: (context, index) {
         var entry = filteredVehicleEntries[index];
-        return Card(
-          elevation: 4,
-          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+        int remainingTime = Random().nextInt(120);
+        return Dismissible(
+          key: Key(entry['vehicle']['registration_plate']),
+          direction: DismissDirection.endToStart,
+          confirmDismiss: (direction) async {
+            return await _confirmDeleteVehicle(index);
+          },
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Icon(Icons.delete, color: Colors.white),
           ),
           child: ListTile(
             leading: getVehicleIcon(entry['vehicle']['type_vehicle']),
@@ -358,11 +380,31 @@ class _ParkingScreenState extends State<ParkingScreen> {
               "${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            subtitle: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Placa: ${entry['vehicle']['registration_plate']}"),
-                Text("Tiempo restante: ${Random().nextInt(120)} mins"),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Color(0xFF4285f4)),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    entry['vehicle']['registration_plate'],
+                    style: TextStyle(
+                      color: Color(0xFF4285f4),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text(
+                  "$remainingTime mins",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),

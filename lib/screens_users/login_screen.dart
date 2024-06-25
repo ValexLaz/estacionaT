@@ -283,11 +283,20 @@ class _LoginPageState extends State<LoginPage> {
   void _handleErrorResponse(http.Response response) {
     var responseData = jsonDecode(response.body);
     var message =
-        'Se produjo un error al procesar su solicitud. Por favor, inténtalo de nuevo más tarde.';
-    if (responseData.containsKey('detail')) {
+        'Se produjo un error al procesar su solicitud. Por favor, inténtelo de nuevo más tarde.';
+    
+    if (response.statusCode == 400) {
+      message = 'Usuario o contraseña incorrectos.';
+    } else if (responseData.containsKey('detail')) {
       message = responseData['detail'];
     } else if (responseData.containsKey('error')) {
       message = responseData['error'];
+    } else if (response.statusCode == 401) {
+      message = 'No autorizado. Verifique sus credenciales.';
+    } else if (response.statusCode == 500) {
+      message = 'Error interno del servidor. Por favor, inténtelo más tarde.';
+    } else if (response.statusCode == 404) {
+      message = 'Servicio no encontrado. Por favor, inténtelo más tarde.';
     }
 
     _showDialog('Error de inicio de sesión', message);
@@ -297,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
     return RichText(
       textAlign: TextAlign.center, // Centrar el texto
       text: TextSpan(
-        text: '¿Aun no tienes una cuenta? ',
+        text: '¿Aún no tienes una cuenta? ',
         style: TextStyle(color: Colors.black, fontSize: 14), // Tamaño de texto más pequeño
         children: [
           TextSpan(

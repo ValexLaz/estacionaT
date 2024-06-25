@@ -68,46 +68,59 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
   }
 
   Future<void> fetchData() async {
-    try {
-      List<Map<String, dynamic>> data = await apiParking.getAllParkings();
-      List<Map<String, dynamic>> addresses = await apiParking.getAllParkingAddresses();
+  try {
+    List<Map<String, dynamic>> data = await apiParking.getAllParkings();
+    List<Map<String, dynamic>> addresses = await apiParking.getAllParkingAddresses();
 
-      data = data.map((parking) {
-        var address = addresses.firstWhere((addr) => addr['parking'] == parking['id'], orElse: () => {});
-        parking['latitude'] = address['latitude'] ?? 'No disponible';
-        parking['longitude'] = address['longitude'] ?? 'No disponible';
-        parking['street'] = address['street']?.isNotEmpty == true ? address['street'] : 'Ubicación no disponible';
+    data = data.map((parking) {
+      var address = addresses.firstWhere((addr) => addr['parking'] == parking['id'], orElse: () => {});
+      parking['latitude'] = address['latitude'] ?? 'No disponible';
+      parking['longitude'] = address['longitude'] ?? 'No disponible';
+      parking['street'] = address['street']?.isNotEmpty == true ? address['street'] : 'Ubicación no disponible';
+      parking['distance_to_user'] = 'Calculando...'; // Placeholder for distance
+      parking['eta'] = 'Calc...'; // Placeholder for ETA
 
-        if (userLocation != null &&
-            parking['latitude'] != 'No disponible' &&
-            parking['longitude'] != 'No disponible') {
-          double latitude = double.tryParse(parking['latitude'].toString()) ?? 0.0;
-          double longitude = double.tryParse(parking['longitude'].toString()) ?? 0.0;
-          LatLng parkingLocation = LatLng(latitude, longitude);
-          double distance = DistanceService.calculateDistance(userLocation!, parkingLocation);
-          parking['distance_to_user'] = distance;
-        } else {
-          parking['distance_to_user'] = double.infinity;
-        }
+      return parking;
+    }).toList();
 
-        return parking;
-      }).toList();
+    setState(() {
+      parkings = data;
+      filteredParkings = data;
+      isLoading = false;
+    });
+    filterParkings(selectedFilterIndex);
 
-      await DistanceService.calculateRoutesForAllParkings(data, userLocation!);
+    await DistanceService.calculateRoutesForAllParkings(data, userLocation!);
+    data = await Future.wait(data.map((parking) async {
+      if (userLocation != null &&
+          parking['latitude'] != 'No disponible' &&
+          parking['longitude'] != 'No disponible') {
+        double latitude = double.tryParse(parking['latitude'].toString()) ?? 0.0;
+        double longitude = double.tryParse(parking['longitude'].toString()) ?? 0.0;
+        LatLng parkingLocation = LatLng(latitude, longitude);
+        double distance = DistanceService.calculateDistance(userLocation!, parkingLocation);
+        parking['distance_to_user'] = '${distance.toStringAsFixed(2)} km';
+        parking['eta'] = await DistanceService.calculateEta(userLocation!, parkingLocation);
+      } else {
+        parking['distance_to_user'] = 'No disponible';
+        parking['eta'] = 'No disponible';
+      }
+      return parking;
+    }).toList());
 
-      setState(() {
-        parkings = data;
-        filteredParkings = data;
-        isLoading = false;
-      });
-      filterParkings(selectedFilterIndex);
-    } catch (e) {
-      print('Error al obtener datos de parqueos: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
+    setState(() {
+      parkings = data;
+      filteredParkings = data;
+    });
+    filterParkings(selectedFilterIndex);
+  } catch (e) {
+    print('Error al obtener datos de parqueos: $e');
+    setState(() {
+      isLoading = false;
+    });
   }
+}
+
 
   void filterParkings(int index) {
     setState(() {
@@ -294,46 +307,45 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                                             color: Colors.black54,
                                           ),
                                         ),
-                                        if (parking.containsKey('eta') && parking.containsKey('distance'))
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 8.0),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.directions_car,
-                                                  color: Colors.black,
-                                                  size: 16,
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 8.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.directions_car,
+                                                color: Colors.black,
+                                                size: 16,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                parking['eta'] ?? 'Calculando...',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black54,
                                                 ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  '${parking['eta']}',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.black54,
-                                                  ),
+                                              ),
+                                              Container(
+                                                width: 1.0,
+                                                height: 20.0,
+                                                color: Colors.black,
+                                                margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              ),
+                                              Icon(
+                                                Icons.check_circle,
+                                                color: isAvailable ? Colors.green : Colors.red,
+                                                size: 16,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                availabilityText,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: isAvailable ? Colors.green : Colors.red,
                                                 ),
-                                                Container(
-                                                  width: 1.0,
-                                                  height: 20.0,
-                                                  color: Colors.black,
-                                                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                ),
-                                                Icon(
-                                                  Icons.check_circle,
-                                                  color: Colors.green,
-                                                  size: 16,
-                                                ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  isAvailable ? 'Disponible' : 'Sin espacios',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: isAvailable ? Colors.green : Colors.red,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -348,9 +360,9 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                                         color: Colors.blue,
                                         size: 24,
                                       ),
-                                      if (parking.containsKey('distance'))
+                                      if (parking.containsKey('distance_to_user'))
                                         Text(
-                                          parking['distance'],
+                                          parking['distance_to_user'] ?? 'Calculando...',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.blue,
@@ -369,32 +381,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
           ),
         ],
       ),
-      floatingActionButton: SizedBox(
-        height: 40.0,
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => NavigationBarScreen(),
-            ));
-          },
-          label: Text(
-            'Ver mapa',
-            style: TextStyle(
-              color: Colors.blue,
-            ),
-          ),
-          icon: Icon(
-            Icons.map,
-            color: Colors.blue,
-          ),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: Colors.blue),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ),
-      ),
+     
     );
   }
 }
