@@ -216,21 +216,12 @@ class _ListParkingsState extends State<ListParkings> {
                                           ),
                                         ),
                                         SizedBox(height: 4),
-                                        SizedBox(
-                                          height: 10,
-                                          child: LinearProgressIndicator(
-                                            value: calculateOccupancy(parqueo),
-                                            backgroundColor: Colors.grey[300],
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    primaryColor),
-                                          ),
-                                        ),
+                                  
                                         SizedBox(height: 4),
                                         Text(
-                                          '${parqueo['spaces_available']} de ${parqueo['capacity']} espacios disponibles',
+                                          '${parqueo['capacity']} espacios disponibles',
                                           style: TextStyle(
-                                            color: Colors.black87,
+                                            color: Colors.green,
                                           ),
                                         ),
                                       ],
