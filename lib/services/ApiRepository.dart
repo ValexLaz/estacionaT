@@ -29,6 +29,7 @@ abstract class ApiRepository<T> {
         body: json.encode(toJson(item)),
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 201) {
+      print(response.body);
       return fromJson(json.decode(response.body));
     } else {
       // ignore: avoid_print

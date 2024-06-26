@@ -21,8 +21,8 @@ class ReservationVehicleEntry {
 
   factory ReservationVehicleEntry.fromJson(Map<String, dynamic> json) {
     return ReservationVehicleEntry(
-      reservationData: Reservation.fromJson(json['reservation_data']),
-      vehicleEntryData: VehicleEntry.fromJson(json['vehicle_entry_data']),
+      reservationData: Reservation.fromJson(json['reservation']),
+      vehicleEntryData: VehicleEntry.fromJson(json['vehicle_entry']),
     );
   }
 }

@@ -100,15 +100,10 @@ class _PaymentDetailsState extends State<PaymentDetails> {
               LoadingDialog.showLoadingDialog(context,
                   loadingText: "Generando Qr ...");
               try {
-                String qrBase64 =
-                    await QRCodeService(id: widget.reservation.id.toString())
-                        .generateQRCode();
-                LoadingDialog.hideLoadingDialog(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => QRPayment(
-                      qrBase64: qrBase64,
                       reservation: widget.reservation,
                     ),
                   ),
@@ -230,29 +225,53 @@ class CardDebitCredit extends StatelessWidget {
 }
 
 class QRPayment extends StatelessWidget {
-  final String qrBase64;
   final Reservation reservation;
-  const QRPayment(
-      {super.key, required this.qrBase64, required this.reservation});
-
+  const QRPayment({super.key, required this.reservation});
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _createReservationAndGenerateQR(context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          return _buildQRWidget(context, snapshot.data!);
+        } else {
+          return Center(child: Text('No data'));
+        }
+      },
+    );
+  }
+
+  Future<String> _createReservationAndGenerateQR(BuildContext context) async {
+    reservation.state = ReservationState.pending;
+    final createdEntry = await ApiReservationVehicleEntry().create(
+      ReservationVehicleEntry(
+        reservationData: reservation,
+        vehicleEntryData: VehicleEntry(
+          user: Provider.of<TokenProvider>(context, listen: false).userId!,
+          vehicle: VehicleManager.instance.getId()!,
+          parking: ParkingManager.instance.parking!.id!,
+        ),
+      ),
+    );
+
+    final qrBase64 =
+        await QRCodeService(id: createdEntry.reservationData.id.toString())
+            .generateQRCode();
+    return qrBase64;
+  }
+
+  Widget _buildQRWidget(BuildContext context, String qrBase64) {
+    // Tu código existente para mostrar el QR y el botón
     return Scaffold(
         appBar: AppBar(
           title: Text('Payment'),
           leading: IconButton(
               icon: Icon(Icons.arrow_back),
-              onPressed: () async {
-                reservation.state = ReservationState.pending;
-                ApiReservationVehicleEntry().create(ReservationVehicleEntry(
-                    reservationData: reservation,
-                    vehicleEntryData: VehicleEntry(
-                      user: Provider.of<TokenProvider>(context, listen: false)
-                          .userId!,
-                      vehicle: VehicleManager.instance.getId()!,
-                      parking: ParkingManager.instance.parking!.id!,
-                    )));
-
+              onPressed: () {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -270,48 +289,12 @@ class QRPayment extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Container(
-                  margin: EdgeInsets.only(bottom: 5),
-                  child: ButtonTheme(
-                    minWidth: 200,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _downloadQRImage(context),
-                      icon: Icon(Icons.download),
-                      label: Text('Descargar QR'),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.blue), // Color de fondo del botón
-                        foregroundColor: MaterialStateProperty.all<Color>(
-                            Colors.white), // Color del texto y el icono
-                        elevation: MaterialStateProperty.all<double>(
-                            3), // Elevación del botón
-                        shape: MaterialStateProperty.all<OutlinedBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(10), // Bordes redondeados
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  // Espacio entre la imagen y el botón
-                  ),
-              Container(
                   margin: EdgeInsets.only(bottom: 60),
                   child: ButtonTheme(
                     minWidth: 200,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        reservation.state = ReservationState.pending;
-                        ApiReservationVehicleEntry()
-                            .create(ReservationVehicleEntry(
-                                reservationData: reservation,
-                                vehicleEntryData: VehicleEntry(
-                                  user: Provider.of<TokenProvider>(context,
-                                          listen: false)
-                                      .userId!,
-                                  vehicle: 91,
-                                  parking: ParkingManager.instance.parking!.id!,
-                                )));
+                        _downloadQRImage(context,qrBase64);
 
                         Navigator.pushReplacement(
                             context,
@@ -340,8 +323,8 @@ class QRPayment extends StatelessWidget {
             ]));
   }
 
-  Future<void> _downloadQRImage(BuildContext context) async {
-    final Uint8List bytes = base64Decode(qrBase64);
+  Future<void> _downloadQRImage(BuildContext context,String qrBase64) async {
+    final Uint8List bytes = base64Decode( qrBase64);
     final status = await Permission.storage.request();
     if (status.isGranted) {
       try {
