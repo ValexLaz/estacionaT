@@ -125,7 +125,7 @@ class ReservationCard extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            '${reservation.state.name}',
+                            '${reservation.state.spanish}',
                             style: TextStyle(
                               color: getBorderColor(reservation.state),
                             ),

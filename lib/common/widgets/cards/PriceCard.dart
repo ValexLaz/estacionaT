@@ -5,25 +5,20 @@ class PriceCard extends StatelessWidget {
   final Price price;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
-
   const PriceCard({
     Key? key,
     required this.price,
     this.onTap,
     this.onDelete,
   }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 4.0,
-        margin: const EdgeInsets.all(8.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), // Bordes redondeados
-        ),
-        child: Container(
+  Widget _buildCard() {
+    return Card(
+      elevation: 4.0,
+      margin: const EdgeInsets.all(8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child:Container(
           decoration: BoxDecoration(
             color: Colors.white, // Fondo blanco
             border: Border.all(color: Colors.blue, width: 2.0), // Bordes azules
@@ -76,7 +71,7 @@ class PriceCard extends StatelessWidget {
                             children: <TextSpan>[
                               TextSpan(
                                 text:
-                                    'De ${formatTimeOfDay(price.priceHour!.startTime)} a ${formatTimeOfDay(price.priceHour!.endTime)}',
+                                    'De ${price.priceHour?.startTime != null ? formatTimeOfDay(price.priceHour!.startTime!) : "08:00"} a ${price.priceHour?.endTime != null ? formatTimeOfDay(price.priceHour!.endTime!) : "20:00"}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -118,8 +113,17 @@ class PriceCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      
     );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return price.isReservation
+        ? GestureDetector(
+            onTap: onTap,
+            child: _buildCard(),
+          )
+        : _buildCard();
   }
 
   String _getPriceTypeText(Price price) {
@@ -140,7 +144,7 @@ class PriceCard extends StatelessWidget {
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-
+ 
   String capitalizeFirstLetter(String value) {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1);
