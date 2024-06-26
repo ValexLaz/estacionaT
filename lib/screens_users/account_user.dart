@@ -14,96 +14,100 @@ class CuentaScreen extends StatelessWidget {
 
     final username = Provider.of<TokenProvider>(context).username;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Cuenta',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
+              Divider(color: Colors.grey),
+            ],
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Cuenta',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold)),
-            Divider(color: Colors.grey),
+            _buildUserTile(
+              username: username!,
+              textColor: textColor,
+              lightGray: lightGray,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                );
+              },
+            ),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildSubtitle('Información', textColor),
+                  _buildListTile(
+                    title: 'Mis Vehículos',
+                    icon: Icons.directions_car,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        _createRoute(ListVehicle()),
+                      );
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Mis Parqueos',
+                    icon: Icons.local_parking,
+                    textColor: textColor,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        _createRoute(ListParkings()),
+                      );
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildSubtitle('Configuración', textColor),
+                  _buildListTile(
+                    title: 'Notificaciones',
+                    icon: Icons.notifications,
+                    textColor: textColor,
+                    onTap: () {
+                      // Lógica para notificaciones
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildListTile(
+                    title: 'Soporte y ayuda',
+                    icon: Icons.help_outline,
+                    textColor: textColor,
+                    onTap: () {
+                      // Lógica para soporte y ayuda
+                    },
+                  ),
+                  Divider(color: lightGray),
+                  _buildLogoutTile(
+                    title: 'Cerrar sesión',
+                    icon: Icons.exit_to_app,
+                    textColor: Colors.red,
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildUserTile(
-            username: username!,
-            textColor: textColor,
-            lightGray: lightGray,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-              );
-            },
-          ),
-          Expanded(
-            child: ListView(
-              children: [
-                _buildSubtitle('Información', textColor),
-                _buildListTile(
-                  title: 'Mis Vehículos',
-                  icon: Icons.directions_car,
-                  textColor: textColor,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      _createRoute(ListVehicle()),
-                    );
-                  },
-                ),
-                Divider(color: lightGray),
-                _buildListTile(
-                  title: 'Mis Parqueos',
-                  icon: Icons.local_parking,
-                  textColor: textColor,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      _createRoute(ListParkings()),
-                    );
-                  },
-                ),
-                Divider(color: lightGray),
-                _buildSubtitle('Configuración', textColor),
-                _buildListTile(
-                  title: 'Notificaciones',
-                  icon: Icons.notifications,
-                  textColor: textColor,
-                  onTap: () {
-                    // Lógica para notificaciones
-                  },
-                ),
-                Divider(color: lightGray),
-                _buildListTile(
-                  title: 'Soporte y ayuda',
-                  icon: Icons.help_outline,
-                  textColor: textColor,
-                  onTap: () {
-                    // Lógica para soporte y ayuda
-                  },
-                ),
-                Divider(color: lightGray),
-                _buildLogoutTile(
-                  title: 'Cerrar sesión',
-                  icon: Icons.exit_to_app,
-                  textColor: Colors.red,
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
