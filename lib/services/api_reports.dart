@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:map_flutter/models/statistics/ocupation.dart';
 import 'package:map_flutter/models/statistics/popular_price.dart';
 import 'package:map_flutter/models/statistics/reports.dart';
 
@@ -41,17 +42,17 @@ class ReportRepository {
       body['start_date'] = date.toIso8601String().split('T')[0];
       body['end_date'] = date.toIso8601String().split('T')[0];
     } else if (year != null) {
-      // Si se proporciona un año, lo usamos para filtrar
       body['year'] = year;
     }
 
     try {
+      
       final response = await http.post(url,
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: jsonEncode(body));
-
+   print(response.body);
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         PopularPrices popularPrices = PopularPrices.fromJson(jsonResponse);
@@ -64,6 +65,42 @@ class ReportRepository {
     } catch (e) {
       print('Error in fetchPopularPrices: $e');
       throw Exception('Failed to load popular prices');
+    }
+  }
+
+  Future<OcupationParking> fetchOccupationParking(String parkingID,
+      {DateTime? date, int? year}) async {
+    final url = Uri.parse(
+        baseUrl + "reservation/parking/" + parkingID + "/statistics/");
+
+    Map<String, dynamic> body = {};
+
+    if (date != null) {
+      body['start_date'] = date.toIso8601String().split('T')[0];
+      body['end_date'] = date.toIso8601String().split('T')[0];
+    } else if (year != null) {
+      body['year'] = year;
+    }
+
+    try {
+      final response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(body));
+      print(response.body);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        OcupationParking occupationParking = OcupationParking.fromJson(jsonResponse);
+        return occupationParking;
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to load popular prices');
+      }
+    } catch (e) {
+      print('Error in fetchOcupattion parking: $e');
+      throw Exception('Failed to load ocupation parking');
     }
   }
 
