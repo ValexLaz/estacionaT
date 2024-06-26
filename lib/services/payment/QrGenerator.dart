@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'dart:math';
 import 'package:map_flutter/models/user.dart';
 
 class QRCodeService {
@@ -77,12 +77,18 @@ class QRCodeService {
   }
 
   Future<String> getNextPaymentNumber() async {
-    return "Grupo5-17";
+    String code = generateRandomCode(5);
+    return 'Grupo5-$code';
   }
 
   Future<String> createOrder(User user, List<CartItem> cartItems) async {
     return "orderId123";
   }
+  String generateRandomCode(int length) {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  Random random = Random();
+  return List.generate(length, (index) => chars[random.nextInt(chars.length)]).join();
+}
 }
 
 class CartItem {

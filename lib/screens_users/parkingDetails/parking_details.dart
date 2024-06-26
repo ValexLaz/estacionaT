@@ -78,7 +78,6 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error fetching parking data: $e');
       setState(() {
         isLoading = false;
         ScaffoldMessenger.of(context).showSnackBar(

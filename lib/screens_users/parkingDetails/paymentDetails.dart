@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_flutter/common/managers/ParkingManager.dart';
+import 'package:map_flutter/common/managers/VehicleManager.dart';
 import 'package:map_flutter/common/widgets/CustomInfoRow.dart';
 import 'package:map_flutter/common/widgets/CustomListTile.dart';
 import 'package:map_flutter/common/widgets/LoadingDialog.dart';
@@ -198,7 +199,7 @@ class CardDebitCredit extends StatelessWidget {
                       vehicleEntryData: VehicleEntry(
                         user: Provider.of<TokenProvider>(context, listen: false)
                             .userId!,
-                        vehicle: 91,
+                        vehicle: VehicleManager.instance.getId()!,
                         parking: ParkingManager.instance.parking!.id!,
                       )));
 
@@ -248,7 +249,7 @@ class QRPayment extends StatelessWidget {
                     vehicleEntryData: VehicleEntry(
                       user: Provider.of<TokenProvider>(context, listen: false)
                           .userId!,
-                      vehicle: 91,
+                      vehicle: VehicleManager.instance.getId()!,
                       parking: ParkingManager.instance.parking!.id!,
                     )));
 

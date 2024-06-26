@@ -56,7 +56,11 @@ dependencies:
   firebase_auth: ^4.20.0
   flutter_datetime_picker_plus: ^2.2.0
   path_provider: ^2.0.9
-  image_gallery_saver: ^1.7.1   
+  image_gallery_saver: ^1.7.1  
+  syncfusion_flutter_charts: ^19.4.0
+ 
+
+ 
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.0
   simple_circular_progress_bar: ^1.0.2
