@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:map_flutter/services/api_parking.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
@@ -20,6 +19,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
   List<Map<String, dynamic>> filteredVehicleEntries = [];
   bool isLoading = true;
   int vehiclesCount = 0;
+  int reservedVehiclesCount = 0;
+  int nonReservedVehiclesCount = 0;
   TextEditingController searchController = TextEditingController();
   String filterType = "name"; // Default filter type
 
@@ -45,7 +46,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
       });
     } catch (e) {
       print('Error fetching data: $e');
-      setState(() { 
+      setState(() {
         isLoading = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -66,6 +67,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
         vehicleEntries = vehicleEntriesList;
         filteredVehicleEntries = vehicleEntriesList;
         vehiclesCount = vehicleEntries.length;
+        reservedVehiclesCount = vehicleEntries.where((entry) => entry['is_reserved'] == true).length;
+        nonReservedVehiclesCount = vehiclesCount - reservedVehiclesCount;
       });
 
       if (vehicleEntries.isNotEmpty) {
@@ -119,7 +122,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
         }).toList();
       } else if (filterType == "minutes") {
         filteredVehicleEntries = vehicleEntries.where((entry) {
-          int remainingTime = Random().nextInt(120);
+          int remainingTime = entry['remaining_time'] is int ? entry['remaining_time'] : 0; // Obtener tiempo de la API
           return remainingTime.toString().contains(query);
         }).toList();
       }
@@ -269,7 +272,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Text(
-                  "0",
+                  reservedVehiclesCount.toString(),
                   style: TextStyle(fontSize: 16),
                 ),
               ),
@@ -284,7 +287,7 @@ class _ParkingScreenState extends State<ParkingScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Text(
-                  "0",
+                  nonReservedVehiclesCount.toString(),
                   style: TextStyle(fontSize: 16),
                 ),
               ),
@@ -361,7 +364,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
       itemCount: filteredVehicleEntries.length,
       itemBuilder: (context, index) {
         var entry = filteredVehicleEntries[index];
-        int remainingTime = Random().nextInt(120);
+        int remainingTime = entry['remaining_time'] is int ? entry['remaining_time'] : 0; // Obtener tiempo de la API
+        bool isReserved = entry['is_reserved'] ?? false;
         return Dismissible(
           key: Key(entry['vehicle']['registration_plate']),
           direction: DismissDirection.endToStart,
@@ -380,8 +384,8 @@ class _ParkingScreenState extends State<ParkingScreen> {
               "${entry['vehicle']['brand']} ${entry['vehicle']['model']}",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -398,11 +402,13 @@ class _ParkingScreenState extends State<ParkingScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: 4),
                 Text(
-                  "$remainingTime mins",
+                  isReserved ? "Con reserva" : "Sin reserva",
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    color: isReserved ? Colors.green : Colors.red,
                   ),
                 ),
               ],

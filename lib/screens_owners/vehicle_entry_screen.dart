@@ -92,6 +92,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
         title: Text('Agregar vehículo', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false, // Remove the back button
+        centerTitle: true, // Center the title
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -299,7 +300,6 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       child: Row(
         children: [
           if (isPlate)
-
           Expanded(
             child: TextField(
               controller: controller,
@@ -356,7 +356,6 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       value: _selectedTypeVehicle,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.directions_car, color: primaryColor),
       ),
       onChanged: (TypeVehicle? value) {
         setState(() {
@@ -373,13 +372,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       items: _typeVehicles.map((TypeVehicle typeVehicle) {
         return DropdownMenuItem<TypeVehicle>(
           value: typeVehicle,
-          child: Row(
-            children: [
-              _getVehicleIcon(typeVehicle.name),
-              const SizedBox(width: 10),
-              Text(typeVehicle.name),
-            ],
-          ),
+          child: Text(typeVehicle.name),
         );
       }).toList(),
       hint: Text('Selecciona un tipo de vehículo'),
@@ -409,7 +402,7 @@ class _VehicleEntryPageState extends State<VehicleEntryPage> {
       items: _typePrices.map((Price price) {
         return DropdownMenuItem<Price>(
           value: price,
-          child: Text(price.price.toString()),
+          child: Text('${price.price} Bs'),
         );
       }).toList(),
     );
