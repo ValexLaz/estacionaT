@@ -39,12 +39,11 @@ class Reservation {
       totalAmount: json['total_amount'].toDouble(),
       priceId: json['price'],
       extraTime: json['extra_time'],
-      vehicleEntry : json['vehicle_entry'],
+      vehicleEntry: json['vehicle_entry'],
       reservationDate: json['reservation_date'],
       userId: json['user'],
-           state: ReservationState.values.byName((json['state'] ?? '').toString().toLowerCase()),
-      
-
+      state: ReservationState.values
+          .byName((json['state'] ?? '').toString().toLowerCase()),
     );
   }
 
@@ -72,10 +71,28 @@ class Reservation {
 
   static List<Reservation> parseList(String responseBody) {
     final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
-    return parsed.map<Reservation>((json) => Reservation.fromJson(json)).toList();
+    return parsed
+        .map<Reservation>((json) => Reservation.fromJson(json))
+        .toList();
   }
 
+  String getFormattedTotalHours() {
+    final format = DateFormat('HH:mm:ss');
+    final start = format.parse(startTime);
+    final end = format.parse(endTime);
+    final difference = end.difference(start);
 
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '$hours h $minutes min';
+    } else if (hours > 0) {
+      return '$hours h';
+    } else {
+      return '$minutes min';
+    }
+  }
 }
 
 enum ReservationState {
@@ -87,6 +104,7 @@ enum ReservationState {
   no_Show,
   modified,
 }
+
 extension ReservationStateExtension on ReservationState {
   String get value => name.toUpperCase();
 }

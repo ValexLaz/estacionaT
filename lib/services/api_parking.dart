@@ -198,7 +198,7 @@ Future<List<Map<String, dynamic>>> getVehicleEntryById(String parkingId) async {
 
   Future<Map<String,dynamic>> getByID(String id) async {
   try {
-    final response = await http.get(Uri.parse('$baseUrl$id/'));
+    final response = await http.get(Uri.parse('$baseUrl' + 'parking/parking/$id/' ));
     print(response.body);
     if (response.statusCode == 200) {
             final Map<String, dynamic> responseData = json.decode(response.body);

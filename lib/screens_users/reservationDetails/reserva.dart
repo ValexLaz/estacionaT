@@ -16,74 +16,28 @@ class ReservaScreen extends StatefulWidget {
 }
 
 class _ReservaScreenState extends State<ReservaScreen> {
-  final DatabaseReference dbRef =
-      FirebaseDatabase.instance.ref().child("parkingtime");
+  final DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("parkingtime");
   late DatabaseReference reservationRef;
   Map<String, dynamic> reservationData = {};
-  Timer _timer = Timer.periodic(Duration(seconds: 1), (timer) {});
+  Timer? _timer;
   Duration _duration = Duration(hours: 2);
   double _progress = 1.0;
   Color textColor = Colors.black;
   Color lightGray = Colors.grey.shade300;
+
+  late Reservation reservation;
+  late VehicleEntry vehicleEntry;
+  late Map<String, dynamic> vehicle;
+  Future<Map<String,dynamic>>? parking;  
+  late Map<String,dynamic> address;
+  bool dataLoaded = false;
+
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours);
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return '$hours:$minutes:$seconds';
-  }
-
-  late Reservation reservation;
-  late VehicleEntry vehicleEntry;
-  late Map<String,dynamic> vehicle;
-  late Future<Parking> parking;
-  
-  void startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        _duration = Duration(seconds: _duration.inSeconds - 1);
-        if (_duration.inSeconds == 0) {
-          _duration = Duration(hours: 0); // Reinicia el temporizador a 2 horas
-        }
-      });
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    reservationRef = dbRef.child(
-        Provider.of<TokenProvider>(context, listen: false).userId.toString());
-
-    reservationRef.onValue.listen((event) async {
-      reservationData = Map<String, dynamic>.from(event.snapshot.value as Map);
-      final newDuration = parseDurationFromString(
-          reservationData['remaining_time'] ?? "0:00:00");
-
-      reservation =
-          await ApiReservation().getByID(reservationData['reservation']);
-      vehicleEntry = await ApiVehicleEntry().getByID(reservation.vehicleEntry.toString());
-      vehicle = await ApiVehicle().getVehicleDetailsById(vehicleEntry.vehicle.toString());
-      parking = ApiParking().getByID(vehicleEntry.parking.toString())
-          as Future<Parking>;
-      
-
-      setState(() {
-        reservationData =
-            Map<String, dynamic>.from(event.snapshot.value as Map);
-        _duration = newDuration;
-        if (newDuration.inSeconds == 0 &&
-            (newDuration.inMinutes > 0 || newDuration.inHours > 0)) {
-          _duration = Duration(
-            hours: newDuration.inHours,
-            minutes: newDuration.inMinutes,
-            seconds: 59,
-          );
-        }
-      });
-      _timer.cancel();
-      startTimer();
-    });
   }
 
   Duration parseDurationFromString(String durationString) {
@@ -95,49 +49,90 @@ class _ReservaScreenState extends State<ReservaScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return Scaffold(
-        body: reservationData.isEmpty || _duration.inSeconds <= 0
-            ? Center(child: Text("Aun no tienes reservas en curso"))
-            : buildDetailsReservation());
+  void initState() {
+    super.initState();
+    reservationRef = dbRef.child(Provider.of<TokenProvider>(context, listen: false).userId.toString());
+
+    reservationRef.onValue.listen((event) async {
+      if (event.snapshot.value != null) {
+        Map<String, dynamic> newData = Map<String, dynamic>.from(event.snapshot.value as Map);
+
+        setState(() {
+          reservationData = newData;
+          _duration = parseDurationFromString(reservationData['remaining_time'] ?? "00:00:00");
+        });
+
+        if (!dataLoaded && reservationData['reservation'] != null) {
+          await loadData();
+        }
+
+        _timer?.cancel();
+        startTimer();
+      } else {
+        setState(() {
+          reservationData = {};
+          _duration = Duration.zero;
+        });
+      }
+    });
+  }
+
+  Future<void> loadData() async {
+    try {
+      reservation = await ApiReservation().getByID(reservationData['reservation']);
+      vehicleEntry = await ApiVehicleEntry().getByID(reservation.vehicleEntry.toString());
+      vehicle = await ApiVehicle().getVehicleDetailsById(vehicleEntry.vehicle.toString());
+      address = await ApiParking().getParkingAddressById(vehicleEntry.parking.toString());
+      parking = ApiParking().getByID(vehicleEntry.parking.toString()) ;
+      
+
+      setState(() {
+        dataLoaded = true;
+      });
+    } catch (e) {
+      print("Error al obtener datos: $e");
+    }
+  }
+
+  void startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_duration.inSeconds > 0) {
+          _duration = Duration(seconds: _duration.inSeconds - 1);
+        } else {
+          _timer?.cancel();
+        }
+      });
+    });
   }
 
   Widget buildDetailsReservation() {
-    return FutureBuilder<Parking>(
-      future: parking,
+    bool hasValidData = reservationData.isNotEmpty &&
+        reservationData['remaining_time'] != "00:00:00" &&
+        _duration.inSeconds > 0;
+
+    return FutureBuilder<Map<String,dynamic>?>(
+      future: hasValidData ? parking : Future.value(null),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+        if (snapshot.connectionState == ConnectionState.waiting && hasValidData) {
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          return Text('No se encontró la reservación');
+          return Center(child: Text('Error loading data'));
+        } else if (!snapshot.hasData && hasValidData) {
+          return Center(child: CircularProgressIndicator());
         } else {
           TextStyle detailsTextStyle = TextStyle(
             fontSize: 18,
             color: Colors.black,
           );
-          Parking parking = snapshot.data!;
+
+          String placeholderText = "- - - - -";
+          Map<String,dynamic>? parkingData = snapshot.data;
+
           return Container(
             color: Colors.white,
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Reserva',
-                          style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black)),
-                      Divider(color: lightGray)
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -152,14 +147,13 @@ class _ReservaScreenState extends State<ReservaScreen> {
                                 alignment: Alignment.center,
                                 children: [
                                   SizedBox(
-                                    width: 180, // Increased size of the circle
+                                    width: 180,
                                     height: 180,
                                     child: CircularProgressIndicator(
-                                      value: _progress,
+                                      value: hasValidData ? _progress : 0,
                                       backgroundColor: Colors.grey.shade300,
-                                      color: Color(
-                                          0xFF1b4ee4), // Color of the progress bar
-                                      strokeWidth: 12, // Increased thickness
+                                      color: Color(0xFF1b4ee4),
+                                      strokeWidth: 12,
                                     ),
                                   ),
                                   Column(
@@ -168,27 +162,20 @@ class _ReservaScreenState extends State<ReservaScreen> {
                                       Text(
                                         formatDuration(_duration),
                                         style: const TextStyle(
-                                          fontSize: 20, // Increased font size
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(
-                                              0xFF1b4ee4), // Matching the progress bar color
+                                          color: Color(0xFF1b4ee4),
                                         ),
                                       ),
                                       const SizedBox(height: 4),
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text('Hr',
-                                              style: TextStyle(
-                                                  color: Colors.black)),
+                                          Text('Hr', style: TextStyle(color: Colors.black)),
                                           SizedBox(width: 12),
-                                          Text('Min',
-                                              style: TextStyle(
-                                                  color: Colors.black)),
+                                          Text('Min', style: TextStyle(color: Colors.black)),
                                           SizedBox(width: 12),
-                                          Text('Sec',
-                                              style: TextStyle(
-                                                  color: Colors.black)),
+                                          Text('Sec', style: TextStyle(color: Colors.black)),
                                         ],
                                       ),
                                     ],
@@ -204,42 +191,60 @@ class _ReservaScreenState extends State<ReservaScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(parking.name!,
+                              Text(
+                                  hasValidData && parkingData != null
+                                      ? parkingData["name"]!
+                                      : placeholderText,
                                   style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold)),
                               Divider(color: Colors.grey),
                               ListTile(
-                                title:
-                                    Text('Direccion', style: detailsTextStyle),
-                                trailing: Text('Av. Banzer 2do. Anillo',
+                                title: Text('Direccion', style: detailsTextStyle),
+                                trailing: Text(
+                                    hasValidData
+                                        ? address['street'] 
+                                        : placeholderText,
                                     style: detailsTextStyle),
                               ),
                               ListTile(
-                                title: Text('Mi Vehiculo',
-                                    style: detailsTextStyle),
-                                trailing: Text(vehicle['brand'],
+                                title: Text('Mi Vehiculo', style: detailsTextStyle),
+                                trailing: Text(
+                                    hasValidData
+                                        ? vehicle['brand']
+                                        : placeholderText,
                                     style: detailsTextStyle),
                               ),
                               ListTile(
                                 title: Text('Placa', style: detailsTextStyle),
-                                trailing:
-                                    Text(vehicle['registration_plate'], style: detailsTextStyle),
+                                trailing: Text(
+                                    hasValidData
+                                        ? vehicle['registration_plate']
+                                        : placeholderText,
+                                    style: detailsTextStyle),
                               ),
                               ListTile(
                                 title: Text('Hora', style: detailsTextStyle),
                                 trailing: Text(
-                                    '${reservation.startTime} - ${reservation.endTime}',
+                                    hasValidData
+                                        ? '${reservation.startTime} - ${reservation.endTime}'
+                                        : placeholderText,
                                     style: detailsTextStyle),
                               ),
                               ListTile(
                                 title: Text('Horas Totales', style: detailsTextStyle),
-                                trailing: Text('${reservation.getTotalHours()} ',
+                                trailing: Text(
+                                    hasValidData
+                                        ? '${reservation.getFormattedTotalHours()} '
+                                        : placeholderText,
                                     style: detailsTextStyle),
                               ),
                               ListTile(
                                 title: Text('Total', style: detailsTextStyle),
-                                trailing: Text('${reservation.totalAmount} Bs',
+                                trailing: Text(
+                                    hasValidData
+                                        ? '${reservation.totalAmount} Bs'
+                                        : placeholderText,
                                     style: detailsTextStyle),
                               ),
                             ],
@@ -258,8 +263,15 @@ class _ReservaScreenState extends State<ReservaScreen> {
   }
 
   @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: buildDetailsReservation(),
+    );
+  }
+
+  @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 }
