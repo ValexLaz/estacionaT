@@ -58,7 +58,9 @@ class _MapScreenState extends State<MapScreen> {
               color: Colors.red,
               size: 40,
             ),
+            rotate: false,
           );
+
           _mapController.move(myPosition!, 18.0);
         });
       }
@@ -133,6 +135,7 @@ class _MapScreenState extends State<MapScreen> {
                     size: 30,
                   ),
                 ),
+                rotate: false,
               );
             }
             return m;
@@ -329,7 +332,6 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
                 Row(
                   children: [
                     Container(
@@ -357,7 +359,7 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     Text(
                       _lowestPrice != null ? '$_lowestPrice Bs/hora' : 'N/A',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 10),
                     Container(width: 1, height: 20, color: Colors.black),
@@ -365,7 +367,7 @@ class _MapScreenState extends State<MapScreen> {
                     const Icon(Icons.access_time),
                     const Text(
                       '9am - 10pm',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -436,7 +438,11 @@ class _MapScreenState extends State<MapScreen> {
   Widget buildMap() {
     return FlutterMap(
       mapController: _mapController,
-      options: MapOptions(center: myPosition, zoom: 18),
+      options: MapOptions(
+        center: myPosition,
+        zoom: 18,
+        interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate, // Deshabilitar la rotación
+      ),
       children: [
         TileLayer(
           urlTemplate: 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
@@ -466,11 +472,12 @@ class _MapScreenState extends State<MapScreen> {
           ),
           child: const Icon(
             Icons.local_parking,
-            color: Colors.white,
+            color: Colors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  .white,
             size: 24,
           ),
         ),
       ),
+      rotate: false,
     );
   }
 }

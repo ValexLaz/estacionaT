@@ -78,7 +78,7 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
       parking['longitude'] = address['longitude'] ?? 'No disponible';
       parking['street'] = address['street']?.isNotEmpty == true ? address['street'] : 'Ubicación no disponible';
       parking['distance_to_user'] = 'Calculando...'; // Placeholder for distance
-      parking['eta'] = 'Calc...'; // Placeholder for ETA
+      parking['eta'] = 'Calculando...'; // Placeholder for ETA
 
       return parking;
     }).toList();
@@ -317,13 +317,19 @@ class _ParkingsScreenState extends State<ParkingsScreen> {
                                                 size: 16,
                                               ),
                                               SizedBox(width: 4),
-                                              Text(
-                                                parking['eta'] ?? 'Calculando...',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black54,
-                                                ),
-                                              ),
+                                              parking['eta'] == 'Calculando...'
+                                                ? SizedBox(
+                                                    height: 14,
+                                                    width: 14,
+                                                    child: CircularProgressIndicator(strokeWidth: 1.5),
+                                                  )
+                                                : Text(
+                                                    parking['eta'] ?? 'Calculando...',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black54,
+                                                    ),
+                                                  ),
                                               Container(
                                                 width: 1.0,
                                                 height: 20.0,
