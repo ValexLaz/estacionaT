@@ -136,113 +136,80 @@ class _ListParkingsState extends State<ListParkings> {
                             itemCount: parqueos.length,
                             itemBuilder: (context, index) {
                               var parqueo = parqueos[index];
-                              return InkWell(
-                                onTap: () {
-                                  ParkingManager.instance.setParking(Parking(
-                                      id: parqueo['id'], name: parqueo['name']));
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => MainScreen(
-                                            parkingId: parqueo['id'].toString())),
-                                  );
-                                },
-                                child: Card(
-                                  color: Colors.white,
-                                  margin: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            left: 8.0,
-                                            top: 8.0,
-                                            bottom: 8.0), // Ajusta los márgenes
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          child: parqueo['url_image'] != null &&
-                                                  parqueo['url_image'].isNotEmpty
-                                              ? Image.network(
-                                                  parqueo['url_image'],
-                                                  width: 100,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return Image.asset(
-                                                      'assets/images/Logotipo.png',
-                                                      width: 100,
-                                                      height: 100,
-                                                      fit: BoxFit.cover,
-                                                    );
-                                                  },
-                                                )
-                                              : Image.asset(
-                                                  'assets/images/Logotipo.png',
-                                                  width: 100,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                ),
+                              return ListTile(
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 16.0,
+                                ),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: parqueo['url_image'] != null &&
+                                          parqueo['url_image'].isNotEmpty
+                                      ? Image.network(
+                                          parqueo['url_image'],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error,
+                                              stackTrace) {
+                                            return Image.asset(
+                                              'assets/images/Logotipo.png',
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        )
+                                      : Image.asset(
+                                          'assets/images/Logotipo.png',
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
                                         ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                parqueo['name'] ?? '',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.black,
-                                                  fontSize: 17,
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Text(
-                                                parqueo['street'] ?? '',
-                                                style: TextStyle(
-                                                  color: Colors.black54,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              SizedBox(
-  height: 10, // Ajusta esta altura según tus necesidades
-  child: LinearProgressIndicator(
-    value: calculateOccupancy(parqueo),
-    backgroundColor: Colors.grey[300],
-    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-  ),
-),
-
-                                              SizedBox(height: 4),
-                                              Text(
-                                                '${parqueo['spaces_available']} de ${parqueo['capacity']} espacios disponibles',
-                                                style: TextStyle(
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete,
-                                            color: Colors.blue),
-                                        onPressed: () async {
-                                          await deleteParking(
-                                              parqueo['id'].toString());
-                                        },
-                                      ),
-                                    ],
+                                ),
+                                title: Text(
+                                  parqueo['name'] ?? '',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 17,
                                   ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      parqueo['street'] ?? '',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    SizedBox(
+                                      height: 10,
+                                      child: LinearProgressIndicator(
+                                        value: calculateOccupancy(parqueo),
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                primaryColor),
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      '${parqueo['spaces_available']} de ${parqueo['capacity']} espacios disponibles',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () async {
+                                    await deleteParking(parqueo['id'].toString());
+                                  },
                                 ),
                               );
                             },
@@ -262,8 +229,7 @@ class _ListParkingsState extends State<ListParkings> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF4285f4),
                       padding: EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 100), // Increase horizontal padding
+                          vertical: 12, horizontal: 100),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

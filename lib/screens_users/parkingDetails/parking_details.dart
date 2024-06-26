@@ -339,15 +339,31 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
         return Center(child: Text('No se encontraron horarios.'));
       } else {
         List<OpeningHours> openingHours = snapshot.data!;
+        // Mapear los nombres de los días con tildes a los nombres sin tildes
+        Map<String, String> dayMap = {
+          'lunes': 'Lunes',
+          'martes': 'Martes',
+          'miércoles': 'Miércoles',
+          'jueves': 'Jueves',
+          'viernes': 'Viernes',
+          'sábado': 'Sábado',
+          'domingo': 'Domingo'
+        };
+        // Convertir los nombres de los días y evitar valores nulos
+        openingHours.forEach((hour) {
+          if (hour.day != null && dayMap[hour.day!.toLowerCase()] != null) {
+            hour.day = dayMap[hour.day!.toLowerCase()];
+          }
+        });
         // Ordenar los horarios de lunes a domingo sin tildes
         openingHours.sort((a, b) {
           final daysOfWeek = [
             'Lunes',
             'Martes',
-            'Miercoles',
+            'Miércoles',
             'Jueves',
             'Viernes',
-            'Sabado',
+            'Sábado',
             'Domingo'
           ];
           return daysOfWeek.indexOf(a.day ?? '') -
@@ -364,7 +380,7 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
                   Icon(Icons.access_time_filled, color: Colors.black),
                   SizedBox(width: 8),
                   Text(
-                    'Horarios de Atencion',
+                    'Horarios de Atención',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                 ],
@@ -405,6 +421,7 @@ class _ParkingDetailsScreen2State extends State<ParkingDetailsScreen2> {
     },
   );
 }
+
 
 String formatTime(String? time) {
   if (time == null || time.isEmpty) return '';
