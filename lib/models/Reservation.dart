@@ -107,4 +107,24 @@ enum ReservationState {
 
 extension ReservationStateExtension on ReservationState {
   String get value => name.toUpperCase();
+   String get spanish {
+    switch (this) {
+      case ReservationState.pending:
+        return 'Pendiente';
+      case ReservationState.confirmed:
+        return 'Confirmado';
+      case ReservationState.active:
+        return 'Activo';
+      case ReservationState.completed:
+        return 'Completado';
+      case ReservationState.cancelled:
+        return 'Cancelado';
+      case ReservationState.no_Show:
+        return 'No Asistió';
+      case ReservationState.modified:
+        return 'Modificado';
+      default:
+        return name; 
+    }
+  }
 }
