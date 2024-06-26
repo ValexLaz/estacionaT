@@ -87,7 +87,7 @@ class _ReservationFormScreenState extends State<ReservationFormScreen> {
       );
 
       ReservationManager().setReservation(newReservation);
-      VehicleManager.instance.setId(int.parse(_vehicleIDCtrl.value.toString()));
+      VehicleManager.instance.setId(int.parse(_vehicleIDCtrl.text.trim()));
       Navigator.push(
         context,
         MaterialPageRoute(
