@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      //debugShowCheckedModeBanner: false,
       title: 'Login Demo',
       theme: ThemeData(
         useMaterial3: true,
